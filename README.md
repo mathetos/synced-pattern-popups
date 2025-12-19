@@ -11,6 +11,10 @@ A lightweight WordPress plugin that displays modal popups with content from Word
 - **Performance**: Cached rendered HTML for faster loading
 - **No Build Process**: Plain CSS and JavaScript - works immediately after activation
 
+![Admin Menu Location](assets/img/screenshot-1.png)
+
+*Synced Patterns menu item under Appearance*
+
 ## Installation
 
 1. Upload the `simplest-popup` folder to `/wp-content/plugins/`
@@ -48,6 +52,10 @@ Set the `href` attribute to `#wppt-popup-{id}` on any link element. This is espe
 2. Set the URL to `#wppt-popup-1359` (replace `1359` with your pattern ID)
 3. The link will automatically trigger the popup when clicked
 
+![Block Editor Link Setup](assets/img/screenshot-2.png)
+
+*Setting the href attribute in the Block Editor*
+
 ### Finding Your Synced Pattern ID
 
 The easiest way to find pattern IDs is through the admin interface:
@@ -55,8 +63,12 @@ The easiest way to find pattern IDs is through the admin interface:
 1. Go to **WordPress Admin → Appearance → Synced Patterns**
 2. You'll see a table listing all available synced patterns
 3. The **ID** column shows the pattern ID prominently (e.g., `1359`)
-4. You can click the copy button next to the ID or trigger code to copy it
+4. You can click the "Copy Trigger" button in the Actions column to copy the trigger code
 5. The **Trigger Code** column shows the complete class name (e.g., `wppt-popup-1359`)
+
+![Synced Patterns Admin Table](assets/img/screenshot-5.png)
+
+*The Synced Patterns admin interface showing all available patterns with their IDs and trigger codes*
 
 **Note:** Only synced patterns (not unsynced patterns) can be used for popups. The admin interface only shows synced patterns.
 
@@ -72,6 +84,18 @@ You can have multiple different popups on the same page - just use different pat
 <!-- Using href attributes (great for Block Editor) -->
 <a href="#wppt-popup-1501">Open Pattern 1501</a>
 ```
+
+### Modal Examples
+
+The modal supports any content you can create in a Synced Pattern - from simple text to complex layouts with images, grids, and more.
+
+![Modal with Rich Content](assets/img/screenshot-3.png)
+
+*Example modal displaying an Instagram-style grid layout*
+
+![Modal with Text Content](assets/img/screenshot-4.png)
+
+*Example modal with simple text and list content*
 
 ### Creating New Synced Patterns
 
@@ -134,6 +158,8 @@ simplest-popup/
 │   ├── css/
 │   │   ├── modal.css          # Modal styles
 │   │   └── admin.css          # Admin styles
+│   ├── img/
+│   │   └── screenshot-*.png   # Screenshots for documentation
 │   └── js/
 │       ├── modal.js           # Modal JavaScript
 │       └── admin.js           # Admin JavaScript
