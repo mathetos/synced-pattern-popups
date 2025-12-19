@@ -1,0 +1,423 @@
+/**
+ * Simplest Popup Modal Styles
+ * No build process - plain CSS
+ */
+
+.simplest-popup-modal {
+	position: fixed;
+	top: 0;
+	left: 0;
+	width: 100%;
+	height: 100%;
+	z-index: 999999;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	padding: 20px;
+	box-sizing: border-box;
+	/* Support for mobile browser chrome (safe area) */
+	padding-top: max(20px, env(safe-area-inset-top));
+	padding-bottom: max(20px, env(safe-area-inset-bottom));
+	padding-left: max(20px, env(safe-area-inset-left));
+	padding-right: max(20px, env(safe-area-inset-right));
+}
+
+.simplest-popup-overlay {
+	position: absolute;
+	top: 0;
+	left: 0;
+	width: 100%;
+	height: 100%;
+	background: rgba(0, 0, 0, 0.1);
+	backdrop-filter: blur(8px);
+	-webkit-backdrop-filter: blur(8px);
+}
+
+.simplest-popup-container {
+	position: relative;
+	width: 100%;
+	max-width: 600px;
+	max-height: 90vh;
+	z-index: 1;
+	/* Fixed 6px border radius */
+	border-radius: 6px;
+	/* Ensure inline max-width from JavaScript is respected */
+	box-sizing: border-box;
+	/* Create stacking context for gradient border */
+	isolation: isolate;
+}
+
+/* Gradient border effect */
+.simplest-popup-container::before {
+	content: '';
+	position: absolute;
+	top: -3px;
+	left: -3px;
+	right: -3px;
+	bottom: -3px;
+	border-radius: 9px;
+	background: conic-gradient(
+		from 0deg,
+		rgba(255, 105, 180, 0.8),
+		rgba(138, 43, 226, 0.8),
+		rgba(75, 0, 130, 0.8),
+		rgba(0, 191, 255, 0.8),
+		rgba(255, 105, 180, 0.8)
+	);
+	z-index: -1;
+	pointer-events: none;
+	/* Mask to show only the border area */
+	mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+	mask-composite: exclude;
+	-webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+	-webkit-mask-composite: destination-out;
+	padding: 3px;
+}
+
+.simplest-popup-content::-webkit-scrollbar {
+	width: 8px;
+}
+
+.simplest-popup-content::-webkit-scrollbar-track {
+	background: transparent;
+}
+
+.simplest-popup-content::-webkit-scrollbar-thumb {
+	background: rgba(0, 0, 0, 0.2);
+	border-radius: 4px;
+}
+
+.simplest-popup-content::-webkit-scrollbar-thumb:hover {
+	background: rgba(0, 0, 0, 0.3);
+}
+
+.simplest-popup-footer {
+	position: sticky;
+	bottom: 0;
+	background: #ffffff;
+	padding: 16px 32px;
+	border-top: 1px solid rgba(0, 0, 0, 0.1);
+	display: flex;
+	justify-content: flex-end;
+	z-index: 2;
+	flex-shrink: 0;
+}
+
+.simplest-popup-close-footer {
+	background: none;
+	border: none;
+	color: #666;
+	font-size: 16px;
+	cursor: pointer;
+	padding: 8px 0;
+	transition: color 0.2s ease;
+	text-decoration: none;
+	font-family: inherit;
+	line-height: 1.5;
+}
+
+.simplest-popup-close-footer:hover {
+	color: #000;
+}
+
+.simplest-popup-close-footer:focus {
+	outline: 2px solid #5E53C0;
+	outline-offset: 2px;
+	border-radius: 2px;
+}
+
+.simplest-popup-card {
+	background: #ffffff;
+	border-radius: 8px;
+	box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+	position: relative;
+	padding: 0;
+	animation: simplest-popup-fade-in 0.3s ease-out;
+	/* Ensure content doesn't overflow */
+	overflow: hidden;
+	border: none;
+	/* Flexbox for footer positioning */
+	display: flex;
+	flex-direction: column;
+	height: 100%;
+	max-height: 90vh;
+	z-index: 1;
+}
+
+/* Make images and media responsive within the modal */
+.simplest-popup-content img,
+.simplest-popup-content video,
+.simplest-popup-content iframe,
+.simplest-popup-content embed,
+.simplest-popup-content object {
+	max-width: 100%;
+	height: auto;
+}
+
+.simplest-popup-content iframe,
+.simplest-popup-content embed,
+.simplest-popup-content object {
+	width: 100%;
+}
+
+@keyframes simplest-popup-fade-in {
+	from {
+		opacity: 0;
+		transform: scale(0.95) translateY(-20px);
+	}
+	to {
+		opacity: 1;
+		transform: scale(1) translateY(0);
+	}
+}
+
+.simplest-popup-close {
+	position: absolute;
+	top: 16px;
+	right: 16px;
+	background: rgba(255, 255, 255, 0.9);
+	border: 1px solid rgba(0, 0, 0, 0.1);
+	border-radius: 50%;
+	cursor: pointer;
+	padding: 8px;
+	color: #666;
+	transition: all 0.2s ease;
+	z-index: 10;
+	line-height: 1;
+	width: 40px;
+	height: 40px;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	/* Larger touch target for mobile */
+	min-width: 44px;
+	min-height: 44px;
+	box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.simplest-popup-close:hover {
+	color: #000;
+	background: rgba(255, 255, 255, 1);
+	transform: scale(1.1);
+}
+
+.simplest-popup-close:active {
+	transform: scale(0.95);
+}
+
+.simplest-popup-close:focus {
+	outline: 2px solid #5E53C0;
+	outline-offset: 2px;
+}
+
+.simplest-popup-close svg {
+	width: 20px;
+	height: 20px;
+}
+
+.simplest-popup-content {
+	width: 100%;
+	min-height: 200px;
+	position: relative;
+	z-index: 1;
+	/* Make content scrollable */
+	overflow-y: auto;
+	overflow-x: hidden;
+	flex: 1;
+	padding: 32px;
+	/* Smooth scrolling on iOS */
+	-webkit-overflow-scrolling: touch;
+	/* Better scrollbar appearance */
+	scrollbar-width: thin;
+	scrollbar-color: rgba(0, 0, 0, 0.2) transparent;
+}
+
+.simplest-popup-loading {
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	justify-content: center;
+	padding: 60px 20px;
+	text-align: center;
+}
+
+.simplest-popup-loading p {
+	margin-top: 20px;
+	color: #666;
+	font-size: 16px;
+	margin-bottom: 0;
+}
+
+.simplest-popup-spinner {
+	width: 50px;
+	height: 50px;
+	border: 4px solid #f3f3f3;
+	border-top: 4px solid #5E53C0;
+	border-radius: 50%;
+	animation: simplest-popup-spin 1s linear infinite;
+}
+
+@keyframes simplest-popup-spin {
+	0% {
+		transform: rotate(0deg);
+	}
+	100% {
+		transform: rotate(360deg);
+	}
+}
+
+.simplest-popup-modal.active {
+	display: flex;
+}
+
+body.simplest-popup-open {
+	overflow: hidden;
+	/* Prevent body scroll on mobile */
+	position: fixed;
+	width: 100%;
+	height: 100%;
+}
+
+/* Responsive breakpoints */
+
+/* Small devices (phones, 480px and down) */
+@media screen and (max-width: 480px) {
+	.simplest-popup-modal {
+		padding: 10px;
+		padding-top: max(10px, env(safe-area-inset-top));
+		padding-bottom: max(10px, env(safe-area-inset-bottom));
+		padding-left: max(10px, env(safe-area-inset-left));
+		padding-right: max(10px, env(safe-area-inset-right));
+	}
+
+	.simplest-popup-container {
+		max-width: 100%;
+		max-height: calc(100vh - 20px);
+		max-height: calc(100vh - max(20px, env(safe-area-inset-top)) - max(20px, env(safe-area-inset-bottom)));
+		border-radius: 6px;
+	}
+
+	.simplest-popup-container::before {
+		border-radius: 8px;
+	}
+
+	.simplest-popup-card {
+		box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+	}
+
+	.simplest-popup-content {
+		padding: 20px 16px;
+	}
+
+	.simplest-popup-footer {
+		padding: 12px 16px;
+	}
+
+	.simplest-popup-close {
+		top: 12px;
+		right: 12px;
+		width: 44px;
+		height: 44px;
+		padding: 10px;
+		background: rgba(255, 255, 255, 0.95);
+	}
+
+	.simplest-popup-close svg {
+		width: 24px;
+		height: 24px;
+	}
+
+	.simplest-popup-loading {
+		padding: 40px 16px;
+	}
+
+	.simplest-popup-loading p {
+		font-size: 14px;
+	}
+}
+
+/* Medium devices (tablets, 481px to 768px) */
+@media screen and (min-width: 481px) and (max-width: 768px) {
+	.simplest-popup-modal {
+		padding: 15px;
+	}
+
+	.simplest-popup-container {
+		max-width: 90%;
+		max-height: 85vh;
+	}
+
+	.simplest-popup-content {
+		padding: 24px;
+	}
+
+	.simplest-popup-footer {
+		padding: 14px 24px;
+	}
+}
+
+/* Large devices (desktops, 769px and up) */
+@media screen and (min-width: 769px) {
+	.simplest-popup-container {
+		max-width: 600px;
+	}
+}
+
+/* Extra large devices (large desktops, 1200px and up) */
+@media screen and (min-width: 1200px) {
+	.simplest-popup-container {
+		max-width: 700px;
+	}
+}
+
+/* Landscape orientation on mobile */
+@media screen and (max-height: 500px) and (orientation: landscape) {
+	.simplest-popup-modal {
+		padding: 10px;
+		align-items: flex-start;
+		padding-top: max(10px, env(safe-area-inset-top));
+	}
+
+	.simplest-popup-container {
+		max-height: calc(100vh - 20px);
+		max-height: calc(100vh - max(20px, env(safe-area-inset-top)) - max(20px, env(safe-area-inset-bottom)));
+		margin-top: 10px;
+		border-radius: 6px;
+	}
+
+	.simplest-popup-container::before {
+		border-radius: 8px;
+	}
+
+	.simplest-popup-content {
+		padding: 16px;
+	}
+
+	.simplest-popup-footer {
+		padding: 12px 16px;
+	}
+}
+
+/* High DPI displays */
+@media screen and (-webkit-min-device-pixel-ratio: 2),
+	screen and (min-resolution: 192dpi) {
+	.simplest-popup-card {
+		box-shadow: 0 20px 60px rgba(0, 0, 0, 0.25);
+	}
+}
+
+/* Reduced motion preference */
+@media (prefers-reduced-motion: reduce) {
+	.simplest-popup-card {
+		animation: none;
+	}
+
+	.simplest-popup-close {
+		transition: none;
+	}
+
+	.simplest-popup-close:hover {
+		transform: none;
+	}
+}
+
