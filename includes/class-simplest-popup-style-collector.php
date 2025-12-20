@@ -307,6 +307,39 @@ class Simplest_Popup_Style_Collector {
 	}
 
 	/**
+	 * Extract inline assets (before/after) from WordPress dependencies
+	 * Helper method to eliminate duplication between CSS and JS extraction
+	 *
+	 * @param WP_Dependencies $deps WordPress dependencies object (wp_styles or wp_scripts)
+	 * @param string          $handle Asset handle
+	 * @return array Array with 'inline_before' and 'inline_after' keys
+	 */
+	private function extract_inline_assets( $deps, $handle ) {
+		$result = array(
+			'inline_before' => '',
+			'inline_after'  => '',
+		);
+
+		// Get inline before
+		$inline_before = $deps->get_data( $handle, 'before' );
+		if ( $inline_before && is_array( $inline_before ) ) {
+			$result['inline_before'] = implode( "\n", $inline_before );
+		} elseif ( $inline_before && is_string( $inline_before ) ) {
+			$result['inline_before'] = $inline_before;
+		}
+
+		// Get inline after
+		$inline_after = $deps->get_data( $handle, 'after' );
+		if ( $inline_after && is_array( $inline_after ) ) {
+			$result['inline_after'] = implode( "\n", $inline_after );
+		} elseif ( $inline_after && is_string( $inline_after ) ) {
+			$result['inline_after'] = $inline_after;
+		}
+
+		return $result;
+	}
+
+	/**
 	 * Get asset data (styles and scripts with inline CSS/JS)
 	 * This should be called after finish_collection() to get full asset information
 	 *
@@ -339,44 +372,19 @@ class Simplest_Popup_Style_Collector {
 
 			// Get src URL
 			if ( ! empty( $style_obj->src ) ) {
-				$src = $style_obj->src;
-
-				// If relative URL, make it absolute
-				if ( ! preg_match( '|^(https?:)?//|', $src ) ) {
-					if ( $wp_styles->content_url && str_starts_with( $src, $wp_styles->content_url ) ) {
-						// Already has content URL
-					} else {
-						// Use base URL
-						$src = $wp_styles->base_url . $src;
-					}
-				}
-
-				// Add version if available
-				if ( ! empty( $style_obj->ver ) ) {
-					$src = add_query_arg( 'ver', $style_obj->ver, $src );
-				}
-
-				// Apply filter (same as WordPress does)
-				$src = apply_filters( 'style_loader_src', $src, $handle );
-
-				$asset['src'] = esc_url( $src );
+				$asset['src'] = Simplest_Popup_Plugin::normalize_asset_url(
+					$style_obj->src,
+					$handle,
+					'style',
+					isset( $style_obj->ver ) ? $style_obj->ver : '',
+					$wp_styles
+				);
 			}
 
-			// Get inline CSS (before)
-			$inline_before = $wp_styles->get_data( $handle, 'before' );
-			if ( $inline_before && is_array( $inline_before ) ) {
-				$asset['inline_before'] = implode( "\n", $inline_before );
-			} elseif ( $inline_before && is_string( $inline_before ) ) {
-				$asset['inline_before'] = $inline_before;
-			}
-
-			// Get inline CSS (after)
-			$inline_after = $wp_styles->get_data( $handle, 'after' );
-			if ( $inline_after && is_array( $inline_after ) ) {
-				$asset['inline_after'] = implode( "\n", $inline_after );
-			} elseif ( $inline_after && is_string( $inline_after ) ) {
-				$asset['inline_after'] = $inline_after;
-			}
+			// Get inline CSS (before/after)
+			$inline_assets = $this->extract_inline_assets( $wp_styles, $handle );
+			$asset['inline_before'] = $inline_assets['inline_before'];
+			$asset['inline_after'] = $inline_assets['inline_after'];
 
 				// Only add if there's at least a src or inline CSS
 				if ( ! empty( $asset['src'] ) || ! empty( $asset['inline_before'] ) || ! empty( $asset['inline_after'] ) ) {
@@ -404,44 +412,19 @@ class Simplest_Popup_Style_Collector {
 
 			// Get src URL
 			if ( ! empty( $script_obj->src ) ) {
-				$src = $script_obj->src;
-
-				// If relative URL, make it absolute
-				if ( ! preg_match( '|^(https?:)?//|', $src ) ) {
-					if ( $wp_scripts->content_url && str_starts_with( $src, $wp_scripts->content_url ) ) {
-						// Already has content URL
-					} else {
-						// Use base URL
-						$src = $wp_scripts->base_url . $src;
-					}
-				}
-
-				// Add version if available
-				if ( ! empty( $script_obj->ver ) ) {
-					$src = add_query_arg( 'ver', $script_obj->ver, $src );
-				}
-
-				// Apply filter (same as WordPress does)
-				$src = apply_filters( 'script_loader_src', $src, $handle );
-
-				$asset['src'] = esc_url( $src );
+				$asset['src'] = Simplest_Popup_Plugin::normalize_asset_url(
+					$script_obj->src,
+					$handle,
+					'script',
+					isset( $script_obj->ver ) ? $script_obj->ver : '',
+					$wp_scripts
+				);
 			}
 
-			// Get inline JS (before)
-			$inline_before = $wp_scripts->get_data( $handle, 'before' );
-			if ( $inline_before && is_array( $inline_before ) ) {
-				$asset['inline_before'] = implode( "\n", $inline_before );
-			} elseif ( $inline_before && is_string( $inline_before ) ) {
-				$asset['inline_before'] = $inline_before;
-			}
-
-			// Get inline JS (after)
-			$inline_after = $wp_scripts->get_data( $handle, 'after' );
-			if ( $inline_after && is_array( $inline_after ) ) {
-				$asset['inline_after'] = implode( "\n", $inline_after );
-			} elseif ( $inline_after && is_string( $inline_after ) ) {
-				$asset['inline_after'] = $inline_after;
-			}
+			// Get inline JS (before/after)
+			$inline_assets = $this->extract_inline_assets( $wp_scripts, $handle );
+			$asset['inline_before'] = $inline_assets['inline_before'];
+			$asset['inline_after'] = $inline_assets['inline_after'];
 
 			// Only add if there's at least a src or inline JS
 			if ( ! empty( $asset['src'] ) || ! empty( $asset['inline_before'] ) || ! empty( $asset['inline_after'] ) ) {

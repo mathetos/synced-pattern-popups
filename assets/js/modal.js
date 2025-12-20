@@ -85,36 +85,6 @@
 		return null;
 	}
 
-	/**
-	 * Extract pattern ID and optional max-width from class name
-	 *
-	 * @param {string} className Class name string
-	 * @return {object|null} Object with id and maxWidth, or null if not found
-	 */
-	function extractIdFromClass(className) {
-		if (!className) {
-			return null;
-		}
-
-		var classes = className.split(/\s+/);
-		for (var i = 0; i < classes.length; i++) {
-			var result = extractPatternData(classes[i], false);
-			if (result) {
-				return result;
-			}
-		}
-		return null;
-	}
-
-	/**
-	 * Extract pattern ID and optional max-width from href attribute
-	 *
-	 * @param {string} href Href attribute value
-	 * @return {object|null} Object with id and maxWidth, or null if not found
-	 */
-	function extractIdFromHref(href) {
-		return extractPatternData(href, true);
-	}
 
 	/**
 	 * Calculate max-width with 6% margin on each side
@@ -162,6 +132,31 @@
 		var currentScroll = window.pageYOffset || document.documentElement.scrollTop || document.body.scrollTop || 0;
 		element.focus();
 		window.scrollTo(0, currentScroll);
+	}
+
+	/**
+	 * Inject inline CSS as a style tag
+	 * Helper function to consolidate duplicate inline CSS injection logic
+	 *
+	 * @param {string} css CSS content to inject
+	 * @param {string} idPrefix Prefix for the style element ID
+	 * @param {string} dataAttribute Value for data-simplest-popup attribute
+	 * @return {void}
+	 */
+	function injectInlineStyle(css, idPrefix, dataAttribute) {
+		if (!css || typeof css !== 'string' || css.trim().length === 0) {
+			return;
+		}
+		
+		var styleId = 'simplest-popup-' + idPrefix + '-' + Date.now();
+		var existingStyle = document.getElementById(styleId);
+		if (!existingStyle) {
+			var styleTag = document.createElement('style');
+			styleTag.id = styleId;
+			styleTag.setAttribute('data-simplest-popup', dataAttribute);
+			styleTag.textContent = css;
+			document.head.appendChild(styleTag);
+		}
 	}
 
 	/**
@@ -559,44 +554,10 @@
 					// Collect all promises for asset injection
 					var assetPromises = [];
 					
-					// Inject global stylesheet first (for CSS variables like preset colors)
-					if (globalStylesheet) {
-						var globalStyleId = 'simplest-popup-global-styles-' + Date.now();
-						var existingGlobalStyle = document.getElementById(globalStyleId);
-						if (!existingGlobalStyle) {
-							var globalStyleTag = document.createElement('style');
-							globalStyleTag.id = globalStyleId;
-							globalStyleTag.setAttribute('data-simplest-popup', 'global-styles');
-							globalStyleTag.textContent = globalStylesheet;
-							document.head.appendChild(globalStyleTag);
-						}
-					}
-					
-					// Inject block support CSS (inline style tag)
-					if (blockSupportsCss) {
-						var styleId = 'simplest-popup-block-supports-' + Date.now();
-						var existingStyle = document.getElementById(styleId);
-						if (!existingStyle) {
-							var styleTag = document.createElement('style');
-							styleTag.id = styleId;
-							styleTag.setAttribute('data-simplest-popup', 'block-supports');
-							styleTag.textContent = blockSupportsCss;
-							document.head.appendChild(styleTag);
-						}
-					}
-					
-					// Inject block style variation CSS (for styles like is-style-section-3)
-					if (blockStyleVariationCss) {
-						var variationStyleId = 'simplest-popup-block-style-variation-' + Date.now();
-						var existingVariationStyle = document.getElementById(variationStyleId);
-						if (!existingVariationStyle) {
-							var variationStyleTag = document.createElement('style');
-							variationStyleTag.id = variationStyleId;
-							variationStyleTag.setAttribute('data-simplest-popup', 'block-style-variation');
-							variationStyleTag.textContent = blockStyleVariationCss;
-							document.head.appendChild(variationStyleTag);
-						}
-					}
+					// Inject inline CSS stylesheets using helper function
+					injectInlineStyle(globalStylesheet, 'global-styles', 'global-styles');
+					injectInlineStyle(blockSupportsCss, 'block-supports', 'block-supports');
+					injectInlineStyle(blockStyleVariationCss, 'block-style-variation', 'block-style-variation');
 					
 					// Inject styles from asset_data (with inline CSS)
 					assetStyles.forEach(function(styleAsset) {
@@ -787,7 +748,16 @@
 		// Check the clicked element and its closest parent with class
 		var elementWithClass = trigger.closest('[class*="wppt-popup-"]');
 		if (elementWithClass) {
-			patternData = extractIdFromClass(elementWithClass.className);
+			// Extract from class name (check all classes)
+			if (elementWithClass.className) {
+				var classes = elementWithClass.className.split(/\s+/);
+				for (var j = 0; j < classes.length; j++) {
+					patternData = extractPatternData(classes[j], false);
+					if (patternData) {
+						break;
+					}
+				}
+			}
 		}
 
 		// If no class-based trigger found, check for href attribute
@@ -802,12 +772,12 @@
 				
 				// Try to extract from hash first
 				if (hash) {
-					patternData = extractIdFromHref(hash);
+					patternData = extractPatternData(hash, true);
 				}
 				
 				// If no hash match, try the full href (for cases like href="#wppt-popup-123")
 				if (!patternData && href) {
-					patternData = extractIdFromHref(href);
+					patternData = extractPatternData(href, true);
 				}
 			}
 		}

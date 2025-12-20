@@ -319,6 +319,40 @@ class Simplest_Popup_Plugin {
 	}
 
 	/**
+	 * Normalize asset URL (make relative URLs absolute, add version, apply filters)
+	 * Shared helper to eliminate duplication across codebase
+	 *
+	 * @param string   $src        Source URL (may be relative)
+	 * @param string   $handle     Asset handle
+	 * @param string   $type       Asset type: 'style' or 'script'
+	 * @param string   $version    Optional version string
+	 * @param WP_Dependencies $deps WordPress dependencies object (wp_styles or wp_scripts)
+	 * @return string Normalized absolute URL
+	 */
+	public static function normalize_asset_url( $src, $handle, $type, $version = '', $deps = null ) {
+		// If relative URL, make it absolute
+		if ( ! preg_match( '|^(https?:)?//|', $src ) ) {
+			if ( $deps && $deps->content_url && str_starts_with( $src, $deps->content_url ) ) {
+				// Already has content URL
+			} elseif ( $deps && $deps->base_url ) {
+				// Use base URL
+				$src = $deps->base_url . $src;
+			}
+		}
+
+		// Add version if available
+		if ( ! empty( $version ) ) {
+			$src = add_query_arg( 'ver', $version, $src );
+		}
+
+		// Apply filter (same as WordPress does)
+		$filter_name = ( 'style' === $type ) ? 'style_loader_src' : 'script_loader_src';
+		$src = apply_filters( $filter_name, $src, $handle );
+
+		return esc_url( $src );
+	}
+
+	/**
 	 * Get style URLs for all registered styles
 	 * Used to provide JavaScript with style URLs for dynamic injection
 	 *
@@ -336,29 +370,13 @@ class Simplest_Popup_Plugin {
 		// Get all registered styles
 		foreach ( $wp_styles->registered as $handle => $style ) {
 			if ( ! empty( $style->src ) ) {
-				// Get the full URL
-				$src = $style->src;
-
-				// If relative URL, make it absolute
-				if ( ! preg_match( '|^(https?:)?//|', $src ) ) {
-					// Check if it's relative to content directory
-					if ( $wp_styles->content_url && str_starts_with( $src, $wp_styles->content_url ) ) {
-						// Already has content URL
-					} else {
-						// Use base URL
-						$src = $wp_styles->base_url . $src;
-					}
-				}
-
-				// Add version if available
-				if ( ! empty( $style->ver ) ) {
-					$src = add_query_arg( 'ver', $style->ver, $src );
-				}
-
-				// Apply filter (same as WordPress does)
-				$src = apply_filters( 'style_loader_src', $src, $handle );
-
-				$style_urls[ $handle ] = esc_url( $src );
+				$style_urls[ $handle ] = self::normalize_asset_url(
+					$style->src,
+					$handle,
+					'style',
+					isset( $style->ver ) ? $style->ver : '',
+					$wp_styles
+				);
 			}
 		}
 
@@ -383,29 +401,13 @@ class Simplest_Popup_Plugin {
 		// Get all registered scripts
 		foreach ( $wp_scripts->registered as $handle => $script ) {
 			if ( ! empty( $script->src ) ) {
-				// Get the full URL
-				$src = $script->src;
-
-				// If relative URL, make it absolute
-				if ( ! preg_match( '|^(https?:)?//|', $src ) ) {
-					// Check if it's relative to content directory
-					if ( $wp_scripts->content_url && str_starts_with( $src, $wp_scripts->content_url ) ) {
-						// Already has content URL
-					} else {
-						// Use base URL
-						$src = $wp_scripts->base_url . $src;
-					}
-				}
-
-				// Add version if available
-				if ( ! empty( $script->ver ) ) {
-					$src = add_query_arg( 'ver', $script->ver, $src );
-				}
-
-				// Apply filter (same as WordPress does)
-				$src = apply_filters( 'script_loader_src', $src, $handle );
-
-				$script_urls[ $handle ] = esc_url( $src );
+				$script_urls[ $handle ] = self::normalize_asset_url(
+					$script->src,
+					$handle,
+					'script',
+					isset( $script->ver ) ? $script->ver : '',
+					$wp_scripts
+				);
 			}
 		}
 

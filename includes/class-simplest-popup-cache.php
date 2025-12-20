@@ -59,6 +59,19 @@ class Simplest_Popup_Cache {
 	}
 
 	/**
+	 * Get default asset data structure
+	 * Helper method to eliminate repetition across codebase
+	 *
+	 * @return array Default asset data structure
+	 */
+	public static function get_default_asset_data() {
+		return array(
+			'styles'  => array(),
+			'scripts' => array(),
+		);
+	}
+
+	/**
 	 * Get cached rendered content for a pattern
 	 * Uses object cache if available, falls back to transients
 	 *
@@ -115,16 +128,10 @@ class Simplest_Popup_Cache {
 
 		// Ensure asset_data exists with default empty arrays if missing
 		if ( is_array( $normalized ) && ! isset( $normalized['asset_data'] ) ) {
-			$normalized['asset_data'] = array(
-				'styles'  => array(),
-				'scripts' => array(),
-			);
+			$normalized['asset_data'] = self::get_default_asset_data();
 		} elseif ( is_array( $normalized ) && isset( $normalized['asset_data'] ) && ! is_array( $normalized['asset_data'] ) ) {
 			// If asset_data exists but is not an array, reset it
-			$normalized['asset_data'] = array(
-				'styles'  => array(),
-				'scripts' => array(),
-			);
+			$normalized['asset_data'] = self::get_default_asset_data();
 		} elseif ( is_array( $normalized ) && isset( $normalized['asset_data'] ) && is_array( $normalized['asset_data'] ) ) {
 			// Ensure styles and scripts keys exist
 			if ( ! isset( $normalized['asset_data']['styles'] ) || ! is_array( $normalized['asset_data']['styles'] ) ) {

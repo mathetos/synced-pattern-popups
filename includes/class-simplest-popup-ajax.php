@@ -56,6 +56,38 @@ class Simplest_Popup_Ajax {
 	}
 
 	/**
+	 * Extract rendered data from cache or render result
+	 * Handles both old (string) and new (array) formats
+	 *
+	 * @param mixed $data Cached data or rendered data (string or array)
+	 * @return array Extracted data with all components
+	 */
+	private function extract_rendered_data( $data ) {
+		$result = array(
+			'html'                      => '',
+			'styles'                    => array(),
+			'block_supports_css'        => '',
+			'block_style_variation_css' => '',
+			'global_stylesheet'          => '',
+			'asset_data'                => Simplest_Popup_Cache::get_default_asset_data(),
+		);
+
+		if ( is_array( $data ) ) {
+			$result['html']                      = isset( $data['html'] ) ? $data['html'] : '';
+			$result['styles']                    = isset( $data['styles'] ) ? $data['styles'] : array();
+			$result['block_supports_css']        = isset( $data['block_supports_css'] ) ? $data['block_supports_css'] : '';
+			$result['block_style_variation_css'] = isset( $data['block_style_variation_css'] ) ? $data['block_style_variation_css'] : '';
+			$result['global_stylesheet']          = isset( $data['global_stylesheet'] ) ? $data['global_stylesheet'] : '';
+			$result['asset_data']                = isset( $data['asset_data'] ) && is_array( $data['asset_data'] ) ? $data['asset_data'] : Simplest_Popup_Cache::get_default_asset_data();
+		} else {
+			// Backward compatibility: old format (string only)
+			$result['html'] = $data;
+		}
+
+		return $result;
+	}
+
+	/**
 	 * Handle AJAX request
 	 */
 	public function handle_request() {
@@ -98,39 +130,17 @@ class Simplest_Popup_Ajax {
 		$cached_data = $this->cache_service->get( $pattern_id );
 
 		if ( $cached_data !== false ) {
-			// Handle both old (string) and new (array) cache formats
-			if ( is_array( $cached_data ) ) {
-				$cached_html = isset( $cached_data['html'] ) ? $cached_data['html'] : '';
-				$cached_styles = isset( $cached_data['styles'] ) ? $cached_data['styles'] : array();
-				$cached_block_supports_css = isset( $cached_data['block_supports_css'] ) ? $cached_data['block_supports_css'] : '';
-				$cached_block_style_variation_css = isset( $cached_data['block_style_variation_css'] ) ? $cached_data['block_style_variation_css'] : '';
-				$cached_global_stylesheet = isset( $cached_data['global_stylesheet'] ) ? $cached_data['global_stylesheet'] : '';
-				$cached_asset_data = isset( $cached_data['asset_data'] ) && is_array( $cached_data['asset_data'] ) ? $cached_data['asset_data'] : array(
-					'styles'  => array(),
-					'scripts' => array(),
-				);
-			} else {
-				// Backward compatibility: old cache format (string only)
-				$cached_html = $cached_data;
-				$cached_styles = array();
-				$cached_block_supports_css = '';
-				$cached_block_style_variation_css = '';
-				$cached_global_stylesheet = '';
-				$cached_asset_data = array(
-					'styles'  => array(),
-					'scripts' => array(),
-				);
-			}
+			$extracted = $this->extract_rendered_data( $cached_data );
 
-			if ( ! empty( $cached_html ) ) {
+			if ( ! empty( $extracted['html'] ) ) {
 				wp_send_json_success( array(
-					'html'                      => $cached_html,
+					'html'                      => $extracted['html'],
 					'title'                     => $pattern_title,
-					'styles'                    => $cached_styles,
-					'block_supports_css'        => $cached_block_supports_css,
-					'block_style_variation_css' => $cached_block_style_variation_css,
-					'global_stylesheet'          => $cached_global_stylesheet,
-					'asset_data'                => $cached_asset_data,
+					'styles'                    => $extracted['styles'],
+					'block_supports_css'        => $extracted['block_supports_css'],
+					'block_style_variation_css' => $extracted['block_style_variation_css'],
+					'global_stylesheet'          => $extracted['global_stylesheet'],
+					'asset_data'                => $extracted['asset_data'],
 					'cached'                    => true,
 				) );
 				return;
@@ -151,54 +161,33 @@ class Simplest_Popup_Ajax {
 			return;
 		}
 
-		// Handle both old (string) and new (array) return formats
-		if ( is_array( $rendered_data ) ) {
-			$rendered_html = isset( $rendered_data['html'] ) ? $rendered_data['html'] : '';
-			$rendered_styles = isset( $rendered_data['styles'] ) ? $rendered_data['styles'] : array();
-			$rendered_block_supports_css = isset( $rendered_data['block_supports_css'] ) ? $rendered_data['block_supports_css'] : '';
-			$rendered_block_style_variation_css = isset( $rendered_data['block_style_variation_css'] ) ? $rendered_data['block_style_variation_css'] : '';
-			$rendered_global_stylesheet = isset( $rendered_data['global_stylesheet'] ) ? $rendered_data['global_stylesheet'] : '';
-			$rendered_asset_data = isset( $rendered_data['asset_data'] ) && is_array( $rendered_data['asset_data'] ) ? $rendered_data['asset_data'] : array(
-				'styles'  => array(),
-				'scripts' => array(),
-			);
-		} else {
-			// Backward compatibility: old return format (string only)
-			$rendered_html = $rendered_data;
-			$rendered_styles = array();
-			$rendered_block_supports_css = '';
-			$rendered_block_style_variation_css = '';
-			$rendered_global_stylesheet = '';
-			$rendered_asset_data = array(
-				'styles'  => array(),
-				'scripts' => array(),
-			);
-		}
+		// Extract rendered data
+		$extracted = $this->extract_rendered_data( $rendered_data );
 
-		if ( empty( $rendered_html ) ) {
+		if ( empty( $extracted['html'] ) ) {
 			wp_send_json_error( array( 'message' => 'Synced pattern not found or is empty.' ) );
 			return;
 		}
 
 		// Cache both HTML, styles, block support CSS, block style variation CSS, global stylesheet, and asset data
 		$this->cache_service->set( $pattern_id, array(
-			'html'                      => $rendered_html,
-			'styles'                    => $rendered_styles,
-			'block_supports_css'        => $rendered_block_supports_css,
-			'block_style_variation_css' => $rendered_block_style_variation_css,
-			'global_stylesheet'          => $rendered_global_stylesheet,
-			'asset_data'                => $rendered_asset_data,
+			'html'                      => $extracted['html'],
+			'styles'                    => $extracted['styles'],
+			'block_supports_css'        => $extracted['block_supports_css'],
+			'block_style_variation_css' => $extracted['block_style_variation_css'],
+			'global_stylesheet'          => $extracted['global_stylesheet'],
+			'asset_data'                => $extracted['asset_data'],
 		) );
 
 		// Return success with HTML, title, styles, block support CSS, block style variation CSS, global stylesheet, and asset data
 		wp_send_json_success( array(
-			'html'                      => $rendered_html,
+			'html'                      => $extracted['html'],
 			'title'                     => $pattern_title,
-			'styles'                    => $rendered_styles,
-			'block_supports_css'        => $rendered_block_supports_css,
-			'block_style_variation_css' => $rendered_block_style_variation_css,
-			'global_stylesheet'          => $rendered_global_stylesheet,
-			'asset_data'                => $rendered_asset_data,
+			'styles'                    => $extracted['styles'],
+			'block_supports_css'        => $extracted['block_supports_css'],
+			'block_style_variation_css' => $extracted['block_style_variation_css'],
+			'global_stylesheet'          => $extracted['global_stylesheet'],
+			'asset_data'                => $extracted['asset_data'],
 			'cached'                    => false,
 		) );
 	}

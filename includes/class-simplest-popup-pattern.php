@@ -193,10 +193,7 @@ class Simplest_Popup_Pattern {
 				'block_supports_css'        => $block_supports_css,
 				'block_style_variation_css' => $block_style_variation_css,
 				'global_stylesheet'         => $global_stylesheet,
-				'asset_data'                => array(
-					'styles'  => array(),
-					'scripts' => array(),
-				),
+				'asset_data'                => Simplest_Popup_Cache::get_default_asset_data(),
 			);
 		}
 
