@@ -237,12 +237,16 @@
 	overflow-y: auto;
 	overflow-x: hidden;
 	flex: 1;
-	padding: 32px;
+	
 	/* Smooth scrolling on iOS */
 	-webkit-overflow-scrolling: touch;
 	/* Better scrollbar appearance */
 	scrollbar-width: thin;
 	scrollbar-color: rgba(0, 0, 0, 0.2) transparent;
+}
+
+.simplest-popup-content > *:first-child {
+	padding: 5%;
 }
 
 .simplest-popup-loading {
@@ -417,6 +421,35 @@ body.simplest-popup-open {
 	.simplest-popup-card {
 		box-shadow: 0 20px 60px rgba(0, 0, 0, 0.25);
 	}
+}
+
+/* Override editor-specific styles that leak into frontend */
+/* These styles are intended for the Block Editor, not the frontend */
+.simplest-popup-content .is-selected,
+.simplest-popup-content .has-child-selected,
+.simplest-popup-content [class*="is-selected"],
+.simplest-popup-content [class*="has-child-selected"] {
+	outline: none !important;
+	box-shadow: none !important;
+}
+
+/* Disable editor hover states for blocks */
+.simplest-popup-content .wp-block:hover,
+.simplest-popup-content [class*="wp-block"]:hover {
+	outline: none !important;
+	box-shadow: none !important;
+}
+
+/* Specifically target Kadence blocks editor styles */
+.simplest-popup-content .wp-block-kadence-column.is-selected,
+.simplest-popup-content .wp-block-kadence-column.has-child-selected,
+.simplest-popup-content .wp-block-kadence-column:hover,
+.simplest-popup-content .wp-block-kadence-rowlayout.is-selected,
+.simplest-popup-content .wp-block-kadence-rowlayout.has-child-selected,
+.simplest-popup-content .wp-block-kadence-rowlayout:hover {
+	outline: none !important;
+	outline-offset: 0 !important;
+	box-shadow: none !important;
 }
 
 /* Reduced motion preference */
