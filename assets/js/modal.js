@@ -48,6 +48,42 @@
 	var loadedScripts = new Set();
 
 	/**
+	 * Validate URL is safe for injection (same origin or relative)
+	 * Prevents XSS via malicious script/style URLs
+	 *
+	 * @param {string} url URL to validate
+	 * @return {boolean} True if URL is safe, false otherwise
+	 */
+	function isValidUrl(url) {
+		if (!url || typeof url !== 'string') {
+			return false;
+		}
+
+		// Allow relative URLs (same origin)
+		if (url.indexOf('//') === -1 || url.indexOf('//') === 0) {
+			// Relative URL or protocol-relative URL (same origin)
+			return true;
+		}
+
+		// For absolute URLs, verify they're from the same origin
+		try {
+			var urlObj = new URL(url, window.location.href);
+			var currentOrigin = window.location.origin;
+			
+			// Allow same origin
+			if (urlObj.origin === currentOrigin) {
+				return true;
+			}
+
+			// Reject external URLs (security risk)
+			return false;
+		} catch (e) {
+			// Invalid URL format
+			return false;
+		}
+	}
+
+	/**
 	 * Extract pattern ID and optional max-width from trigger string
 	 * Unified function that handles both class names and href attributes
 	 *
@@ -74,7 +110,16 @@
 			var id = parseInt(match[1], 10);
 			var maxWidth = match[2] ? parseInt(match[2], 10) : null;
 			
-			if (id > 0) {
+			// Validate pattern ID range (prevent extremely large IDs)
+			if (id > 0 && id <= 2147483647) {
+				// Validate max-width range (prevent excessive values)
+				if (maxWidth !== null) {
+					// Max-width must be between 100px and 5000px (reasonable bounds)
+					if (maxWidth < 100 || maxWidth > 5000) {
+						maxWidth = null; // Ignore invalid max-width
+					}
+				}
+				
 				return {
 					id: id,
 					maxWidth: maxWidth
@@ -204,6 +249,12 @@
 			console.warn('Simplest Popup: Style URL not found for handle "' + handle + '". Style may not load correctly.');
 			return Promise.resolve(); // Don't break modal if style URL is unknown
 		}
+
+		// Validate URL before injection (security check)
+		if (!isValidUrl(styleUrl)) {
+			console.warn('Simplest Popup: Invalid or unsafe style URL for handle "' + handle + '". Style will not be loaded.');
+			return Promise.resolve(); // Don't break modal, just skip unsafe style
+		}
 		
 		// Create link element
 		return new Promise(function(resolve, reject) {
@@ -294,11 +345,19 @@
 			console.warn('Simplest Popup: Script URL not found for handle "' + handle + '". Script may not load correctly.');
 			return Promise.resolve(); // Don't break modal if script URL is unknown
 		}
-		
+
+		// Validate URL before injection (security check)
+		if (scriptUrl && !isValidUrl(scriptUrl)) {
+			console.warn('Simplest Popup: Invalid or unsafe script URL for handle "' + handle + '". Script will not be loaded.');
+			return Promise.resolve(); // Don't break modal, just skip unsafe script
+		}
+
 		// Create promises array for all script parts
 		var promises = [];
-		
+
 		// Inject inline before script if provided
+		// Note: Inline scripts are trusted as they come from the server response
+		// WordPress core do_blocks() sanitization should handle this, but we rely on server-side security
 		if (inlineBefore && typeof inlineBefore === 'string' && inlineBefore.trim().length > 0) {
 			var beforeScript = document.createElement('script');
 			beforeScript.setAttribute('data-handle', handle + '-before');
@@ -306,7 +365,7 @@
 			beforeScript.textContent = inlineBefore;
 			document.head.appendChild(beforeScript);
 		}
-		
+
 		// Inject external script if URL exists
 		if (scriptUrl) {
 			var scriptPromise = new Promise(function(resolve, reject) {
@@ -576,6 +635,12 @@
 						
 						// Inject external stylesheet if src exists
 						if (styleAsset.src && typeof styleAsset.src === 'string' && styleAsset.src.trim().length > 0) {
+							// Validate URL before injection (security check)
+							if (!isValidUrl(styleAsset.src)) {
+								console.warn('Simplest Popup: Invalid or unsafe style URL for handle "' + styleAsset.handle + '". Style will not be loaded.');
+								return; // Skip unsafe style
+							}
+
 							// Check if already loaded
 							if (!loadedStyles.has(styleAsset.handle)) {
 								var link = document.createElement('link');

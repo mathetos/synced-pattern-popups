@@ -105,6 +105,17 @@ class Simplest_Popup_Pattern {
 			return false;
 		}
 
+		// Check if pattern is password-protected (should not be accessible via popup)
+		if ( ! empty( $pattern->post_password ) ) {
+			return false;
+		}
+
+		// Verify pattern visibility - allow filter for plugins to restrict access
+		$can_access = apply_filters( 'simplest_popup_can_access_pattern', true, $pattern_id, $pattern );
+		if ( ! $can_access ) {
+			return false;
+		}
+
 		// Get sync status once and pass to is_synced_pattern to avoid duplicate query
 		$sync_status = get_post_meta( $pattern_id, 'wp_pattern_sync_status', true );
 
@@ -139,11 +150,12 @@ class Simplest_Popup_Pattern {
 			$style_collector->start_collection( $pattern_id );
 		}
 
-		// Render blocks using the_content filter to ensure all hooks/filters are triggered
-		// This is necessary for third-party blocks (like Kadence) that rely on the_content filter pipeline
-		// The the_content filter includes do_blocks at priority 9, which will properly render blocks
-		// and trigger all necessary hooks for asset enqueuing
-		$html = apply_filters( 'the_content', $content );
+		// Render blocks using custom content filter to avoid conflicts with other plugins
+		// This filter duplicates 'the_content' functionality but only includes core WordPress functions
+		// and block rendering, avoiding unwanted side effects from plugins that hook into 'the_content'
+		// The filter includes do_blocks at priority 9, which properly renders blocks and triggers
+		// all necessary hooks for asset enqueuing (including third-party blocks like Kadence)
+		$html = apply_filters( 'simplest_popup_the_content', $content );
 
 		// Get block support CSS from Style Engine store
 		$block_supports_css = '';

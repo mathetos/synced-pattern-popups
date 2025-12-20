@@ -67,6 +67,9 @@ class Simplest_Popup_Plugin {
 			$this->admin->init();
 		}
 
+		// Set up custom content filter to avoid conflicts with other plugins
+		$this->setup_content_filter();
+
 		// Hook into front-end
 		add_action( 'wp_enqueue_scripts', array( $this, 'enqueue_assets' ) );
 		// Always output modal HTML (lightweight, needed for JavaScript to work)
@@ -74,9 +77,51 @@ class Simplest_Popup_Plugin {
 
 		// Invalidate cache when synced patterns are updated
 		add_action( 'save_post_wp_block', array( $this, 'invalidate_cache' ), 10, 1 );
+		
+		// Invalidate cache when post status changes (publish -> draft, etc.)
+		add_action( 'transition_post_status', array( $this, 'invalidate_cache_on_status_change' ), 10, 3 );
+		
+		// Invalidate cache when post password is added/removed
+		add_action( 'post_updated', array( $this, 'invalidate_cache_on_update' ), 10, 3 );
 
 		// Register post meta for popup support toggle
 		add_action( 'init', array( $this, 'register_post_meta' ) );
+	}
+
+	/**
+	 * Set up custom content filter
+	 * Creates a custom filter that duplicates 'the_content' functionality
+	 * but avoids conflicts with plugins that hook into 'the_content'
+	 * Based on Bill Erickson's approach: https://www.billerickson.net/code/duplicate-the_content-filters/
+	 *
+	 * @return void
+	 */
+	private function setup_content_filter() {
+		global $wp_embed;
+
+		// Apply block hooks before do_blocks (priority 8)
+		if ( function_exists( 'apply_block_hooks_to_content_from_post_object' ) ) {
+			add_filter( 'simplest_popup_the_content', 'apply_block_hooks_to_content_from_post_object', 8 );
+		}
+
+		// Render blocks (priority 9) - CRITICAL for block rendering and asset enqueuing
+		if ( function_exists( 'do_blocks' ) ) {
+			add_filter( 'simplest_popup_the_content', 'do_blocks', 9 );
+		}
+
+		// Core WordPress content formatting functions
+		add_filter( 'simplest_popup_the_content', 'wptexturize' );
+		add_filter( 'simplest_popup_the_content', 'convert_smilies', 20 );
+		add_filter( 'simplest_popup_the_content', 'wpautop' );
+		add_filter( 'simplest_popup_the_content', 'shortcode_unautop' );
+		add_filter( 'simplest_popup_the_content', 'do_shortcode', 11 );
+		add_filter( 'simplest_popup_the_content', 'wp_filter_content_tags', 12 );
+
+		// oEmbed support (if wp_embed is available)
+		if ( $wp_embed ) {
+			add_filter( 'simplest_popup_the_content', array( $wp_embed, 'run_shortcode' ), 8 );
+			add_filter( 'simplest_popup_the_content', array( $wp_embed, 'autoembed' ), 8 );
+		}
 	}
 
 	/**
@@ -268,14 +313,74 @@ class Simplest_Popup_Plugin {
 		if ( get_post_type( $post_id ) === 'wp_block' ) {
 			// Only invalidate cache for synced patterns
 			if ( $this->pattern_service->is_synced_pattern( $post_id ) ) {
-				// Clear rendered HTML cache
-				$this->cache_service->delete( $post_id );
-				
-				// Clear pattern object cache
-				$pattern_cache_key = 'simplest_popup_pattern_' . $post_id;
-				wp_cache_delete( $pattern_cache_key, 'simplest_popup_patterns' );
+				$this->clear_pattern_cache( $post_id );
 			}
 		}
+	}
+
+	/**
+	 * Invalidate cache when post status changes
+	 * Handles visibility changes (publish -> draft, etc.)
+	 *
+	 * @param string  $new_status New post status
+	 * @param string  $old_status Old post status
+	 * @param WP_Post $post       Post object
+	 */
+	public function invalidate_cache_on_status_change( $new_status, $old_status, $post ) {
+		// Only process wp_block post type
+		if ( ! $post || $post->post_type !== 'wp_block' ) {
+			return;
+		}
+
+		// If status changed from or to publish, invalidate cache
+		// This handles cases where pattern visibility changes
+		if ( $old_status !== $new_status && ( 'publish' === $old_status || 'publish' === $new_status ) ) {
+			if ( $this->pattern_service->is_synced_pattern( $post->ID ) ) {
+				$this->clear_pattern_cache( $post->ID );
+			}
+		}
+	}
+
+	/**
+	 * Invalidate cache when post is updated
+	 * Handles password protection changes and other updates
+	 *
+	 * @param int     $post_id     Post ID
+	 * @param WP_Post $post_after  Post object after update
+	 * @param WP_Post $post_before Post object before update
+	 */
+	public function invalidate_cache_on_update( $post_id, $post_after, $post_before ) {
+		// Only process wp_block post type
+		if ( ! $post_after || $post_after->post_type !== 'wp_block' ) {
+			return;
+		}
+
+		// Check if password protection changed
+		$password_changed = ( $post_before->post_password !== $post_after->post_password );
+		
+		// Check if post status changed
+		$status_changed = ( $post_before->post_status !== $post_after->post_status );
+
+		// If password or status changed, invalidate cache
+		if ( $password_changed || $status_changed ) {
+			if ( $this->pattern_service->is_synced_pattern( $post_id ) ) {
+				$this->clear_pattern_cache( $post_id );
+			}
+		}
+	}
+
+	/**
+	 * Clear pattern cache (helper method)
+	 *
+	 * @param int $post_id Post ID
+	 */
+	private function clear_pattern_cache( $post_id ) {
+		// Clear rendered HTML cache
+		$this->cache_service->delete( $post_id );
+		
+		// Clear pattern object cache
+		$pattern_cache_key = 'simplest_popup_pattern_' . $post_id;
+		wp_cache_delete( $pattern_cache_key, 'simplest_popup_patterns' );
 	}
 
 	/**

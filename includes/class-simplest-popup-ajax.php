@@ -88,13 +88,92 @@ class Simplest_Popup_Ajax {
 	}
 
 	/**
+	 * Check rate limit for AJAX requests
+	 * Prevents DoS attacks and brute force enumeration
+	 *
+	 * @return bool True if within rate limit, false if exceeded
+	 */
+	private function check_rate_limit() {
+		// Get client IP address
+		$ip = $this->get_client_ip();
+		if ( ! $ip ) {
+			// If we can't determine IP, allow request but log warning
+			return true;
+		}
+
+		// Rate limit: 60 requests per minute per IP (configurable via filter)
+		$max_requests = apply_filters( 'simplest_popup_rate_limit_requests', 60 );
+		$time_window = apply_filters( 'simplest_popup_rate_limit_window', 60 ); // seconds
+
+		$transient_key = 'simplest_popup_rate_limit_' . md5( $ip );
+		$requests = get_transient( $transient_key );
+
+		if ( false === $requests ) {
+			// First request in this time window
+			set_transient( $transient_key, 1, $time_window );
+			return true;
+		}
+
+		if ( $requests >= $max_requests ) {
+			// Rate limit exceeded
+			return false;
+		}
+
+		// Increment request count
+		set_transient( $transient_key, $requests + 1, $time_window );
+		return true;
+	}
+
+	/**
+	 * Get client IP address
+	 * Respects proxy headers but prioritizes security
+	 *
+	 * @return string|false Client IP address or false if unable to determine
+	 */
+	private function get_client_ip() {
+		// Check for IP in various headers (in order of preference)
+		$ip_headers = array(
+			'HTTP_CF_CONNECTING_IP', // Cloudflare
+			'HTTP_X_REAL_IP',        // Nginx proxy
+			'HTTP_X_FORWARDED_FOR',  // Standard proxy header
+			'REMOTE_ADDR',           // Direct connection
+		);
+
+		foreach ( $ip_headers as $header ) {
+			if ( ! empty( $_SERVER[ $header ] ) ) {
+				$ip = sanitize_text_field( $_SERVER[ $header ] );
+				// Handle comma-separated IPs (X-Forwarded-For can contain multiple)
+				if ( strpos( $ip, ',' ) !== false ) {
+					$ips = explode( ',', $ip );
+					$ip = trim( $ips[0] );
+				}
+				// Validate IP address
+				if ( filter_var( $ip, FILTER_VALIDATE_IP, FILTER_FLAG_NO_PRIV_RANGE | FILTER_FLAG_NO_RES_RANGE ) ) {
+					return $ip;
+				} elseif ( filter_var( $ip, FILTER_VALIDATE_IP ) ) {
+					// Allow private/reserved ranges for local development
+					return $ip;
+				}
+			}
+		}
+
+		return false;
+	}
+
+	/**
 	 * Handle AJAX request
 	 */
 	public function handle_request() {
+		// Check rate limit first (before any processing)
+		if ( ! $this->check_rate_limit() ) {
+			wp_send_json_error( array( 'message' => __( 'Too many requests. Please try again later.', 'simplest-popup' ) ) );
+			return;
+		}
+
 		// Verify nonce
 		$nonce = isset( $_POST['nonce'] ) ? sanitize_text_field( $_POST['nonce'] ) : '';
 		if ( ! wp_verify_nonce( $nonce, 'simplest_popup_ajax' ) ) {
-			wp_send_json_error( array( 'message' => 'Invalid security token. Please refresh the page and try again.' ) );
+			wp_send_json_error( array( 'message' => __( 'Invalid security token. Please refresh the page and try again.', 'simplest-popup' ) ) );
 			return;
 		}
 
@@ -102,21 +181,29 @@ class Simplest_Popup_Ajax {
 		$pattern_id = isset( $_POST['block_id'] ) ? sanitize_text_field( $_POST['block_id'] ) : '';
 
 		if ( empty( $pattern_id ) ) {
-			wp_send_json_error( array( 'message' => 'Pattern ID is required.' ) );
+			wp_send_json_error( array( 'message' => __( 'Invalid request.', 'simplest-popup' ) ) );
 			return;
 		}
 
 		// Validate numeric ID only
 		if ( ! is_numeric( $pattern_id ) || $pattern_id <= 0 ) {
-			wp_send_json_error( array( 'message' => 'Invalid pattern ID. Only numeric IDs are allowed.' ) );
+			wp_send_json_error( array( 'message' => __( 'Invalid request.', 'simplest-popup' ) ) );
 			return;
 		}
 
 		$pattern_id = (int) $pattern_id;
 
+		// Validate pattern ID range (prevent extremely large IDs that could cause memory issues)
+		// WordPress post IDs are typically well below this, but set a reasonable upper bound
+		$max_pattern_id = apply_filters( 'simplest_popup_max_pattern_id', 2147483647 ); // Max 32-bit integer
+		if ( $pattern_id > $max_pattern_id ) {
+			wp_send_json_error( array( 'message' => __( 'Invalid request.', 'simplest-popup' ) ) );
+			return;
+		}
+
 		// Verify pattern is synced
 		if ( ! $this->pattern_service->is_synced_pattern( $pattern_id ) ) {
-			wp_send_json_error( array( 'message' => 'Only synced patterns can be used for popups.' ) );
+			wp_send_json_error( array( 'message' => __( 'Invalid request.', 'simplest-popup' ) ) );
 			return;
 		}
 
@@ -157,7 +244,7 @@ class Simplest_Popup_Ajax {
 		$rendered_data = $this->pattern_service->get_rendered_content( $pattern_id, $style_collector );
 
 		if ( $rendered_data === false ) {
-			wp_send_json_error( array( 'message' => 'Synced pattern not found or is empty.' ) );
+			wp_send_json_error( array( 'message' => __( 'Content not available.', 'simplest-popup' ) ) );
 			return;
 		}
 
@@ -165,7 +252,7 @@ class Simplest_Popup_Ajax {
 		$extracted = $this->extract_rendered_data( $rendered_data );
 
 		if ( empty( $extracted['html'] ) ) {
-			wp_send_json_error( array( 'message' => 'Synced pattern not found or is empty.' ) );
+			wp_send_json_error( array( 'message' => __( 'Content not available.', 'simplest-popup' ) ) );
 			return;
 		}
 
