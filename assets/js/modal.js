@@ -37,6 +37,9 @@
 	
 	// Store array of background elements that were hidden from AT
 	var hiddenBackgroundElements = [];
+	
+	// Store scroll position to restore after modal closes
+	var savedScrollPosition = 0;
 
 	/**
 	 * Extract pattern ID and optional max-width from trigger string
@@ -130,6 +133,32 @@
 	}
 
 	/**
+	 * Focus an element without causing the page to scroll
+	 *
+	 * @param {HTMLElement} element Element to focus
+	 */
+	function focusWithoutScroll(element) {
+		if (!element) {
+			return;
+		}
+		
+		// Try modern preventScroll option first
+		if (typeof element.focus === 'function') {
+			try {
+				element.focus({ preventScroll: true });
+				return;
+			} catch (e) {
+				// Fallback for browsers that don't support preventScroll
+			}
+		}
+		
+		// Fallback: save scroll position, focus, then restore
+		var currentScroll = window.pageYOffset || document.documentElement.scrollTop || document.body.scrollTop || 0;
+		element.focus();
+		window.scrollTo(0, currentScroll);
+	}
+
+	/**
 	 * Get all focusable elements within the modal
 	 *
 	 * @return {Array} Array of focusable elements
@@ -217,6 +246,9 @@
 			return;
 		}
 
+		// Save scroll position BEFORE any DOM changes (for all screen sizes)
+		savedScrollPosition = window.pageYOffset || document.documentElement.scrollTop || document.body.scrollTop || 0;
+
 		// Store the element that triggered the modal for focus restoration
 		lastActiveElement = document.activeElement;
 
@@ -227,10 +259,8 @@
 		var calculatedWidth = calculateMaxWidth(maxWidth);
 		container.style.maxWidth = calculatedWidth + 'px';
 
-		// Prevent body scroll on mobile by saving scroll position
-		if (window.innerWidth <= 768) {
-			body.style.top = '-' + window.scrollY + 'px';
-		}
+		// Prevent body scroll by saving scroll position (for all screen sizes)
+		body.style.top = '-' + savedScrollPosition + 'px';
 		
 		// Update ARIA attributes
 		modal.setAttribute('aria-hidden', 'false');
@@ -248,10 +278,11 @@
 		// Use setTimeout to ensure modal is visible before focusing
 		setTimeout(function() {
 			// Try to focus the close button first, fallback to modal container
-			if (closeBtn && window.innerWidth > 768) {
-				closeBtn.focus();
+			// Use focusWithoutScroll to prevent page from jumping
+			if (closeBtn) {
+				focusWithoutScroll(closeBtn);
 			} else {
-				modal.focus();
+				focusWithoutScroll(modal);
 			}
 		}, 0);
 
@@ -318,17 +349,26 @@
 		container.style.maxWidth = '';
 		currentMaxWidth = null;
 		
-		// Restore body scroll position on mobile
+		// Restore scroll position BEFORE removing body styles and restoring focus
+		// This prevents any scroll jumps
+		if (savedScrollPosition > 0) {
+			window.scrollTo(0, savedScrollPosition);
+		}
+		
+		// Clear body scroll lock styles
 		if (body.style.top) {
-			window.scrollTo(0, parseInt(body.style.top || '0') * -1);
 			body.style.top = '';
 		}
 		
 		// Restore focus to the element that triggered the modal
+		// Use focusWithoutScroll to prevent page from jumping
 		if (lastActiveElement && document.body.contains(lastActiveElement)) {
-			lastActiveElement.focus();
+			focusWithoutScroll(lastActiveElement);
 		}
+		
+		// Clear saved values
 		lastActiveElement = null;
+		savedScrollPosition = 0;
 	}
 
 	// Close on overlay click
