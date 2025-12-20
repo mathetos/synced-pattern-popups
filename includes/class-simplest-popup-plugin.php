@@ -42,20 +42,28 @@ class Simplest_Popup_Plugin {
 	private $pattern_service;
 
 	/**
+	 * Style collector instance (shared)
+	 *
+	 * @var Simplest_Popup_Style_Collector
+	 */
+	private $style_collector;
+
+	/**
 	 * Initialize plugin
 	 */
 	public function init() {
 		// Create shared service instances
 		$this->pattern_service = new Simplest_Popup_Pattern();
 		$this->cache_service = new Simplest_Popup_Cache();
+		$this->style_collector = new Simplest_Popup_Style_Collector();
 
 		// Initialize AJAX handler with shared services
-		$this->ajax_handler = new Simplest_Popup_Ajax( $this->pattern_service, $this->cache_service );
+		$this->ajax_handler = new Simplest_Popup_Ajax( $this->pattern_service, $this->cache_service, $this->style_collector );
 		$this->ajax_handler->init();
 
 		// Initialize admin interface with shared services
 		if ( is_admin() ) {
-			$this->admin = new Simplest_Popup_Admin( $this->pattern_service );
+			$this->admin = new Simplest_Popup_Admin( $this->pattern_service, $this->cache_service );
 			$this->admin->init();
 		}
 
@@ -193,16 +201,20 @@ class Simplest_Popup_Plugin {
 			true
 		);
 
+		// Get style URLs for JavaScript injection
+		$style_urls = $this->get_style_urls();
+
 		// Localize script with AJAX data
 		wp_localize_script(
 			'simplest-popup-modal',
 			'simplestPopup',
 			array(
-				'ajaxUrl' => admin_url( 'admin-ajax.php' ),
-				'nonce'   => wp_create_nonce( 'simplest_popup_ajax' ),
-				'strings' => array(
-					'loading' => __( 'Loading content...', 'simplest-popup' ),
-					'error'   => __( 'Error loading content. Please try again.', 'simplest-popup' ),
+				'ajaxUrl'   => admin_url( 'admin-ajax.php' ),
+				'nonce'     => wp_create_nonce( 'simplest_popup_ajax' ),
+				'styleUrls' => $style_urls,
+				'strings'   => array(
+					'loading'  => __( 'Loading content...', 'simplest-popup' ),
+					'error'    => __( 'Error loading content. Please try again.', 'simplest-popup' ),
 					'notFound' => __( 'Content not found.', 'simplest-popup' ),
 				),
 			)
@@ -300,6 +312,53 @@ class Simplest_Popup_Plugin {
 	public function sanitize_popup_support( $value ) {
 		$allowed = array( 'default', 'forced' );
 		return in_array( $value, $allowed, true ) ? $value : 'default';
+	}
+
+	/**
+	 * Get style URLs for all registered styles
+	 * Used to provide JavaScript with style URLs for dynamic injection
+	 *
+	 * @return array Associative array of style handle => URL
+	 */
+	private function get_style_urls() {
+		global $wp_styles;
+
+		$style_urls = array();
+
+		if ( ! $wp_styles || ! isset( $wp_styles->registered ) ) {
+			return $style_urls;
+		}
+
+		// Get all registered styles
+		foreach ( $wp_styles->registered as $handle => $style ) {
+			if ( ! empty( $style->src ) ) {
+				// Get the full URL
+				$src = $style->src;
+
+				// If relative URL, make it absolute
+				if ( ! preg_match( '|^(https?:)?//|', $src ) ) {
+					// Check if it's relative to content directory
+					if ( $wp_styles->content_url && str_starts_with( $src, $wp_styles->content_url ) ) {
+						// Already has content URL
+					} else {
+						// Use base URL
+						$src = $wp_styles->base_url . $src;
+					}
+				}
+
+				// Add version if available
+				if ( ! empty( $style->ver ) ) {
+					$src = add_query_arg( 'ver', $style->ver, $src );
+				}
+
+				// Apply filter (same as WordPress does)
+				$src = apply_filters( 'style_loader_src', $src, $handle );
+
+				$style_urls[ $handle ] = esc_url( $src );
+			}
+		}
+
+		return $style_urls;
 	}
 }
 

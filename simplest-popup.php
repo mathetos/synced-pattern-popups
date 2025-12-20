@@ -27,6 +27,7 @@ define( 'SIMPLEST_POPUP_CACHE_TTL', 12 * HOUR_IN_SECONDS ); // 12 hours default
 // Load required classes
 require_once SIMPLEST_POPUP_PLUGIN_DIR . 'includes/class-simplest-popup-pattern.php';
 require_once SIMPLEST_POPUP_PLUGIN_DIR . 'includes/class-simplest-popup-cache.php';
+require_once SIMPLEST_POPUP_PLUGIN_DIR . 'includes/class-simplest-popup-style-collector.php';
 require_once SIMPLEST_POPUP_PLUGIN_DIR . 'includes/class-simplest-popup-ajax.php';
 require_once SIMPLEST_POPUP_PLUGIN_DIR . 'includes/class-simplest-popup-admin.php';
 require_once SIMPLEST_POPUP_PLUGIN_DIR . 'includes/class-simplest-popup-plugin.php';

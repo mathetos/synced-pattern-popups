@@ -63,7 +63,7 @@ class Simplest_Popup_Cache {
 	 * Uses object cache if available, falls back to transients
 	 *
 	 * @param int $pattern_id Synced pattern ID
-	 * @return string|false Cached HTML or false if not cached
+	 * @return string|array|false Cached HTML (string), array with HTML and styles, or false if not cached
 	 */
 	public function get( $pattern_id ) {
 		$cache_key = $this->get_cache_key( $pattern_id );
@@ -72,38 +72,84 @@ class Simplest_Popup_Cache {
 		// Try object cache first (faster if available)
 		$cached = wp_cache_get( $cache_key, $group );
 		if ( false !== $cached ) {
-			return $cached;
+			return $this->normalize_cached_data( $cached );
 		}
 
 		// Fallback to transient
 		$transient = get_transient( $cache_key );
 		if ( false !== $transient ) {
 			// Prime object cache for next time
+			$normalized = $this->normalize_cached_data( $transient );
 			wp_cache_set( $cache_key, $transient, $group, $this->get_cache_ttl() );
-			return $transient;
+			return $normalized;
 		}
 
 		return false;
 	}
 
 	/**
+	 * Normalize cached data to handle both old (string) and new (array) formats
+	 *
+	 * @param mixed $data Cached data (string or array)
+	 * @return string|array Normalized data
+	 */
+	private function normalize_cached_data( $data ) {
+		// If it's already an array, return as-is
+		if ( is_array( $data ) ) {
+			return $data;
+		}
+
+		// If it's a JSON string, decode it
+		if ( is_string( $data ) ) {
+			$decoded = json_decode( $data, true );
+			if ( json_last_error() === JSON_ERROR_NONE && is_array( $decoded ) ) {
+				return $decoded;
+			}
+			// Backward compatibility: return string as HTML-only
+			return $data;
+		}
+
+		// Fallback: return as-is
+		return $data;
+	}
+
+	/**
 	 * Set cached rendered content for a pattern
 	 * Uses object cache if available, falls back to transients
 	 *
-	 * @param int    $pattern_id Synced pattern ID
-	 * @param string $html       Rendered HTML to cache
+	 * @param int         $pattern_id Synced pattern ID
+	 * @param string|array $data      Rendered HTML (string) or array with HTML and styles
 	 * @return bool True on success, false on failure
 	 */
-	public function set( $pattern_id, $html ) {
+	public function set( $pattern_id, $data ) {
 		$cache_key = $this->get_cache_key( $pattern_id );
 		$group = $this->get_cache_group();
 		$ttl = $this->get_cache_ttl();
 
+		// Normalize data for storage
+		$storage_data = $this->prepare_data_for_storage( $data );
+
 		// Store in object cache (if available)
-		wp_cache_set( $cache_key, $html, $group, $ttl );
+		wp_cache_set( $cache_key, $storage_data, $group, $ttl );
 
 		// Also store in transient as fallback
-		return set_transient( $cache_key, $html, $ttl );
+		return set_transient( $cache_key, $storage_data, $ttl );
+	}
+
+	/**
+	 * Prepare data for storage (encode arrays as JSON for transients)
+	 *
+	 * @param string|array $data Data to prepare
+	 * @return string|array Prepared data
+	 */
+	private function prepare_data_for_storage( $data ) {
+		// If it's an array, JSON encode it for storage
+		if ( is_array( $data ) ) {
+			return wp_json_encode( $data );
+		}
+
+		// String data can be stored as-is
+		return $data;
 	}
 
 	/**

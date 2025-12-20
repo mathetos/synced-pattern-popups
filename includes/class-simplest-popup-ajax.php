@@ -28,14 +28,23 @@ class Simplest_Popup_Ajax {
 	private $cache_service;
 
 	/**
+	 * Style collector instance
+	 *
+	 * @var Simplest_Popup_Style_Collector|null
+	 */
+	private $style_collector;
+
+	/**
 	 * Constructor
 	 *
-	 * @param Simplest_Popup_Pattern $pattern_service Pattern service instance
-	 * @param Simplest_Popup_Cache   $cache_service   Cache service instance
+	 * @param Simplest_Popup_Pattern              $pattern_service Pattern service instance
+	 * @param Simplest_Popup_Cache                $cache_service   Cache service instance
+	 * @param Simplest_Popup_Style_Collector|null $style_collector Optional style collector instance
 	 */
-	public function __construct( Simplest_Popup_Pattern $pattern_service, Simplest_Popup_Cache $cache_service ) {
+	public function __construct( Simplest_Popup_Pattern $pattern_service, Simplest_Popup_Cache $cache_service, $style_collector = null ) {
 		$this->pattern_service = $pattern_service;
 		$this->cache_service = $cache_service;
+		$this->style_collector = $style_collector;
 	}
 
 	/**
@@ -86,25 +95,92 @@ class Simplest_Popup_Ajax {
 		}
 
 		// Check cache first
-		$cached_html = $this->cache_service->get( $pattern_id );
-		if ( $cached_html !== false ) {
-			wp_send_json_success( array( 'html' => $cached_html, 'title' => $pattern_title, 'cached' => true ) );
-			return;
+		$cached_data = $this->cache_service->get( $pattern_id );
+		if ( $cached_data !== false ) {
+			// Handle both old (string) and new (array) cache formats
+			if ( is_array( $cached_data ) ) {
+				$cached_html = isset( $cached_data['html'] ) ? $cached_data['html'] : '';
+				$cached_styles = isset( $cached_data['styles'] ) ? $cached_data['styles'] : array();
+				$cached_block_supports_css = isset( $cached_data['block_supports_css'] ) ? $cached_data['block_supports_css'] : '';
+				$cached_block_style_variation_css = isset( $cached_data['block_style_variation_css'] ) ? $cached_data['block_style_variation_css'] : '';
+				$cached_global_stylesheet = isset( $cached_data['global_stylesheet'] ) ? $cached_data['global_stylesheet'] : '';
+			} else {
+				// Backward compatibility: old cache format (string only)
+				$cached_html = $cached_data;
+				$cached_styles = array();
+				$cached_block_supports_css = '';
+				$cached_block_style_variation_css = '';
+				$cached_global_stylesheet = '';
+			}
+
+			if ( ! empty( $cached_html ) ) {
+				wp_send_json_success( array(
+					'html'                      => $cached_html,
+					'title'                     => $pattern_title,
+					'styles'                    => $cached_styles,
+					'block_supports_css'        => $cached_block_supports_css,
+					'block_style_variation_css' => $cached_block_style_variation_css,
+					'global_stylesheet'          => $cached_global_stylesheet,
+					'cached'                    => true,
+				) );
+				return;
+			}
 		}
 
-		// Get and render pattern content
-		$rendered_html = $this->pattern_service->get_rendered_content( $pattern_id );
+		// Create style collector if not provided
+		$style_collector = $this->style_collector;
+		if ( ! $style_collector instanceof Simplest_Popup_Style_Collector ) {
+			$style_collector = new Simplest_Popup_Style_Collector();
+		}
 
-		if ( $rendered_html === false || empty( $rendered_html ) ) {
+		// Get and render pattern content with style collection
+		$rendered_data = $this->pattern_service->get_rendered_content( $pattern_id, $style_collector );
+
+		if ( $rendered_data === false ) {
 			wp_send_json_error( array( 'message' => 'Synced pattern not found or is empty.' ) );
 			return;
 		}
 
-		// Cache the rendered HTML
-		$this->cache_service->set( $pattern_id, $rendered_html );
+		// Handle both old (string) and new (array) return formats
+		if ( is_array( $rendered_data ) ) {
+			$rendered_html = isset( $rendered_data['html'] ) ? $rendered_data['html'] : '';
+			$rendered_styles = isset( $rendered_data['styles'] ) ? $rendered_data['styles'] : array();
+			$rendered_block_supports_css = isset( $rendered_data['block_supports_css'] ) ? $rendered_data['block_supports_css'] : '';
+			$rendered_block_style_variation_css = isset( $rendered_data['block_style_variation_css'] ) ? $rendered_data['block_style_variation_css'] : '';
+			$rendered_global_stylesheet = isset( $rendered_data['global_stylesheet'] ) ? $rendered_data['global_stylesheet'] : '';
+		} else {
+			// Backward compatibility: old return format (string only)
+			$rendered_html = $rendered_data;
+			$rendered_styles = array();
+			$rendered_block_supports_css = '';
+			$rendered_block_style_variation_css = '';
+			$rendered_global_stylesheet = '';
+		}
 
-		// Return success with HTML and title
-		wp_send_json_success( array( 'html' => $rendered_html, 'title' => $pattern_title, 'cached' => false ) );
+		if ( empty( $rendered_html ) ) {
+			wp_send_json_error( array( 'message' => 'Synced pattern not found or is empty.' ) );
+			return;
+		}
+
+		// Cache both HTML, styles, block support CSS, block style variation CSS, and global stylesheet
+		$this->cache_service->set( $pattern_id, array(
+			'html'                      => $rendered_html,
+			'styles'                    => $rendered_styles,
+			'block_supports_css'        => $rendered_block_supports_css,
+			'block_style_variation_css' => $rendered_block_style_variation_css,
+			'global_stylesheet'          => $rendered_global_stylesheet,
+		) );
+
+		// Return success with HTML, title, styles, block support CSS, block style variation CSS, and global stylesheet
+		wp_send_json_success( array(
+			'html'                      => $rendered_html,
+			'title'                     => $pattern_title,
+			'styles'                    => $rendered_styles,
+			'block_supports_css'        => $rendered_block_supports_css,
+			'block_style_variation_css' => $rendered_block_style_variation_css,
+			'global_stylesheet'          => $rendered_global_stylesheet,
+			'cached'                    => false,
+		) );
 	}
 }
 

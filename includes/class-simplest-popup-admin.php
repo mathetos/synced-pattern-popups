@@ -21,12 +21,22 @@ class Simplest_Popup_Admin {
 	private $pattern_service;
 
 	/**
+	 * Cache service instance
+	 *
+	 * @var Simplest_Popup_Cache
+	 */
+	private $cache_service;
+
+	/**
 	 * Constructor
 	 *
 	 * @param Simplest_Popup_Pattern $pattern_service Pattern service instance
+	 * @param Simplest_Popup_Cache   $cache_service   Cache service instance
 	 */
-	public function __construct( Simplest_Popup_Pattern $pattern_service ) {
+	public function __construct( Simplest_Popup_Pattern $pattern_service, Simplest_Popup_Cache $cache_service = null ) {
 		$this->pattern_service = $pattern_service;
+		// Create cache service if not provided
+		$this->cache_service = $cache_service ? $cache_service : new Simplest_Popup_Cache();
 	}
 
 	/**
@@ -93,7 +103,7 @@ class Simplest_Popup_Admin {
 	}
 
 	/**
-	 * Handle admin actions (delete, etc.)
+	 * Handle admin actions (delete, clear cache, etc.)
 	 */
 	public function handle_actions() {
 		if ( ! isset( $_GET['page'] ) || 'simplest-popup-patterns' !== $_GET['page'] ) {
@@ -108,6 +118,17 @@ class Simplest_Popup_Admin {
 			if ( current_user_can( 'delete_post', $pattern_id ) ) {
 				wp_delete_post( $pattern_id, true );
 				wp_redirect( admin_url( 'themes.php?page=simplest-popup-patterns&deleted=1' ) );
+				exit;
+			}
+		}
+
+		// Handle clear cache action
+		if ( isset( $_GET['action'] ) && 'clear_cache' === $_GET['action'] ) {
+			check_admin_referer( 'clear_popup_cache' );
+
+			if ( current_user_can( 'manage_options' ) ) {
+				$deleted = $this->cache_service->clear_all();
+				wp_redirect( admin_url( 'themes.php?page=simplest-popup-patterns&cache_cleared=1&deleted=' . absint( $deleted ) ) );
 				exit;
 			}
 		}
@@ -164,9 +185,24 @@ class Simplest_Popup_Admin {
 	public function render_admin_page() {
 		$patterns = $this->get_synced_patterns();
 
-		// Show success message
+		// Show success messages
 		if ( isset( $_GET['deleted'] ) && '1' === $_GET['deleted'] ) {
 			echo '<div class="notice notice-success is-dismissible"><p>' . esc_html__( 'Pattern deleted successfully.', 'simplest-popup' ) . '</p></div>';
+		}
+
+		if ( isset( $_GET['cache_cleared'] ) && '1' === $_GET['cache_cleared'] ) {
+			$deleted_count = isset( $_GET['deleted'] ) ? absint( $_GET['deleted'] ) : 0;
+			$message = sprintf(
+				/* translators: %d: number of cache entries deleted */
+				_n(
+					'Cache cleared successfully. %d entry deleted.',
+					'Cache cleared successfully. %d entries deleted.',
+					$deleted_count,
+					'simplest-popup'
+				),
+				$deleted_count
+			);
+			echo '<div class="notice notice-success is-dismissible"><p>' . esc_html( $message ) . '</p></div>';
 		}
 
 		?>
@@ -176,6 +212,15 @@ class Simplest_Popup_Admin {
 			</h1>
 			<a href="<?php echo esc_url( admin_url( 'post-new.php?post_type=wp_block' ) ); ?>" class="page-title-action">
 				<?php esc_html_e( 'Add New', 'simplest-popup' ); ?>
+			</a>
+			<?php
+			$clear_cache_url = wp_nonce_url(
+				admin_url( 'themes.php?page=simplest-popup-patterns&action=clear_cache' ),
+				'clear_popup_cache'
+			);
+			?>
+			<a href="<?php echo esc_url( $clear_cache_url ); ?>" class="page-title-action" style="margin-left: 8px;">
+				<?php esc_html_e( 'Clear Transient Cache', 'simplest-popup' ); ?>
 			</a>
 			<hr class="wp-header-end">
 

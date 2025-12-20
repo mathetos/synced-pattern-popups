@@ -123,17 +123,74 @@ class Simplest_Popup_Pattern {
 	/**
 	 * Get rendered synced pattern HTML
 	 *
-	 * @param int $pattern_id Synced pattern post ID
-	 * @return string|false Rendered HTML or false if not found or not synced
+	 * @param int                                    $pattern_id Synced pattern post ID
+	 * @param Simplest_Popup_Style_Collector|null $style_collector Optional style collector instance
+	 * @return string|array|false Rendered HTML (string), array with HTML and styles, or false if not found
 	 */
-	public function get_rendered_content( $pattern_id ) {
+	public function get_rendered_content( $pattern_id, $style_collector = null ) {
 		$content = $this->get_content( $pattern_id );
 
 		if ( ! $content ) {
 			return false;
 		}
 
-		return do_blocks( $content );
+		// Start style collection if collector provided
+		if ( $style_collector instanceof Simplest_Popup_Style_Collector ) {
+			$style_collector->start_collection( $pattern_id );
+		}
+
+		// Render blocks
+		$html = do_blocks( $content );
+
+		// Get block support CSS from Style Engine store
+		$block_supports_css = '';
+		if ( function_exists( 'wp_style_engine_get_stylesheet_from_context' ) ) {
+			$block_supports_css = wp_style_engine_get_stylesheet_from_context( 'block-supports' );
+		}
+
+		// Get inline CSS from block-style-variation-styles (WordPress 6.6+)
+		// This contains CSS for block style variations like is-style-section-3
+		$block_style_variation_css = '';
+		global $wp_styles;
+		if ( $wp_styles && isset( $wp_styles->registered['block-style-variation-styles'] ) ) {
+			$style_obj = $wp_styles->registered['block-style-variation-styles'];
+			if ( isset( $style_obj->extra['after'] ) && is_array( $style_obj->extra['after'] ) ) {
+				$block_style_variation_css = implode( "\n", $style_obj->extra['after'] );
+			}
+		}
+
+		// Get global stylesheet for CSS variables (preset colors, spacing, etc.)
+		$global_stylesheet = '';
+		if ( function_exists( 'wp_get_global_stylesheet' ) ) {
+			$global_stylesheet = wp_get_global_stylesheet();
+		}
+
+		// Finish style collection and get styles
+		if ( $style_collector instanceof Simplest_Popup_Style_Collector ) {
+			$styles = $style_collector->finish_collection();
+			// Return both HTML, styles, block support CSS, block style variation CSS, and global stylesheet
+			return array(
+				'html'                      => $html,
+				'styles'                    => $styles,
+				'block_supports_css'        => $block_supports_css,
+				'block_style_variation_css' => $block_style_variation_css,
+				'global_stylesheet'         => $global_stylesheet,
+			);
+		}
+
+		// If no collector, still return block support CSS, block style variation CSS, and global stylesheet for backward compatibility
+		if ( ! empty( $block_supports_css ) || ! empty( $block_style_variation_css ) || ! empty( $global_stylesheet ) ) {
+			return array(
+				'html'                      => $html,
+				'styles'                    => array(),
+				'block_supports_css'        => $block_supports_css,
+				'block_style_variation_css' => $block_style_variation_css,
+				'global_stylesheet'         => $global_stylesheet,
+			);
+		}
+
+		// Backward compatibility: return HTML string if no collector
+		return $html;
 	}
 }
 

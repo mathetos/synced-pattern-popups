@@ -40,6 +40,9 @@
 	
 	// Store scroll position to restore after modal closes
 	var savedScrollPosition = 0;
+	
+	// Track which styles have been loaded to prevent duplicates
+	var loadedStyles = new Set();
 
 	/**
 	 * Extract pattern ID and optional max-width from trigger string
@@ -156,6 +159,105 @@
 		var currentScroll = window.pageYOffset || document.documentElement.scrollTop || document.body.scrollTop || 0;
 		element.focus();
 		window.scrollTo(0, currentScroll);
+	}
+
+	/**
+	 * Inject stylesheet into document head if not already loaded
+	 *
+	 * @param {string} handle Style handle
+	 * @return {Promise} Promise that resolves when style is loaded
+	 */
+	function injectStyle(handle) {
+		// Check if already loaded
+		if (loadedStyles.has(handle)) {
+			return Promise.resolve();
+		}
+		
+		// Check if style link already exists in DOM
+		var existingLink = document.querySelector('link[data-handle="' + handle + '"]') ||
+		                  document.querySelector('link[id="' + handle + '-css"]') ||
+		                  document.querySelector('link[href*="' + handle + '"]');
+		
+		if (existingLink) {
+			loadedStyles.add(handle);
+			return Promise.resolve();
+		}
+		
+		// Construct style URL
+		// WordPress style URLs follow pattern: /wp-content/themes/theme-name/style.css?ver=version
+		// For plugins: /wp-content/plugins/plugin-name/assets/style.css?ver=version
+		// We'll use a generic approach: try to find the style via wp_styles or construct URL
+		var styleUrl = '';
+		
+		// Try to get URL from wp_styles if available (would need to be localized)
+		// For now, we'll construct a basic URL pattern
+		// Most block styles are in wp-includes/css/dist/block-library/style.min.css
+		// But third-party blocks vary, so we need a more robust solution
+		
+		// Check if simplestPopup has styleUrls object
+		if (simplestPopup.styleUrls && simplestPopup.styleUrls[handle]) {
+			styleUrl = simplestPopup.styleUrls[handle];
+		} else {
+			// Fallback: try to construct URL from handle
+			// This is a best-effort approach
+			// WordPress core styles: wp-block-{name} -> /wp-includes/css/dist/block-library/{name}.css
+			// Plugin styles: plugin-{name} -> /wp-content/plugins/{plugin}/assets/{name}.css
+			// This won't work for all cases, but it's a fallback
+			console.warn('Simplest Popup: Style URL not found for handle "' + handle + '". Style may not load correctly.');
+			return Promise.resolve(); // Don't break modal if style URL is unknown
+		}
+		
+		// Create link element
+		return new Promise(function(resolve, reject) {
+			var link = document.createElement('link');
+			link.rel = 'stylesheet';
+			link.href = styleUrl;
+			link.setAttribute('data-handle', handle);
+			link.id = handle + '-css';
+			
+			// Handle load/error
+			link.onload = function() {
+				loadedStyles.add(handle);
+				resolve();
+			};
+			
+			link.onerror = function() {
+				console.warn('Simplest Popup: Failed to load style "' + handle + '" from ' + styleUrl);
+				// Don't reject - modal should still work
+				resolve();
+			};
+			
+			// Append to head
+			document.head.appendChild(link);
+		});
+	}
+
+	/**
+	 * Inject multiple stylesheets
+	 *
+	 * @param {Array} styleHandles Array of style handles
+	 * @return {Promise} Promise that resolves when all styles are loaded
+	 */
+	function injectStyles(styleHandles) {
+		if (!styleHandles || !Array.isArray(styleHandles) || styleHandles.length === 0) {
+			return Promise.resolve();
+		}
+		
+		// Filter out empty handles
+		var validHandles = styleHandles.filter(function(handle) {
+			return handle && typeof handle === 'string' && handle.length > 0;
+		});
+		
+		if (validHandles.length === 0) {
+			return Promise.resolve();
+		}
+		
+		// Inject all styles in parallel
+		var promises = validHandles.map(function(handle) {
+			return injectStyle(handle);
+		});
+		
+		return Promise.all(promises);
 	}
 
 	/**
@@ -317,7 +419,60 @@
 				}
 				
 				if (data.success && data.data && data.data.html) {
-					content.innerHTML = data.data.html;
+					// Extract style handles, block support CSS, block style variation CSS, and global stylesheet from response
+					var styleHandles = (data.data.styles && Array.isArray(data.data.styles)) ? data.data.styles : [];
+					var blockSupportsCss = (data.data.block_supports_css && typeof data.data.block_supports_css === 'string') ? data.data.block_supports_css : '';
+					var blockStyleVariationCss = (data.data.block_style_variation_css && typeof data.data.block_style_variation_css === 'string') ? data.data.block_style_variation_css : '';
+					var globalStylesheet = (data.data.global_stylesheet && typeof data.data.global_stylesheet === 'string') ? data.data.global_stylesheet : '';
+					
+					// Inject global stylesheet first (for CSS variables like preset colors)
+					if (globalStylesheet) {
+						var globalStyleId = 'simplest-popup-global-styles-' + Date.now();
+						var existingGlobalStyle = document.getElementById(globalStyleId);
+						if (!existingGlobalStyle) {
+							var globalStyleTag = document.createElement('style');
+							globalStyleTag.id = globalStyleId;
+							globalStyleTag.setAttribute('data-simplest-popup', 'global-styles');
+							globalStyleTag.textContent = globalStylesheet;
+							document.head.appendChild(globalStyleTag);
+						}
+					}
+					
+					// Inject block support CSS (inline style tag)
+					if (blockSupportsCss) {
+						var styleId = 'simplest-popup-block-supports-' + Date.now();
+						var existingStyle = document.getElementById(styleId);
+						if (!existingStyle) {
+							var styleTag = document.createElement('style');
+							styleTag.id = styleId;
+							styleTag.setAttribute('data-simplest-popup', 'block-supports');
+							styleTag.textContent = blockSupportsCss;
+							document.head.appendChild(styleTag);
+						}
+					}
+					
+					// Inject block style variation CSS (for styles like is-style-section-3)
+					if (blockStyleVariationCss) {
+						var variationStyleId = 'simplest-popup-block-style-variation-' + Date.now();
+						var existingVariationStyle = document.getElementById(variationStyleId);
+						if (!existingVariationStyle) {
+							var variationStyleTag = document.createElement('style');
+							variationStyleTag.id = variationStyleId;
+							variationStyleTag.setAttribute('data-simplest-popup', 'block-style-variation');
+							variationStyleTag.textContent = blockStyleVariationCss;
+							document.head.appendChild(variationStyleTag);
+						}
+					}
+					
+					// Inject stylesheet handles
+					injectStyles(styleHandles).then(function() {
+						// Styles loaded (or failed gracefully), insert content
+						content.innerHTML = data.data.html;
+					}).catch(function(error) {
+						// Even if style injection fails, show content
+						console.error('Simplest Popup: Error injecting styles:', error);
+						content.innerHTML = data.data.html;
+					});
 				} else {
 					var errorMsg = (data.data && data.data.message) ? data.data.message : simplestPopup.strings.notFound;
 					content.innerHTML = '<div class="simplest-popup-loading"><p>' + errorMsg + '</p></div>';
