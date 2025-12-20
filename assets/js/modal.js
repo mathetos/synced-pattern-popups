@@ -31,6 +31,12 @@
 	
 	// Store current max-width setting for resize handling
 	var currentMaxWidth = null;
+	
+	// Store last active element for focus restoration
+	var lastActiveElement = null;
+	
+	// Store array of background elements that were hidden from AT
+	var hiddenBackgroundElements = [];
 
 	/**
 	 * Extract pattern ID and optional max-width from trigger string
@@ -124,6 +130,82 @@
 	}
 
 	/**
+	 * Get all focusable elements within the modal
+	 *
+	 * @return {Array} Array of focusable elements
+	 */
+	function getFocusableElements() {
+		var card = modal.querySelector('.simplest-popup-card');
+		if (!card) {
+			return [];
+		}
+		
+		// Selectors for focusable elements
+		var selectors = [
+			'a[href]',
+			'button:not([disabled])',
+			'textarea:not([disabled])',
+			'input:not([disabled])',
+			'select:not([disabled])',
+			'[tabindex]:not([tabindex="-1"])'
+		].join(', ');
+		
+		var focusable = Array.prototype.slice.call(card.querySelectorAll(selectors));
+		
+		// Filter out elements that are not visible
+		return focusable.filter(function(el) {
+			return el.offsetWidth > 0 && el.offsetHeight > 0;
+		});
+	}
+
+	/**
+	 * Hide background elements from assistive technology
+	 */
+	function hideBackgroundFromAT() {
+		// Clear any previously hidden elements
+		hiddenBackgroundElements = [];
+		
+		// Iterate through all direct children of body
+		var bodyChildren = Array.prototype.slice.call(body.children);
+		
+		bodyChildren.forEach(function(element) {
+			// Skip the modal itself
+			if (element.id === 'simplest-popup-modal') {
+				return;
+			}
+			
+			// Check if element already has aria-hidden
+			var alreadyHidden = element.getAttribute('aria-hidden') === 'true';
+			
+			// Set inert if supported (HTML5.1+)
+			if ('inert' in element) {
+				element.inert = true;
+			}
+			
+			// Set aria-hidden as fallback
+			if (!alreadyHidden) {
+				element.setAttribute('aria-hidden', 'true');
+				hiddenBackgroundElements.push(element);
+			}
+		});
+	}
+
+	/**
+	 * Show background elements to assistive technology
+	 */
+	function showBackgroundToAT() {
+		// Remove inert from all elements
+		hiddenBackgroundElements.forEach(function(element) {
+			if ('inert' in element) {
+				element.inert = false;
+			}
+			element.removeAttribute('aria-hidden');
+		});
+		
+		hiddenBackgroundElements = [];
+	}
+
+	/**
 	 * Open modal and load content
 	 *
 	 * @param {number} patternId Synced pattern ID
@@ -134,6 +216,9 @@
 			console.error('Simplest Popup: Invalid pattern ID');
 			return;
 		}
+
+		// Store the element that triggered the modal for focus restoration
+		lastActiveElement = document.activeElement;
 
 		// Store the requested max-width for resize handling
 		currentMaxWidth = maxWidth;
@@ -147,15 +232,28 @@
 			body.style.top = '-' + window.scrollY + 'px';
 		}
 		
+		// Update ARIA attributes
+		modal.setAttribute('aria-hidden', 'false');
+		modal.setAttribute('aria-busy', 'true');
+		
+		// Hide background from assistive technology
+		hideBackgroundFromAT();
+		
 		modal.classList.add('active');
 		modal.style.display = 'flex';
 		body.classList.add('simplest-popup-open');
 		content.innerHTML = loadingHtml;
 		
-		// Focus close button for accessibility (but don't scroll on mobile)
-		if (window.innerWidth > 768) {
-			closeBtn.focus();
-		}
+		// Focus modal container or close button for accessibility
+		// Use setTimeout to ensure modal is visible before focusing
+		setTimeout(function() {
+			// Try to focus the close button first, fallback to modal container
+			if (closeBtn && window.innerWidth > 768) {
+				closeBtn.focus();
+			} else {
+				modal.focus();
+			}
+		}, 0);
 
 		// Prepare form data for POST request
 		var formData = new FormData();
@@ -175,6 +273,18 @@
 				return response.json();
 			})
 			.then(function(data) {
+				// Update aria-busy to false
+				modal.setAttribute('aria-busy', 'false');
+				
+				// Update dialog title from AJAX response
+				var titleElement = modal.querySelector('#simplest-popup-title');
+				if (titleElement && data.success && data.data && data.data.title) {
+					titleElement.textContent = data.data.title;
+				} else if (titleElement) {
+					// Fallback title
+					titleElement.textContent = 'Popup';
+				}
+				
 				if (data.success && data.data && data.data.html) {
 					content.innerHTML = data.data.html;
 				} else {
@@ -184,6 +294,7 @@
 			})
 			.catch(function(error) {
 				console.error('Simplest Popup: Error loading block:', error);
+				modal.setAttribute('aria-busy', 'false');
 				content.innerHTML = '<div class="simplest-popup-loading"><p>' + simplestPopup.strings.error + '</p></div>';
 			});
 	}
@@ -192,6 +303,13 @@
 	 * Close modal
 	 */
 	function closeModal() {
+		// Update ARIA attributes
+		modal.setAttribute('aria-hidden', 'true');
+		modal.setAttribute('aria-busy', 'false');
+		
+		// Show background to assistive technology
+		showBackgroundToAT();
+		
 		modal.classList.remove('active');
 		modal.style.display = 'none';
 		body.classList.remove('simplest-popup-open');
@@ -205,6 +323,12 @@
 			window.scrollTo(0, parseInt(body.style.top || '0') * -1);
 			body.style.top = '';
 		}
+		
+		// Restore focus to the element that triggered the modal
+		if (lastActiveElement && document.body.contains(lastActiveElement)) {
+			lastActiveElement.focus();
+		}
+		lastActiveElement = null;
 	}
 
 	// Close on overlay click
@@ -218,10 +342,51 @@
 		closeFooterBtn.addEventListener('click', closeModal);
 	}
 
-	// Close on Escape key
+	// Handle keyboard events for focus trap and Escape key
 	document.addEventListener('keydown', function(e) {
-		if (e.key === 'Escape' && modal.classList.contains('active')) {
+		// Only handle if modal is active
+		if (!modal.classList.contains('active')) {
+			return;
+		}
+		
+		// Close on Escape key
+		if (e.key === 'Escape') {
 			closeModal();
+			return;
+		}
+		
+		// Focus trap: handle Tab and Shift+Tab
+		if (e.key === 'Tab') {
+			var focusableElements = getFocusableElements();
+			
+			// If no focusable elements, prevent default tab behavior
+			if (focusableElements.length === 0) {
+				e.preventDefault();
+				return;
+			}
+			
+			var firstElement = focusableElements[0];
+			var lastElement = focusableElements[focusableElements.length - 1];
+			var currentElement = document.activeElement;
+			
+			// Find current element index
+			var currentIndex = focusableElements.indexOf(currentElement);
+			
+			// If Shift+Tab (going backwards)
+			if (e.shiftKey) {
+				// If at first element or not in modal, go to last element
+				if (currentIndex <= 0 || currentIndex === -1) {
+					e.preventDefault();
+					lastElement.focus();
+				}
+			} else {
+				// If Tab (going forwards)
+				// If at last element or not in modal, go to first element
+				if (currentIndex >= focusableElements.length - 1 || currentIndex === -1) {
+					e.preventDefault();
+					firstElement.focus();
+				}
+			}
 		}
 	});
 

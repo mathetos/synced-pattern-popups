@@ -79,10 +79,16 @@ class Simplest_Popup_Ajax {
 			return;
 		}
 
+		// Get pattern title for accessibility
+		$pattern_title = get_the_title( $pattern_id );
+		if ( empty( $pattern_title ) ) {
+			$pattern_title = __( 'Popup', 'simplest-popup' );
+		}
+
 		// Check cache first
 		$cached_html = $this->cache_service->get( $pattern_id );
 		if ( $cached_html !== false ) {
-			wp_send_json_success( array( 'html' => $cached_html, 'cached' => true ) );
+			wp_send_json_success( array( 'html' => $cached_html, 'title' => $pattern_title, 'cached' => true ) );
 			return;
 		}
 
@@ -97,8 +103,8 @@ class Simplest_Popup_Ajax {
 		// Cache the rendered HTML
 		$this->cache_service->set( $pattern_id, $rendered_html );
 
-		// Return success with HTML
-		wp_send_json_success( array( 'html' => $rendered_html, 'cached' => false ) );
+		// Return success with HTML and title
+		wp_send_json_success( array( 'html' => $rendered_html, 'title' => $pattern_title, 'cached' => false ) );
 	}
 }
 

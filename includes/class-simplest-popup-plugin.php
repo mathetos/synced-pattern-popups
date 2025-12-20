@@ -215,10 +215,12 @@ class Simplest_Popup_Plugin {
 	public function output_modal() {
 		?>
 		<!-- Simplest Popup Modal -->
-		<div id="simplest-popup-modal" class="simplest-popup-modal" role="dialog" aria-modal="true" style="display: none;">
+		<div id="simplest-popup-modal" class="simplest-popup-modal" role="dialog" aria-modal="true" aria-hidden="true" aria-labelledby="simplest-popup-title" aria-describedby="simplest-popup-desc" tabindex="-1" style="display: none;">
 			<div class="simplest-popup-overlay"></div>
 			<div class="simplest-popup-container">
 				<div class="simplest-popup-card">
+					<h2 id="simplest-popup-title" class="simplest-popup-sr-only"></h2>
+					<p id="simplest-popup-desc" class="simplest-popup-sr-only"><?php esc_html_e( 'Press Escape to close. Tab stays within the popup.', 'simplest-popup' ); ?></p>
 					<button class="simplest-popup-close" aria-label="<?php esc_attr_e( 'Close modal', 'simplest-popup' ); ?>" type="button">
 						<svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
 							<path d="M18 6L6 18M6 6L18 18" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
