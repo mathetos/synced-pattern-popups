@@ -96,6 +96,7 @@ class Simplest_Popup_Ajax {
 
 		// Check cache first
 		$cached_data = $this->cache_service->get( $pattern_id );
+
 		if ( $cached_data !== false ) {
 			// Handle both old (string) and new (array) cache formats
 			if ( is_array( $cached_data ) ) {
@@ -104,6 +105,10 @@ class Simplest_Popup_Ajax {
 				$cached_block_supports_css = isset( $cached_data['block_supports_css'] ) ? $cached_data['block_supports_css'] : '';
 				$cached_block_style_variation_css = isset( $cached_data['block_style_variation_css'] ) ? $cached_data['block_style_variation_css'] : '';
 				$cached_global_stylesheet = isset( $cached_data['global_stylesheet'] ) ? $cached_data['global_stylesheet'] : '';
+				$cached_asset_data = isset( $cached_data['asset_data'] ) && is_array( $cached_data['asset_data'] ) ? $cached_data['asset_data'] : array(
+					'styles'  => array(),
+					'scripts' => array(),
+				);
 			} else {
 				// Backward compatibility: old cache format (string only)
 				$cached_html = $cached_data;
@@ -111,6 +116,10 @@ class Simplest_Popup_Ajax {
 				$cached_block_supports_css = '';
 				$cached_block_style_variation_css = '';
 				$cached_global_stylesheet = '';
+				$cached_asset_data = array(
+					'styles'  => array(),
+					'scripts' => array(),
+				);
 			}
 
 			if ( ! empty( $cached_html ) ) {
@@ -121,6 +130,7 @@ class Simplest_Popup_Ajax {
 					'block_supports_css'        => $cached_block_supports_css,
 					'block_style_variation_css' => $cached_block_style_variation_css,
 					'global_stylesheet'          => $cached_global_stylesheet,
+					'asset_data'                => $cached_asset_data,
 					'cached'                    => true,
 				) );
 				return;
@@ -148,6 +158,10 @@ class Simplest_Popup_Ajax {
 			$rendered_block_supports_css = isset( $rendered_data['block_supports_css'] ) ? $rendered_data['block_supports_css'] : '';
 			$rendered_block_style_variation_css = isset( $rendered_data['block_style_variation_css'] ) ? $rendered_data['block_style_variation_css'] : '';
 			$rendered_global_stylesheet = isset( $rendered_data['global_stylesheet'] ) ? $rendered_data['global_stylesheet'] : '';
+			$rendered_asset_data = isset( $rendered_data['asset_data'] ) && is_array( $rendered_data['asset_data'] ) ? $rendered_data['asset_data'] : array(
+				'styles'  => array(),
+				'scripts' => array(),
+			);
 		} else {
 			// Backward compatibility: old return format (string only)
 			$rendered_html = $rendered_data;
@@ -155,6 +169,10 @@ class Simplest_Popup_Ajax {
 			$rendered_block_supports_css = '';
 			$rendered_block_style_variation_css = '';
 			$rendered_global_stylesheet = '';
+			$rendered_asset_data = array(
+				'styles'  => array(),
+				'scripts' => array(),
+			);
 		}
 
 		if ( empty( $rendered_html ) ) {
@@ -162,16 +180,17 @@ class Simplest_Popup_Ajax {
 			return;
 		}
 
-		// Cache both HTML, styles, block support CSS, block style variation CSS, and global stylesheet
+		// Cache both HTML, styles, block support CSS, block style variation CSS, global stylesheet, and asset data
 		$this->cache_service->set( $pattern_id, array(
 			'html'                      => $rendered_html,
 			'styles'                    => $rendered_styles,
 			'block_supports_css'        => $rendered_block_supports_css,
 			'block_style_variation_css' => $rendered_block_style_variation_css,
 			'global_stylesheet'          => $rendered_global_stylesheet,
+			'asset_data'                => $rendered_asset_data,
 		) );
 
-		// Return success with HTML, title, styles, block support CSS, block style variation CSS, and global stylesheet
+		// Return success with HTML, title, styles, block support CSS, block style variation CSS, global stylesheet, and asset data
 		wp_send_json_success( array(
 			'html'                      => $rendered_html,
 			'title'                     => $pattern_title,
@@ -179,6 +198,7 @@ class Simplest_Popup_Ajax {
 			'block_supports_css'        => $rendered_block_supports_css,
 			'block_style_variation_css' => $rendered_block_style_variation_css,
 			'global_stylesheet'          => $rendered_global_stylesheet,
+			'asset_data'                => $rendered_asset_data,
 			'cached'                    => false,
 		) );
 	}

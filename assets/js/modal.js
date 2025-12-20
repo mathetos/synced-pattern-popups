@@ -43,6 +43,9 @@
 	
 	// Track which styles have been loaded to prevent duplicates
 	var loadedStyles = new Set();
+	
+	// Track which scripts have been loaded to prevent duplicates
+	var loadedScripts = new Set();
 
 	/**
 	 * Extract pattern ID and optional max-width from trigger string
@@ -261,6 +264,131 @@
 	}
 
 	/**
+	 * Inject script into document head if not already loaded
+	 *
+	 * @param {string} handle Script handle
+	 * @param {string} inlineBefore Optional inline JavaScript to inject before the script
+	 * @param {string} inlineAfter Optional inline JavaScript to inject after the script
+	 * @return {Promise} Promise that resolves when script is loaded
+	 */
+	function injectScript(handle, inlineBefore, inlineAfter) {
+		// Check if already loaded
+		if (loadedScripts.has(handle)) {
+			return Promise.resolve();
+		}
+		
+		// Check if script already exists in DOM
+		var existingScript = document.querySelector('script[data-handle="' + handle + '"]') ||
+		                    document.querySelector('script[id="' + handle + '-js"]') ||
+		                    document.querySelector('script[src*="' + handle + '"]');
+		
+		if (existingScript) {
+			loadedScripts.add(handle);
+			return Promise.resolve();
+		}
+		
+		// Get script URL
+		var scriptUrl = '';
+		
+		// Check if simplestPopup has scriptUrls object
+		if (simplestPopup.scriptUrls && simplestPopup.scriptUrls[handle]) {
+			scriptUrl = simplestPopup.scriptUrls[handle];
+		} else {
+			// Fallback: try to construct URL from handle
+			// This is a best-effort approach
+			console.warn('Simplest Popup: Script URL not found for handle "' + handle + '". Script may not load correctly.');
+			return Promise.resolve(); // Don't break modal if script URL is unknown
+		}
+		
+		// Create promises array for all script parts
+		var promises = [];
+		
+		// Inject inline before script if provided
+		if (inlineBefore && typeof inlineBefore === 'string' && inlineBefore.trim().length > 0) {
+			var beforeScript = document.createElement('script');
+			beforeScript.setAttribute('data-handle', handle + '-before');
+			beforeScript.setAttribute('data-simplest-popup', 'inline-before');
+			beforeScript.textContent = inlineBefore;
+			document.head.appendChild(beforeScript);
+		}
+		
+		// Inject external script if URL exists
+		if (scriptUrl) {
+			var scriptPromise = new Promise(function(resolve, reject) {
+				var script = document.createElement('script');
+				script.src = scriptUrl;
+				script.setAttribute('data-handle', handle);
+				script.id = handle + '-js';
+				
+				// Handle load/error
+				script.onload = function() {
+					loadedScripts.add(handle);
+					resolve();
+				};
+				
+				script.onerror = function() {
+					console.warn('Simplest Popup: Failed to load script "' + handle + '" from ' + scriptUrl);
+					// Don't reject - modal should still work
+					resolve();
+				};
+				
+				// Append to head
+				document.head.appendChild(script);
+			});
+			promises.push(scriptPromise);
+		}
+		
+		// Inject inline after script if provided
+		if (inlineAfter && typeof inlineAfter === 'string' && inlineAfter.trim().length > 0) {
+			var afterScript = document.createElement('script');
+			afterScript.setAttribute('data-handle', handle + '-after');
+			afterScript.setAttribute('data-simplest-popup', 'inline-after');
+			afterScript.textContent = inlineAfter;
+			document.head.appendChild(afterScript);
+		}
+		
+		// If no promises (no external script), resolve immediately
+		if (promises.length === 0) {
+			loadedScripts.add(handle);
+			return Promise.resolve();
+		}
+		
+		return Promise.all(promises);
+	}
+
+	/**
+	 * Inject multiple scripts
+	 *
+	 * @param {Array} scriptAssets Array of script asset objects with handle, src, inline_before, inline_after
+	 * @return {Promise} Promise that resolves when all scripts are loaded
+	 */
+	function injectScripts(scriptAssets) {
+		if (!scriptAssets || !Array.isArray(scriptAssets) || scriptAssets.length === 0) {
+			return Promise.resolve();
+		}
+		
+		// Filter out invalid assets
+		var validAssets = scriptAssets.filter(function(asset) {
+			return asset && asset.handle && typeof asset.handle === 'string' && asset.handle.length > 0;
+		});
+		
+		if (validAssets.length === 0) {
+			return Promise.resolve();
+		}
+		
+		// Inject all scripts in parallel
+		var promises = validAssets.map(function(asset) {
+			return injectScript(
+				asset.handle,
+				asset.inline_before || '',
+				asset.inline_after || ''
+			);
+		});
+		
+		return Promise.all(promises);
+	}
+
+	/**
 	 * Get all focusable elements within the modal
 	 *
 	 * @return {Array} Array of focusable elements
@@ -424,6 +552,12 @@
 					var blockSupportsCss = (data.data.block_supports_css && typeof data.data.block_supports_css === 'string') ? data.data.block_supports_css : '';
 					var blockStyleVariationCss = (data.data.block_style_variation_css && typeof data.data.block_style_variation_css === 'string') ? data.data.block_style_variation_css : '';
 					var globalStylesheet = (data.data.global_stylesheet && typeof data.data.global_stylesheet === 'string') ? data.data.global_stylesheet : '';
+					var assetData = (data.data.asset_data && typeof data.data.asset_data === 'object') ? data.data.asset_data : { styles: [], scripts: [] };
+					var assetStyles = (assetData.styles && Array.isArray(assetData.styles)) ? assetData.styles : [];
+					var assetScripts = (assetData.scripts && Array.isArray(assetData.scripts)) ? assetData.scripts : [];
+					
+					// Collect all promises for asset injection
+					var assetPromises = [];
 					
 					// Inject global stylesheet first (for CSS variables like preset colors)
 					if (globalStylesheet) {
@@ -464,13 +598,72 @@
 						}
 					}
 					
-					// Inject stylesheet handles
-					injectStyles(styleHandles).then(function() {
-						// Styles loaded (or failed gracefully), insert content
+					// Inject styles from asset_data (with inline CSS)
+					assetStyles.forEach(function(styleAsset) {
+						if (!styleAsset || !styleAsset.handle) {
+							return;
+						}
+						
+						// Inject inline before CSS if provided
+						if (styleAsset.inline_before && typeof styleAsset.inline_before === 'string' && styleAsset.inline_before.trim().length > 0) {
+							var beforeStyle = document.createElement('style');
+							beforeStyle.setAttribute('data-handle', styleAsset.handle + '-before');
+							beforeStyle.setAttribute('data-simplest-popup', 'inline-before');
+							beforeStyle.textContent = styleAsset.inline_before;
+							document.head.appendChild(beforeStyle);
+						}
+						
+						// Inject external stylesheet if src exists
+						if (styleAsset.src && typeof styleAsset.src === 'string' && styleAsset.src.trim().length > 0) {
+							// Check if already loaded
+							if (!loadedStyles.has(styleAsset.handle)) {
+								var link = document.createElement('link');
+								link.rel = 'stylesheet';
+								link.href = styleAsset.src;
+								link.setAttribute('data-handle', styleAsset.handle);
+								link.id = styleAsset.handle + '-css';
+								
+								var linkPromise = new Promise(function(resolve) {
+									link.onload = function() {
+										loadedStyles.add(styleAsset.handle);
+										resolve();
+									};
+									link.onerror = function() {
+										console.warn('Simplest Popup: Failed to load style "' + styleAsset.handle + '" from ' + styleAsset.src);
+										resolve(); // Don't break modal
+									};
+								});
+								
+								document.head.appendChild(link);
+								assetPromises.push(linkPromise);
+							}
+						}
+						
+						// Inject inline after CSS if provided
+						if (styleAsset.inline_after && typeof styleAsset.inline_after === 'string' && styleAsset.inline_after.trim().length > 0) {
+							var afterStyle = document.createElement('style');
+							afterStyle.setAttribute('data-handle', styleAsset.handle + '-after');
+							afterStyle.setAttribute('data-simplest-popup', 'inline-after');
+							afterStyle.textContent = styleAsset.inline_after;
+							document.head.appendChild(afterStyle);
+						}
+					});
+					
+					// Inject legacy style handles (for backward compatibility)
+					if (styleHandles.length > 0) {
+						assetPromises.push(injectStyles(styleHandles));
+					}
+					
+					// Inject scripts from asset_data (with inline JS)
+					assetPromises.push(injectScripts(assetScripts));
+					
+					// Wait for all assets to load, then insert content
+					Promise.all(assetPromises).then(function() {
+						// All assets loaded (or failed gracefully), insert content
 						content.innerHTML = data.data.html;
 					}).catch(function(error) {
-						// Even if style injection fails, show content
-						console.error('Simplest Popup: Error injecting styles:', error);
+						// Even if asset injection fails, show content
+						console.error('Simplest Popup: Error injecting assets:', error);
 						content.innerHTML = data.data.html;
 					});
 				} else {

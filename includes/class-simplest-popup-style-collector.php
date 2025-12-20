@@ -28,11 +28,25 @@ class Simplest_Popup_Style_Collector {
 	private $collected_styles = array();
 
 	/**
+	 * Collected script handles during rendering
+	 *
+	 * @var array
+	 */
+	private $collected_scripts = array();
+
+	/**
 	 * Snapshot of wp_styles queue before rendering
 	 *
 	 * @var array
 	 */
 	private $wp_styles_snapshot = array();
+
+	/**
+	 * Snapshot of wp_scripts queue before rendering
+	 *
+	 * @var array
+	 */
+	private $wp_scripts_snapshot = array();
 
 	/**
 	 * Whether collection is active
@@ -49,6 +63,7 @@ class Simplest_Popup_Style_Collector {
 	public function start_collection( $pattern_id ) {
 		$this->current_pattern_id = (int) $pattern_id;
 		$this->collected_styles = array();
+		$this->collected_scripts = array();
 		$this->is_collecting = true;
 
 		// Take snapshot of current wp_styles queue
@@ -59,7 +74,15 @@ class Simplest_Popup_Style_Collector {
 			$this->wp_styles_snapshot = array();
 		}
 
-		// Hook into render_block filter to collect styles
+		// Take snapshot of current wp_scripts queue
+		global $wp_scripts;
+		if ( $wp_scripts && isset( $wp_scripts->queue ) ) {
+			$this->wp_scripts_snapshot = array_merge( array(), $wp_scripts->queue );
+		} else {
+			$this->wp_scripts_snapshot = array();
+		}
+
+		// Hook into render_block filter to collect styles and scripts
 		add_filter( 'render_block', array( $this, 'collect_from_render_block' ), 5, 3 );
 	}
 
@@ -159,6 +182,21 @@ class Simplest_Popup_Style_Collector {
 			}
 		}
 
+		// Track scripts enqueued during rendering
+		global $wp_scripts;
+		if ( $wp_scripts && isset( $wp_scripts->queue ) ) {
+			$new_scripts = array_diff( $wp_scripts->queue, $this->wp_scripts_snapshot );
+			if ( ! empty( $new_scripts ) ) {
+				foreach ( $new_scripts as $handle ) {
+					if ( ! empty( $handle ) && is_string( $handle ) ) {
+						$this->collected_scripts[] = $handle;
+					}
+				}
+				// Update snapshot to current state
+				$this->wp_scripts_snapshot = array_merge( array(), $wp_scripts->queue );
+			}
+		}
+
 		return $html;
 	}
 
@@ -179,7 +217,9 @@ class Simplest_Popup_Style_Collector {
 		// Reset state
 		$this->current_pattern_id = null;
 		$this->collected_styles = array();
+		$this->collected_scripts = array();
 		$this->wp_styles_snapshot = array();
+		$this->wp_scripts_snapshot = array();
 
 		return $styles;
 	}
@@ -217,6 +257,152 @@ class Simplest_Popup_Style_Collector {
 		// This method is here for potential future use or consistency
 		// Actual checking happens in JavaScript
 		return false;
+	}
+
+	/**
+	 * Get asset data (styles and scripts with inline CSS/JS)
+	 * This should be called after finish_collection() to get full asset information
+	 *
+	 * @return array Array with 'styles' and 'scripts' keys, each containing arrays of asset data
+	 */
+	public function get_asset_data() {
+		global $wp_styles, $wp_scripts;
+
+		$asset_data = array(
+			'styles'  => array(),
+			'scripts' => array(),
+		);
+
+		// Get unique style handles (only those newly enqueued during rendering)
+		$style_handles = $this->get_style_handles();
+
+		// Process each style handle
+		foreach ( $style_handles as $handle ) {
+			if ( ! $wp_styles || ! isset( $wp_styles->registered[ $handle ] ) ) {
+				continue;
+			}
+
+			$style_obj = $wp_styles->registered[ $handle ];
+			$asset = array(
+				'handle'       => $handle,
+				'src'          => '',
+				'inline_before' => '',
+				'inline_after' => '',
+			);
+
+			// Get src URL
+			if ( ! empty( $style_obj->src ) ) {
+				$src = $style_obj->src;
+
+				// If relative URL, make it absolute
+				if ( ! preg_match( '|^(https?:)?//|', $src ) ) {
+					if ( $wp_styles->content_url && str_starts_with( $src, $wp_styles->content_url ) ) {
+						// Already has content URL
+					} else {
+						// Use base URL
+						$src = $wp_styles->base_url . $src;
+					}
+				}
+
+				// Add version if available
+				if ( ! empty( $style_obj->ver ) ) {
+					$src = add_query_arg( 'ver', $style_obj->ver, $src );
+				}
+
+				// Apply filter (same as WordPress does)
+				$src = apply_filters( 'style_loader_src', $src, $handle );
+
+				$asset['src'] = esc_url( $src );
+			}
+
+			// Get inline CSS (before)
+			$inline_before = $wp_styles->get_data( $handle, 'before' );
+			if ( $inline_before && is_array( $inline_before ) ) {
+				$asset['inline_before'] = implode( "\n", $inline_before );
+			} elseif ( $inline_before && is_string( $inline_before ) ) {
+				$asset['inline_before'] = $inline_before;
+			}
+
+			// Get inline CSS (after)
+			$inline_after = $wp_styles->get_data( $handle, 'after' );
+			if ( $inline_after && is_array( $inline_after ) ) {
+				$asset['inline_after'] = implode( "\n", $inline_after );
+			} elseif ( $inline_after && is_string( $inline_after ) ) {
+				$asset['inline_after'] = $inline_after;
+			}
+
+				// Only add if there's at least a src or inline CSS
+				if ( ! empty( $asset['src'] ) || ! empty( $asset['inline_before'] ) || ! empty( $asset['inline_after'] ) ) {
+					$asset_data['styles'][] = $asset;
+				}
+		}
+
+		// Get unique script handles (only those newly enqueued during rendering)
+		$script_handles = array_filter( array_unique( $this->collected_scripts ), 'is_string' );
+		$script_handles = array_values( $script_handles );
+
+		// Process each script handle
+		foreach ( $script_handles as $handle ) {
+			if ( ! $wp_scripts || ! isset( $wp_scripts->registered[ $handle ] ) ) {
+				continue;
+			}
+
+			$script_obj = $wp_scripts->registered[ $handle ];
+			$asset = array(
+				'handle'       => $handle,
+				'src'          => '',
+				'inline_before' => '',
+				'inline_after' => '',
+			);
+
+			// Get src URL
+			if ( ! empty( $script_obj->src ) ) {
+				$src = $script_obj->src;
+
+				// If relative URL, make it absolute
+				if ( ! preg_match( '|^(https?:)?//|', $src ) ) {
+					if ( $wp_scripts->content_url && str_starts_with( $src, $wp_scripts->content_url ) ) {
+						// Already has content URL
+					} else {
+						// Use base URL
+						$src = $wp_scripts->base_url . $src;
+					}
+				}
+
+				// Add version if available
+				if ( ! empty( $script_obj->ver ) ) {
+					$src = add_query_arg( 'ver', $script_obj->ver, $src );
+				}
+
+				// Apply filter (same as WordPress does)
+				$src = apply_filters( 'script_loader_src', $src, $handle );
+
+				$asset['src'] = esc_url( $src );
+			}
+
+			// Get inline JS (before)
+			$inline_before = $wp_scripts->get_data( $handle, 'before' );
+			if ( $inline_before && is_array( $inline_before ) ) {
+				$asset['inline_before'] = implode( "\n", $inline_before );
+			} elseif ( $inline_before && is_string( $inline_before ) ) {
+				$asset['inline_before'] = $inline_before;
+			}
+
+			// Get inline JS (after)
+			$inline_after = $wp_scripts->get_data( $handle, 'after' );
+			if ( $inline_after && is_array( $inline_after ) ) {
+				$asset['inline_after'] = implode( "\n", $inline_after );
+			} elseif ( $inline_after && is_string( $inline_after ) ) {
+				$asset['inline_after'] = $inline_after;
+			}
+
+			// Only add if there's at least a src or inline JS
+			if ( ! empty( $asset['src'] ) || ! empty( $asset['inline_before'] ) || ! empty( $asset['inline_after'] ) ) {
+				$asset_data['scripts'][] = $asset;
+			}
+		}
+
+		return $asset_data;
 	}
 }
 

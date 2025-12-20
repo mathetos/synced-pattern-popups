@@ -204,6 +204,9 @@ class Simplest_Popup_Plugin {
 		// Get style URLs for JavaScript injection
 		$style_urls = $this->get_style_urls();
 
+		// Get script URLs for JavaScript injection
+		$script_urls = $this->get_script_urls();
+
 		// Localize script with AJAX data
 		wp_localize_script(
 			'simplest-popup-modal',
@@ -212,6 +215,7 @@ class Simplest_Popup_Plugin {
 				'ajaxUrl'   => admin_url( 'admin-ajax.php' ),
 				'nonce'     => wp_create_nonce( 'simplest_popup_ajax' ),
 				'styleUrls' => $style_urls,
+				'scriptUrls' => $script_urls,
 				'strings'   => array(
 					'loading'  => __( 'Loading content...', 'simplest-popup' ),
 					'error'    => __( 'Error loading content. Please try again.', 'simplest-popup' ),
@@ -359,6 +363,53 @@ class Simplest_Popup_Plugin {
 		}
 
 		return $style_urls;
+	}
+
+	/**
+	 * Get script URLs for all registered scripts
+	 * Used to provide JavaScript with script URLs for dynamic injection
+	 *
+	 * @return array Associative array of script handle => URL
+	 */
+	private function get_script_urls() {
+		global $wp_scripts;
+
+		$script_urls = array();
+
+		if ( ! $wp_scripts || ! isset( $wp_scripts->registered ) ) {
+			return $script_urls;
+		}
+
+		// Get all registered scripts
+		foreach ( $wp_scripts->registered as $handle => $script ) {
+			if ( ! empty( $script->src ) ) {
+				// Get the full URL
+				$src = $script->src;
+
+				// If relative URL, make it absolute
+				if ( ! preg_match( '|^(https?:)?//|', $src ) ) {
+					// Check if it's relative to content directory
+					if ( $wp_scripts->content_url && str_starts_with( $src, $wp_scripts->content_url ) ) {
+						// Already has content URL
+					} else {
+						// Use base URL
+						$src = $wp_scripts->base_url . $src;
+					}
+				}
+
+				// Add version if available
+				if ( ! empty( $script->ver ) ) {
+					$src = add_query_arg( 'ver', $script->ver, $src );
+				}
+
+				// Apply filter (same as WordPress does)
+				$src = apply_filters( 'script_loader_src', $src, $handle );
+
+				$script_urls[ $handle ] = esc_url( $src );
+			}
+		}
+
+		return $script_urls;
 	}
 }
 

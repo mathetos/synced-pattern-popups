@@ -94,23 +94,48 @@ class Simplest_Popup_Cache {
 	 * @return string|array Normalized data
 	 */
 	private function normalize_cached_data( $data ) {
-		// If it's already an array, return as-is
-		if ( is_array( $data ) ) {
-			return $data;
-		}
+		$normalized = null;
 
-		// If it's a JSON string, decode it
-		if ( is_string( $data ) ) {
+		// If it's already an array, use it
+		if ( is_array( $data ) ) {
+			$normalized = $data;
+		} elseif ( is_string( $data ) ) {
+			// If it's a JSON string, decode it
 			$decoded = json_decode( $data, true );
 			if ( json_last_error() === JSON_ERROR_NONE && is_array( $decoded ) ) {
-				return $decoded;
+				$normalized = $decoded;
+			} else {
+				// Backward compatibility: return string as HTML-only
+				return $data;
 			}
-			// Backward compatibility: return string as HTML-only
+		} else {
+			// Fallback: return as-is
 			return $data;
 		}
 
-		// Fallback: return as-is
-		return $data;
+		// Ensure asset_data exists with default empty arrays if missing
+		if ( is_array( $normalized ) && ! isset( $normalized['asset_data'] ) ) {
+			$normalized['asset_data'] = array(
+				'styles'  => array(),
+				'scripts' => array(),
+			);
+		} elseif ( is_array( $normalized ) && isset( $normalized['asset_data'] ) && ! is_array( $normalized['asset_data'] ) ) {
+			// If asset_data exists but is not an array, reset it
+			$normalized['asset_data'] = array(
+				'styles'  => array(),
+				'scripts' => array(),
+			);
+		} elseif ( is_array( $normalized ) && isset( $normalized['asset_data'] ) && is_array( $normalized['asset_data'] ) ) {
+			// Ensure styles and scripts keys exist
+			if ( ! isset( $normalized['asset_data']['styles'] ) || ! is_array( $normalized['asset_data']['styles'] ) ) {
+				$normalized['asset_data']['styles'] = array();
+			}
+			if ( ! isset( $normalized['asset_data']['scripts'] ) || ! is_array( $normalized['asset_data']['scripts'] ) ) {
+				$normalized['asset_data']['scripts'] = array();
+			}
+		}
+
+		return $normalized;
 	}
 
 	/**

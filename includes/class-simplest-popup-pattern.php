@@ -139,8 +139,11 @@ class Simplest_Popup_Pattern {
 			$style_collector->start_collection( $pattern_id );
 		}
 
-		// Render blocks
-		$html = do_blocks( $content );
+		// Render blocks using the_content filter to ensure all hooks/filters are triggered
+		// This is necessary for third-party blocks (like Kadence) that rely on the_content filter pipeline
+		// The the_content filter includes do_blocks at priority 9, which will properly render blocks
+		// and trigger all necessary hooks for asset enqueuing
+		$html = apply_filters( 'the_content', $content );
 
 		// Get block support CSS from Style Engine store
 		$block_supports_css = '';
@@ -167,14 +170,18 @@ class Simplest_Popup_Pattern {
 
 		// Finish style collection and get styles
 		if ( $style_collector instanceof Simplest_Popup_Style_Collector ) {
+			// Get asset data BEFORE finish_collection() resets the collected arrays
+			$asset_data = $style_collector->get_asset_data();
+			// Now finish collection (this resets the arrays)
 			$styles = $style_collector->finish_collection();
-			// Return both HTML, styles, block support CSS, block style variation CSS, and global stylesheet
+			// Return both HTML, styles, block support CSS, block style variation CSS, global stylesheet, and asset data
 			return array(
 				'html'                      => $html,
 				'styles'                    => $styles,
 				'block_supports_css'        => $block_supports_css,
 				'block_style_variation_css' => $block_style_variation_css,
 				'global_stylesheet'         => $global_stylesheet,
+				'asset_data'                => $asset_data,
 			);
 		}
 
@@ -186,6 +193,10 @@ class Simplest_Popup_Pattern {
 				'block_supports_css'        => $block_supports_css,
 				'block_style_variation_css' => $block_style_variation_css,
 				'global_stylesheet'         => $global_stylesheet,
+				'asset_data'                => array(
+					'styles'  => array(),
+					'scripts' => array(),
+				),
 			);
 		}
 
