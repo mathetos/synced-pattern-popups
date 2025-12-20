@@ -72,6 +72,28 @@ The easiest way to find pattern IDs is through the admin interface:
 
 **Note:** Only synced patterns (not unsynced patterns) can be used for popups. The admin interface only shows synced patterns.
 
+### Per-Post Popup Support Toggle
+
+If your trigger links are injected dynamically (e.g., inside Gravity Forms, AJAX-loaded content, or page builders), the plugin's automatic detection might not find them. In these cases, you can force the popup assets to load on a specific post/page.
+
+**How to use:**
+
+1. Edit the post/page where you have dynamic triggers
+2. Look for the **"Synced Pattern Popup Support"** meta box in the sidebar
+3. Change the toggle from **"Default"** to **"Forced On"**
+4. Save the post
+
+**When to use "Forced On":**
+- Trigger links are inside Gravity Forms
+- Content is loaded via AJAX after page load
+- Page builders that inject content dynamically
+- Any case where the trigger isn't in the raw post content
+
+**When to use "Default":**
+- Trigger links are in regular post content, blocks, or menus
+- The plugin can automatically detect the triggers
+- This covers 99% of use cases
+
 ### Multiple Popups on One Page
 
 You can have multiple different popups on the same page - just use different pattern IDs. You can mix both methods:

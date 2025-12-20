@@ -36,6 +36,10 @@ class Simplest_Popup_Admin {
 		add_action( 'admin_menu', array( $this, 'add_admin_menu' ) );
 		add_action( 'admin_enqueue_scripts', array( $this, 'enqueue_admin_assets' ) );
 		add_action( 'admin_init', array( $this, 'handle_actions' ) );
+		
+		// Add meta box for popup support toggle
+		add_action( 'add_meta_boxes', array( $this, 'register_popup_support_metabox' ) );
+		add_action( 'save_post', array( $this, 'save_popup_support_metabox' ) );
 	}
 
 	/**
@@ -314,6 +318,106 @@ class Simplest_Popup_Admin {
 			<?php endif; ?>
 		</div>
 		<?php
+	}
+
+	/**
+	 * Register meta box for popup support toggle
+	 */
+	public function register_popup_support_metabox() {
+		$post_types = get_post_types( array( 'public' => true ), 'names' );
+		
+		foreach ( $post_types as $post_type ) {
+			// Skip attachment post type
+			if ( 'attachment' === $post_type ) {
+				continue;
+			}
+
+			add_meta_box(
+				'simplest-popup-support',
+				__( 'Synced Pattern Popup Support', 'simplest-popup' ),
+				array( $this, 'render_popup_support_metabox' ),
+				$post_type,
+				'side',
+				'default'
+			);
+		}
+	}
+
+	/**
+	 * Render popup support meta box
+	 *
+	 * @param WP_Post $post Current post object
+	 */
+	public function render_popup_support_metabox( $post ) {
+		// Add nonce for security
+		wp_nonce_field( 'simplest_popup_support_metabox', 'simplest_popup_support_nonce' );
+
+		// Get current value
+		$current_value = get_post_meta( $post->ID, '_simplest_popup_support', true );
+		if ( empty( $current_value ) ) {
+			$current_value = 'default';
+		}
+		?>
+		<div class="simplest-popup-support-metabox">
+			<fieldset>
+				<label>
+					<input type="radio" name="simplest_popup_support" value="default" <?php checked( $current_value, 'default' ); ?> />
+					<strong><?php esc_html_e( 'Default', 'simplest-popup' ); ?></strong>
+				</label>
+				<br>
+				<label>
+					<input type="radio" name="simplest_popup_support" value="forced" <?php checked( $current_value, 'forced' ); ?> />
+					<strong><?php esc_html_e( 'Forced On', 'simplest-popup' ); ?></strong>
+				</label>
+			</fieldset>
+			<p class="description" style="margin-top: 12px; margin-bottom: 0;">
+				<?php esc_html_e( 'In most cases you can leave this on Default. Use Forced On if your trigger link/class is injected dynamically (e.g., forms, AJAX, page builders) and the popup assets aren\'t loading.', 'simplest-popup' ); ?>
+			</p>
+		</div>
+		<?php
+	}
+
+	/**
+	 * Save popup support meta box
+	 *
+	 * @param int $post_id Post ID
+	 */
+	public function save_popup_support_metabox( $post_id ) {
+		// Check if nonce is set
+		if ( ! isset( $_POST['simplest_popup_support_nonce'] ) ) {
+			return;
+		}
+
+		// Verify nonce
+		if ( ! wp_verify_nonce( $_POST['simplest_popup_support_nonce'], 'simplest_popup_support_metabox' ) ) {
+			return;
+		}
+
+		// Check if autosave
+		if ( defined( 'DOING_AUTOSAVE' ) && DOING_AUTOSAVE ) {
+			return;
+		}
+
+		// Check user permissions
+		if ( ! current_user_can( 'edit_post', $post_id ) ) {
+			return;
+		}
+
+		// Check if revision
+		if ( wp_is_post_revision( $post_id ) ) {
+			return;
+		}
+
+		// Get and sanitize the value
+		$value = isset( $_POST['simplest_popup_support'] ) ? sanitize_text_field( $_POST['simplest_popup_support'] ) : 'default';
+		$allowed = array( 'default', 'forced' );
+		
+		if ( ! in_array( $value, $allowed, true ) ) {
+			$value = 'default';
+		}
+
+		// Update post meta
+		update_post_meta( $post_id, '_simplest_popup_support', $value );
 	}
 }
 

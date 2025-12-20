@@ -66,6 +66,9 @@ class Simplest_Popup_Plugin {
 
 		// Invalidate cache when synced patterns are updated
 		add_action( 'save_post_wp_block', array( $this, 'invalidate_cache' ), 10, 1 );
+
+		// Register post meta for popup support toggle
+		add_action( 'init', array( $this, 'register_post_meta' ) );
 	}
 
 	/**
@@ -77,6 +80,14 @@ class Simplest_Popup_Plugin {
 		// Check if we're in admin (always load in admin for preview purposes)
 		if ( is_admin() ) {
 			return true;
+		}
+
+		// Check if post has forced popup support enabled
+		if ( is_singular() ) {
+			global $post;
+			if ( $post && get_post_meta( $post->ID, '_simplest_popup_support', true ) === 'forced' ) {
+				return true;
+			}
 		}
 
 		// Allow filter to force loading
@@ -247,6 +258,46 @@ class Simplest_Popup_Plugin {
 				wp_cache_delete( $pattern_cache_key, 'simplest_popup_patterns' );
 			}
 		}
+	}
+
+	/**
+	 * Register post meta for popup support toggle
+	 */
+	public function register_post_meta() {
+		$post_types = get_post_types( array( 'public' => true ), 'names' );
+		
+		foreach ( $post_types as $post_type ) {
+			// Skip attachment post type
+			if ( 'attachment' === $post_type ) {
+				continue;
+			}
+
+			register_post_meta(
+				$post_type,
+				'_simplest_popup_support',
+				array(
+					'type'              => 'string',
+					'single'            => true,
+					'sanitize_callback' => array( $this, 'sanitize_popup_support' ),
+					'show_in_rest'      => true,
+					'auth_callback'     => function() {
+						return current_user_can( 'edit_posts' );
+					},
+					'default'           => 'default',
+				)
+			);
+		}
+	}
+
+	/**
+	 * Sanitize popup support meta value
+	 *
+	 * @param string $value Meta value
+	 * @return string Sanitized value
+	 */
+	public function sanitize_popup_support( $value ) {
+		$allowed = array( 'default', 'forced' );
+		return in_array( $value, $allowed, true ) ? $value : 'default';
 	}
 }
 
