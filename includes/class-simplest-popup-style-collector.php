@@ -241,6 +241,53 @@ class Simplest_Popup_Style_Collector {
 
 		$styles = array_diff( $styles, $always_loaded );
 
+		// Filter out editor-specific styles
+		// These should not be loaded on the frontend
+		$editor_styles = array(
+			'wp-edit-blocks',
+			'wp-block-editor',
+			'wp-editor',
+			'wp-edit-post',
+			'wp-block-editor-content',
+			'wp-editor-classic-layout-styles',
+			'wp-format-library',
+			'wp-components',
+			'wp-commands',
+			'wp-preferences',
+			'wp-nux',
+			'wp-widgets',
+			'wp-edit-widgets',
+			'wp-customize-widgets',
+			'wp-edit-site',
+			'wp-list-reusable-blocks',
+			'wp-reusable-blocks',
+			'wp-patterns',
+		);
+
+		// Allow filtering of editor styles list
+		$editor_styles = apply_filters( 'simplest_popup_editor_styles', $editor_styles );
+
+		$styles = array_diff( $styles, $editor_styles );
+
+		// Also filter by pattern: any handle starting with known editor prefixes
+		$editor_prefixes = array(
+			'wp-edit-',
+			'wp-block-editor',
+			'wp-editor',
+		);
+
+		// Allow filtering of editor prefixes
+		$editor_prefixes = apply_filters( 'simplest_popup_editor_style_prefixes', $editor_prefixes );
+
+		$styles = array_filter( $styles, function( $handle ) use ( $editor_prefixes ) {
+			foreach ( $editor_prefixes as $prefix ) {
+				if ( strpos( $handle, $prefix ) === 0 ) {
+					return false; // Exclude this style
+				}
+			}
+			return true; // Keep this style
+		} );
+
 		// Return as indexed array
 		return array_values( $styles );
 	}
