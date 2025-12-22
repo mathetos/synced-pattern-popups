@@ -141,7 +141,7 @@ class Simplest_Popup_Ajax {
 
 		foreach ( $ip_headers as $header ) {
 			if ( ! empty( $_SERVER[ $header ] ) ) {
-				$ip = sanitize_text_field( $_SERVER[ $header ] );
+				$ip = sanitize_text_field( wp_unslash( $_SERVER[ $header ] ) );
 				// Handle comma-separated IPs (X-Forwarded-For can contain multiple)
 				if ( strpos( $ip, ',' ) !== false ) {
 					$ips = explode( ',', $ip );
@@ -171,14 +171,14 @@ class Simplest_Popup_Ajax {
 		}
 
 		// Verify nonce
-		$nonce = isset( $_POST['nonce'] ) ? sanitize_text_field( $_POST['nonce'] ) : '';
+		$nonce = isset( $_POST['nonce'] ) ? sanitize_text_field( wp_unslash( $_POST['nonce'] ) ) : '';
 		if ( ! wp_verify_nonce( $nonce, 'simplest_popup_ajax' ) ) {
 			wp_send_json_error( array( 'message' => __( 'Invalid security token. Please refresh the page and try again.', 'simplest-popup' ) ) );
 			return;
 		}
 
 		// Get and validate pattern ID
-		$pattern_id = isset( $_POST['block_id'] ) ? sanitize_text_field( $_POST['block_id'] ) : '';
+		$pattern_id = isset( $_POST['block_id'] ) ? sanitize_text_field( wp_unslash( $_POST['block_id'] ) ) : '';
 
 		if ( empty( $pattern_id ) ) {
 			wp_send_json_error( array( 'message' => __( 'Invalid request.', 'simplest-popup' ) ) );

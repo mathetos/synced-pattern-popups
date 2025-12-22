@@ -221,6 +221,9 @@ class Simplest_Popup_Cache {
 		}
 
 		// Clear transients
+		// Direct database query is necessary here for bulk cache clearing
+		// wp_cache_flush_group() handles object cache, but transients require direct DB access
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching
 		$deleted = $wpdb->query(
 			$wpdb->prepare(
 				"DELETE FROM {$wpdb->options} WHERE option_name LIKE %s OR option_name LIKE %s",

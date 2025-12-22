@@ -1,6 +1,15 @@
 # The Simplest of Popups
 
-A lightweight WordPress plugin that displays modal popups with content from WordPress Synced Patterns. No build process required - everything works out of the box.
+=== The Simplest of Popups ===
+Contributors: wpproducttalk
+Tags: popup, modal, synced-patterns, reusable-blocks
+Requires at least: 5.8
+Tested up to: 6.9
+Stable tag: 1.0.0
+License: GPLv2 or later
+License URI: https://www.gnu.org/licenses/gpl-2.0.html
+
+A lightweight modal popup system that loads WordPress Synced Pattern content on demand. Trigger with class "wppt-popup-{id}".
 
 ## Features
 

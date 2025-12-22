@@ -117,7 +117,7 @@ class Simplest_Popup_Admin {
 			$pattern_id = absint( $_GET['pattern_id'] );
 			if ( current_user_can( 'delete_post', $pattern_id ) ) {
 				wp_delete_post( $pattern_id, true );
-				wp_redirect( admin_url( 'themes.php?page=simplest-popup-patterns&deleted=1' ) );
+				wp_safe_redirect( admin_url( 'themes.php?page=simplest-popup-patterns&deleted=1' ) );
 				exit;
 			}
 		}
@@ -128,7 +128,7 @@ class Simplest_Popup_Admin {
 
 			if ( current_user_can( 'manage_options' ) ) {
 				$deleted = $this->cache_service->clear_all();
-				wp_redirect( admin_url( 'themes.php?page=simplest-popup-patterns&cache_cleared=1&deleted=' . absint( $deleted ) ) );
+				wp_safe_redirect( admin_url( 'themes.php?page=simplest-popup-patterns&cache_cleared=1&deleted=' . absint( $deleted ) ) );
 				exit;
 			}
 		}
@@ -136,47 +136,12 @@ class Simplest_Popup_Admin {
 
 	/**
 	 * Get all synced patterns
+	 * Uses shared method from pattern service
 	 *
 	 * @return array Array of pattern objects
 	 */
 	private function get_synced_patterns() {
-		$args = array(
-			'post_type'      => 'wp_block',
-			'post_status'    => 'any',
-			'posts_per_page' => -1,
-			'meta_query'     => array(
-				'relation' => 'OR',
-				array(
-					'key'     => 'wp_pattern_sync_status',
-					'compare' => 'NOT EXISTS',
-				),
-				array(
-					'key'     => 'wp_pattern_sync_status',
-					'value'   => 'unsynced',
-					'compare' => '!=',
-				),
-			),
-			'orderby'        => 'title',
-			'order'          => 'ASC',
-		);
-
-		$query = new WP_Query( $args );
-		$posts = $query->posts;
-
-		// Prime meta cache for all patterns to eliminate N+1 queries
-		if ( ! empty( $posts ) && is_array( $posts ) ) {
-			$post_ids = wp_list_pluck( $posts, 'ID' );
-			if ( ! empty( $post_ids ) && is_array( $post_ids ) ) {
-				// Correct WP core meta-cache priming (update_post_meta_cache() is not a core function)
-				if ( function_exists( 'update_postmeta_cache' ) ) {
-					update_postmeta_cache( $post_ids );
-				} else {
-					update_meta_cache( 'post', $post_ids );
-				}
-			}
-		}
-
-		return is_array( $posts ) ? $posts : array();
+		return $this->pattern_service->get_synced_patterns( 'any' );
 	}
 
 	/**
@@ -186,12 +151,19 @@ class Simplest_Popup_Admin {
 		$patterns = $this->get_synced_patterns();
 
 		// Show success messages
-		if ( isset( $_GET['deleted'] ) && '1' === $_GET['deleted'] ) {
+		// These $_GET values are sanitized and only used for display purposes (admin notices)
+		// Nonce verification is handled in handle_actions() before redirects occur
+		// phpcs:disable WordPress.Security.NonceVerification.Recommended
+		$deleted = isset( $_GET['deleted'] ) ? sanitize_text_field( wp_unslash( $_GET['deleted'] ) ) : '';
+		$cache_cleared = isset( $_GET['cache_cleared'] ) ? sanitize_text_field( wp_unslash( $_GET['cache_cleared'] ) ) : '';
+		$deleted_count = isset( $_GET['deleted'] ) ? absint( $_GET['deleted'] ) : 0;
+		// phpcs:enable WordPress.Security.NonceVerification.Recommended
+		
+		if ( '1' === $deleted ) {
 			echo '<div class="notice notice-success is-dismissible"><p>' . esc_html__( 'Pattern deleted successfully.', 'simplest-popup' ) . '</p></div>';
 		}
 
-		if ( isset( $_GET['cache_cleared'] ) && '1' === $_GET['cache_cleared'] ) {
-			$deleted_count = isset( $_GET['deleted'] ) ? absint( $_GET['deleted'] ) : 0;
+		if ( '1' === $cache_cleared ) {
 			$message = sprintf(
 				/* translators: %d: number of cache entries deleted */
 				_n(
@@ -434,7 +406,8 @@ class Simplest_Popup_Admin {
 		}
 
 		// Verify nonce
-		if ( ! wp_verify_nonce( $_POST['simplest_popup_support_nonce'], 'simplest_popup_support_metabox' ) ) {
+		$nonce = isset( $_POST['simplest_popup_support_nonce'] ) ? sanitize_text_field( wp_unslash( $_POST['simplest_popup_support_nonce'] ) ) : '';
+		if ( ! wp_verify_nonce( $nonce, 'simplest_popup_support_metabox' ) ) {
 			return;
 		}
 
@@ -454,7 +427,7 @@ class Simplest_Popup_Admin {
 		}
 
 		// Get and sanitize the value
-		$value = isset( $_POST['simplest_popup_support'] ) ? sanitize_text_field( $_POST['simplest_popup_support'] ) : 'default';
+		$value = isset( $_POST['simplest_popup_support'] ) ? sanitize_text_field( wp_unslash( $_POST['simplest_popup_support'] ) ) : 'default';
 		$allowed = array( 'default', 'forced' );
 		
 		if ( ! in_array( $value, $allowed, true ) ) {

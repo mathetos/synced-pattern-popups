@@ -212,5 +212,54 @@ class Simplest_Popup_Pattern {
 		// Backward compatibility: return HTML string if no collector
 		return $html;
 	}
+
+	/**
+	 * Get all synced patterns
+	 * Shared query method for admin and abilities
+	 *
+	 * @param string $status Post status filter (default: 'any')
+	 * @return array Array of pattern post objects
+	 */
+	public function get_synced_patterns( $status = 'any' ) {
+		$args = array(
+			'post_type'      => 'wp_block',
+			'post_status'    => $status,
+			'posts_per_page' => -1,
+			// meta_query is necessary here to filter synced vs unsynced patterns
+			// phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_query
+			'meta_query'     => array(
+				'relation' => 'OR',
+				array(
+					'key'     => 'wp_pattern_sync_status',
+					'compare' => 'NOT EXISTS',
+				),
+				array(
+					'key'     => 'wp_pattern_sync_status',
+					'value'   => 'unsynced',
+					'compare' => '!=',
+				),
+			),
+			'orderby'        => 'title',
+			'order'          => 'ASC',
+		);
+
+		$query = new WP_Query( $args );
+		$posts = $query->posts;
+
+		// Prime meta cache for all patterns to eliminate N+1 queries
+		if ( ! empty( $posts ) && is_array( $posts ) ) {
+			$post_ids = wp_list_pluck( $posts, 'ID' );
+			if ( ! empty( $post_ids ) && is_array( $post_ids ) ) {
+				// Correct WP core meta-cache priming (update_post_meta_cache() is not a core function)
+				if ( function_exists( 'update_postmeta_cache' ) ) {
+					update_postmeta_cache( $post_ids );
+				} else {
+					update_meta_cache( 'post', $post_ids );
+				}
+			}
+		}
+
+		return is_array( $posts ) ? $posts : array();
+	}
 }
 

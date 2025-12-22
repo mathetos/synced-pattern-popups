@@ -49,6 +49,13 @@ class Simplest_Popup_Plugin {
 	private $style_collector;
 
 	/**
+	 * Abilities instance (WP 6.9+ only)
+	 *
+	 * @var Simplest_Popup_Abilities|null
+	 */
+	private $abilities;
+
+	/**
 	 * Initialize plugin
 	 */
 	public function init() {
@@ -65,6 +72,13 @@ class Simplest_Popup_Plugin {
 		if ( is_admin() ) {
 			$this->admin = new Simplest_Popup_Admin( $this->pattern_service, $this->cache_service );
 			$this->admin->init();
+		}
+
+		// Initialize Abilities API registration (WP 6.9+ only)
+		// This will gracefully skip if Abilities API is not available
+		if ( function_exists( 'wp_register_ability' ) ) {
+			$this->abilities = new Simplest_Popup_Abilities( $this->pattern_service, $this->cache_service, $this->style_collector );
+			$this->abilities->init();
 		}
 
 		// Set up custom content filter to avoid conflicts with other plugins
@@ -451,8 +465,16 @@ class Simplest_Popup_Plugin {
 		}
 
 		// Apply filter (same as WordPress does)
-		$filter_name = ( 'style' === $type ) ? 'style_loader_src' : 'script_loader_src';
-		$src = apply_filters( $filter_name, $src, $handle );
+		// Using WordPress core filter names (style_loader_src, script_loader_src)
+		if ( 'style' === $type ) {
+			// Using WordPress core filter, not a plugin-specific hook
+			// phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedHooknameFound
+			$src = apply_filters( 'style_loader_src', $src, $handle );
+		} else {
+			// Using WordPress core filter, not a plugin-specific hook
+			// phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedHooknameFound
+			$src = apply_filters( 'script_loader_src', $src, $handle );
+		}
 
 		return esc_url( $src );
 	}
