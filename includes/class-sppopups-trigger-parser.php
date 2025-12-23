@@ -29,8 +29,8 @@ class SPPopups_Trigger_Parser {
 		$triggers = array();
 		$found_ids = array(); // Track unique triggers to avoid duplicates
 
-		// Scan for class-based triggers: wppt-popup-{id} or wppt-popup-{id}-{width}
-		$class_pattern = '/\bwppt-popup-(\d+)(?:-(\d+))?\b/';
+		// Scan for class-based triggers: spp-trigger-{id} or spp-trigger-{id}-{width}
+		$class_pattern = '/\bspp-trigger-(\d+)(?:-(\d+))?\b/';
 		if ( preg_match_all( $class_pattern, $html, $class_matches, PREG_SET_ORDER ) ) {
 			foreach ( $class_matches as $match ) {
 				$id = isset( $match[1] ) ? (int) $match[1] : 0;
@@ -62,8 +62,8 @@ class SPPopups_Trigger_Parser {
 			}
 		}
 
-		// Scan for href-based triggers: #wppt-popup-{id} or #wppt-popup-{id}-{width}
-		$href_pattern = '/#wppt-popup-(\d+)(?:-(\d+))?/';
+		// Scan for href-based triggers: #spp-trigger-{id} or #spp-trigger-{id}-{width}
+		$href_pattern = '/#spp-trigger-(\d+)(?:-(\d+))?/';
 		if ( preg_match_all( $href_pattern, $html, $href_matches, PREG_SET_ORDER ) ) {
 			foreach ( $href_matches as $match ) {
 				$id = isset( $match[1] ) ? (int) $match[1] : 0;

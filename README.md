@@ -9,11 +9,11 @@ Stable tag: 1.0.0
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
-A lightweight modal popup system that loads WordPress Synced Pattern content on demand. Trigger with class "wppt-popup-{id}".
+A lightweight modal popup system that loads WordPress Synced Pattern content on demand. Trigger with class "spp-trigger-{id}".
 
 ## Features
 
-- **Simple Trigger System**: Add class `wppt-popup-{id}` to any element to open a popup
+- **Simple Trigger System**: Add class `spp-trigger-{id}` to any element to open a popup
 - **Synced Pattern Integration**: Loads content from WordPress Synced Patterns dynamically
 - **Admin Interface**: Manage synced patterns and easily find pattern IDs under Appearance → Synced Patterns
 - **Security**: Nonce verification on all AJAX requests
@@ -38,27 +38,27 @@ You can trigger a popup in two ways:
 
 #### Method 1: Class Name (Recommended for custom HTML)
 
-Add the class `wppt-popup-{id}` to any clickable element, where `{id}` is the numeric ID of your Synced Pattern.
+Add the class `spp-trigger-{id}` to any clickable element, where `{id}` is the numeric ID of your Synced Pattern.
 
 **Example:**
 ```html
-<a href="#" class="wppt-popup-1359">Open Popup</a>
-<button class="wppt-popup-1359">Click Me</button>
-<div class="wppt-popup-1359" style="cursor: pointer;">Click here</div>
+<a href="#" class="spp-trigger-1359">Open Popup</a>
+<button class="spp-trigger-1359">Click Me</button>
+<div class="spp-trigger-1359" style="cursor: pointer;">Click here</div>
 ```
 
 #### Method 2: Href Attribute (Perfect for Block Editor Links)
 
-Set the `href` attribute to `#wppt-popup-{id}` on any link element. This is especially useful in the WordPress Block Editor where you can't easily add custom classes to links.
+Set the `href` attribute to `#spp-trigger-{id}` on any link element. This is especially useful in the WordPress Block Editor where you can't easily add custom classes to links.
 
 **Example:**
 ```html
-<a href="#wppt-popup-1359">Open Popup</a>
+<a href="#spp-trigger-1359">Open Popup</a>
 ```
 
 **Block Editor Usage:**
 1. Insert a Link block or add a link to text
-2. Set the URL to `#wppt-popup-1359` (replace `1359` with your pattern ID)
+2. Set the URL to `#spp-trigger-1359` (replace `1359` with your pattern ID)
 3. The link will automatically trigger the popup when clicked
 
 ![Block Editor Link Setup](assets/img/screenshot-2.png)
@@ -73,7 +73,7 @@ The easiest way to find pattern IDs is through the admin interface:
 2. You'll see a table listing all available synced patterns
 3. The **ID** column shows the pattern ID prominently (e.g., `1359`)
 4. You can click the "Copy Trigger" button in the Actions column to copy the trigger code
-5. The **Trigger Code** column shows the complete class name (e.g., `wppt-popup-1359`)
+5. The **Trigger Code** column shows the complete class name (e.g., `spp-trigger-1359`)
 
 ![Synced Patterns Admin Table](assets/img/screenshot-5.png)
 
@@ -109,11 +109,11 @@ You can have multiple different popups on the same page - just use different pat
 
 ```html
 <!-- Using class names -->
-<a href="#" class="wppt-popup-1359">Open Pattern 1359</a>
-<button class="wppt-popup-1420">Open Pattern 1420</button>
+<a href="#" class="spp-trigger-1359">Open Pattern 1359</a>
+<button class="spp-trigger-1420">Open Pattern 1420</button>
 
 <!-- Using href attributes (great for Block Editor) -->
-<a href="#wppt-popup-1501">Open Pattern 1501</a>
+<a href="#spp-trigger-1501">Open Pattern 1501</a>
 ```
 
 ### Modal Examples
@@ -139,8 +139,8 @@ The modal supports any content you can create in a Synced Pattern - from simple 
 ## How It Works
 
 1. User clicks an element with either:
-   - Class `wppt-popup-{id}`, OR
-   - Href attribute `#wppt-popup-{id}`
+   - Class `spp-trigger-{id}`, OR
+   - Href attribute `#spp-trigger-{id}`
 2. JavaScript extracts the numeric ID from the class name or href attribute
 3. Modal opens with a loading spinner
 4. AJAX request is sent to WordPress with nonce verification
@@ -214,8 +214,8 @@ Works in all modern browsers that support:
 ### Popup doesn't open
 
 1. Check that you're using either:
-   - Class name exactly `wppt-popup-{id}` where `{id}` is numeric, OR
-   - Href attribute exactly `#wppt-popup-{id}` where `{id}` is numeric
+   - Class name exactly `spp-trigger-{id}` where `{id}` is numeric, OR
+   - Href attribute exactly `#spp-trigger-{id}` where `{id}` is numeric
 2. Verify the synced pattern ID exists and is published
 3. Verify the pattern is a synced pattern (check in Appearance → Synced Patterns)
 4. Check browser console for JavaScript errors

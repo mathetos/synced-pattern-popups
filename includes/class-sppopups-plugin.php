@@ -180,7 +180,7 @@ class SPPopups_Plugin {
 					$menu_items = wp_get_nav_menu_items( $menu_id );
 					if ( $menu_items ) {
 						foreach ( $menu_items as $item ) {
-							if ( isset( $item->url ) && preg_match( '/#wppt-popup-\d+(?:-\d+)?/', $item->url ) ) {
+							if ( isset( $item->url ) && preg_match( '/#spp-trigger-\d+(?:-\d+)?/', $item->url ) ) {
 								return true;
 							}
 						}
@@ -221,13 +221,13 @@ class SPPopups_Plugin {
 			return false;
 		}
 
-		// Check for class-based triggers: wppt-popup-{id} or wppt-popup-{id}-{width}
-		if ( preg_match( '/\bwppt-popup-\d+(?:-\d+)?\b/', $content ) ) {
+		// Check for class-based triggers: spp-trigger-{id} or spp-trigger-{id}-{width}
+		if ( preg_match( '/\bspp-trigger-\d+(?:-\d+)?\b/', $content ) ) {
 			return true;
 		}
 
-		// Check for href-based triggers: #wppt-popup-{id} or #wppt-popup-{id}-{width}
-		if ( preg_match( '/#wppt-popup-\d+(?:-\d+)?/', $content ) ) {
+		// Check for href-based triggers: #spp-trigger-{id} or #spp-trigger-{id}-{width}
+		if ( preg_match( '/#spp-trigger-\d+(?:-\d+)?/', $content ) ) {
 			return true;
 		}
 

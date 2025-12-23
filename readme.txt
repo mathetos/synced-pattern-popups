@@ -1,4 +1,4 @@
-=== The Simplest of Popups ===
+=== Synced Pattern Popups ===
 Contributors: wpproducttalk
 Tags: popup, modal, synced-patterns, reusable-blocks
 Requires at least: 5.8
@@ -7,7 +7,7 @@ Stable tag: 1.0.0
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
-A lightweight modal popup system that loads WordPress Synced Pattern content on demand. Trigger with class "wppt-popup-{id}".
+A lightweight modal popup system that loads WordPress Synced Pattern content on demand. Trigger with class "spp-trigger-{id}".
 
 == Description ==
 
@@ -25,8 +25,8 @@ A lightweight WordPress plugin that displays modal popups with content from Word
 
 You can trigger a popup in two ways:
 
-1. Add the class `wppt-popup-{id}` to any clickable element, where `{id}` is the numeric ID of your Synced Pattern.
-2. Set the `href` attribute to `#wppt-popup-{id}` on any link element.
+1. Add the class `spp-trigger-{id}` to any clickable element, where `{id}` is the numeric ID of your Synced Pattern.
+2. Set the `href` attribute to `#spp-trigger-{id}` on any link element.
 
 = Where do I find the pattern ID? =
 

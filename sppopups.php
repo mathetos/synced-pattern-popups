@@ -2,7 +2,7 @@
 /**
  * Plugin Name: Synced Pattern Popups
  * Plugin URI: https://wpproducttalk.com
- * Description: A lightweight modal popup system that loads WordPress Synced Pattern content on demand. Trigger with class "wppt-popup-{id}".
+ * Description: A lightweight modal popup system that loads WordPress Synced Pattern content on demand. Trigger with class "spp-trigger-{id}".
  * Version: 1.0.0
  * Author: WP Product Talk
  * Author URI: https://wpproducttalk.com
@@ -33,6 +33,23 @@ require_once SPPOPUPS_PLUGIN_DIR . 'includes/class-sppopups-ajax.php';
 require_once SPPOPUPS_PLUGIN_DIR . 'includes/class-sppopups-admin.php';
 require_once SPPOPUPS_PLUGIN_DIR . 'includes/class-sppopups-abilities.php';
 require_once SPPOPUPS_PLUGIN_DIR . 'includes/class-sppopups-plugin.php';
+
+// Load plugin text domain for translations
+// Note: While WordPress.org plugins auto-load translations, we include this for
+// self-hosted installations and to load from the plugin's own languages folder.
+add_action( 'plugins_loaded', 'sppopups_load_textdomain' );
+
+/**
+ * Load plugin text domain
+ */
+function sppopups_load_textdomain() {
+	// phpcs:ignore WordPress.WP.I18n.NonSingularStringLiteralDomain
+	load_plugin_textdomain(
+		'sppopups',
+		false,
+		dirname( plugin_basename( __FILE__ ) ) . '/languages'
+	);
+}
 
 // Initialize plugin
 add_action( 'plugins_loaded', 'sppopups_init' );

@@ -98,11 +98,11 @@
 
 		var pattern;
 		if (isHref) {
-			// Match pattern: #wppt-popup-{id} or #wppt-popup-{id}-{width}
-			pattern = /^#wppt-popup-(\d+)(?:-(\d+))?$/;
+			// Match pattern: #spp-trigger-{id} or #spp-trigger-{id}-{width}
+			pattern = /^#spp-trigger-(\d+)(?:-(\d+))?$/;
 		} else {
-			// Match pattern: wppt-popup-{id} or wppt-popup-{id}-{width}
-			pattern = /^wppt-popup-(\d+)(?:-(\d+))?$/;
+			// Match pattern: spp-trigger-{id} or spp-trigger-{id}-{width}
+			pattern = /^spp-trigger-(\d+)(?:-(\d+))?$/;
 		}
 
 		var match = triggerString.match(pattern);
@@ -804,14 +804,14 @@
 		}
 	});
 
-	// Open modal when elements with "wppt-popup-{id}" class or href="#wppt-popup-{id}" are clicked
+	// Open modal when elements with "spp-trigger-{id}" class or href="#spp-trigger-{id}" are clicked
 	document.addEventListener('click', function(e) {
 		var trigger = e.target;
 		var patternData = null;
 
 		// First, try to find pattern ID from class name
 		// Check the clicked element and its closest parent with class
-		var elementWithClass = trigger.closest('[class*="wppt-popup-"]');
+		var elementWithClass = trigger.closest('[class*="spp-trigger-"]');
 		if (elementWithClass) {
 			// Extract from class name (check all classes)
 			if (elementWithClass.className) {
@@ -840,7 +840,7 @@
 					patternData = extractPatternData(hash, true);
 				}
 				
-				// If no hash match, try the full href (for cases like href="#wppt-popup-123")
+				// If no hash match, try the full href (for cases like href="#spp-trigger-123")
 				if (!patternData && href) {
 					patternData = extractPatternData(href, true);
 				}

@@ -170,7 +170,7 @@ class SPPopups_Admin {
 					'Cache cleared successfully. %d entry deleted.',
 					'Cache cleared successfully. %d entries deleted.',
 					$deleted_count,
-					'simplest-popup'
+					'sppopups'
 				),
 				$deleted_count
 			);
@@ -238,7 +238,7 @@ class SPPopups_Admin {
 							// Meta is already cached from update_post_meta_cache, so this is fast
 							$sync_status = get_post_meta( $pattern_id, 'wp_pattern_sync_status', true );
 							$is_synced = ( 'unsynced' !== $sync_status );
-							$trigger_code = 'wppt-popup-' . $pattern_id;
+							$trigger_code = 'spp-trigger-' . $pattern_id;
 							$edit_url = get_edit_post_link( $pattern_id );
 							$delete_url = wp_nonce_url(
 								admin_url( 'themes.php?page=simplest-popup-patterns&action=delete&pattern_id=' . $pattern_id ),
@@ -302,9 +302,9 @@ class SPPopups_Admin {
 										<a 
 											href="<?php echo esc_url( $delete_url ); ?>" 
 											class="button button-small delete-pattern"
-											onclick="return confirm('<?php echo esc_js( __( 'Are you sure you want to delete this pattern?', 'simplest-popup' ) ); ?>');"
+											onclick="return confirm('<?php echo esc_js( __( 'Are you sure you want to delete this pattern?', 'sppopups' ) ); ?>');"
 										>
-											<?php esc_html_e( 'Delete', 'simplest-popup' ); ?>
+											<?php esc_html_e( 'Delete', 'sppopups' ); ?>
 										</a>
 									<?php endif; ?>
 									<button 
@@ -322,14 +322,14 @@ class SPPopups_Admin {
 				</div>
 
 				<div class="sppopups-usage-instructions">
-					<strong><?php esc_html_e( 'How to use:', 'simplest-popup' ); ?></strong>
+					<strong><?php esc_html_e( 'How to use:', 'sppopups' ); ?></strong>
 					<div>
-						<?php esc_html_e( 'Method 1 - Class name:', 'simplest-popup' ); ?>
-						<code>&lt;a href="#" class="wppt-popup-123"&gt;Open Popup&lt;/a&gt;</code>
+						<?php esc_html_e( 'Method 1 - Class name:', 'sppopups' ); ?>
+						<code>&lt;a href="#" class="spp-trigger-123"&gt;Open Popup&lt;/a&gt;</code>
 					</div>
 					<div>
 						<?php esc_html_e( 'Method 2 - Href attribute (for Block Editor):', 'sppopups' ); ?>
-						<code>&lt;a href="#wppt-popup-123"&gt;Open Popup&lt;/a&gt;</code>
+						<code>&lt;a href="#spp-trigger-123"&gt;Open Popup&lt;/a&gt;</code>
 					</div>
 				</div>
 			<?php endif; ?>
