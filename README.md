@@ -1,237 +1,237 @@
-# The Simplest of Popups
+# Synced Pattern Popups
 
-=== The Simplest of Popups ===
-Contributors: wpproducttalk
-Tags: popup, modal, synced-patterns, reusable-blocks
-Requires at least: 5.8
-Tested up to: 6.9
-Stable tag: 1.0.0
-License: GPLv2 or later
-License URI: https://www.gnu.org/licenses/gpl-2.0.html
+A lightweight, developer-friendly WordPress plugin that displays modal popups with content from WordPress Synced Patterns. Built with vanilla JavaScript and PHP, requiring no build process or complex dependencies.
 
-A lightweight modal popup system that loads WordPress Synced Pattern content on demand. Trigger with class "spp-trigger-{id}".
+## What This Repo Is All About
 
-## Features
+This repository contains the **Synced Pattern Popups** plugin - a simple, performant solution for creating modal popups in WordPress. The plugin leverages WordPress's native Synced Patterns (formerly Reusable Blocks) to create popup content, making it easy for content editors to manage popup content without touching code.
 
-- **Simple Trigger System**: Add class `spp-trigger-{id}` to any element to open a popup
-- **Synced Pattern Integration**: Loads content from WordPress Synced Patterns dynamically
-- **Admin Interface**: Manage synced patterns and easily find pattern IDs under Appearance → Synced Patterns
-- **Security**: Nonce verification on all AJAX requests
-- **Performance**: Cached rendered HTML for faster loading
-- **No Build Process**: Plain CSS and JavaScript - works immediately after activation
+The plugin is designed with developers in mind:
+- **No build process required** - plain JavaScript and CSS
+- **Clean, object-oriented PHP architecture**
+- **WordPress coding standards compliant**
+- **Fully translatable** with POT file included
+- **WordPress.org directory ready** - passes all Plugin Check tests
 
-![Admin Menu Location](assets/img/screenshot-1.png)
+## Main Features
 
-*Synced Patterns menu item under Appearance*
+### Core Functionality
+- **Simple Trigger System**: Add `spp-trigger-{id}` class or `#spp-trigger-{id}` href to any element
+- **Synced Pattern Integration**: Dynamically loads content from WordPress Synced Patterns via AJAX
+- **Admin Interface**: Manage patterns and find IDs easily under Appearance → Synced Patterns
+- **Asset Collection**: Automatically collects and injects required CSS/JS from blocks
+- **Intelligent Caching**: Transient-based caching with automatic invalidation
 
-## Installation
+### AI-Powered TLDR Feature
+- **AI-Generated Summaries**: Click `spp-trigger-tldr` to generate AI-powered page summaries
+- **Configurable Prompts**: Customize the AI prompt template in settings
+- **Smart Caching**: TLDR results are cached to reduce API calls
+- **AI Experiments Integration**: Works seamlessly with the WordPress AI Experiments plugin
 
-1. Upload the `simplest-popup` folder to `/wp-content/plugins/`
-2. Activate the plugin through the 'Plugins' menu in WordPress
-3. That's it! No configuration needed.
+### Developer Features
+- **Abilities API Support**: WordPress 6.9+ Abilities API integration for machine-readable popup rendering
+- **Hooks & Filters**: Extensible architecture with WordPress hooks
+- **Rate Limiting**: Built-in rate limiting for AJAX requests
+- **Accessibility**: ARIA attributes, keyboard navigation, focus management
+- **Security**: Nonce verification, input sanitization, output escaping
 
-## Usage
+### Performance & UX
+- **Lazy Loading**: Assets only load when triggers are detected on the page
+- **Scroll Position Preservation**: Maintains scroll position when modal opens/closes
+- **Responsive Design**: Works on all screen sizes with mobile-optimized interactions
+- **Custom Width Support**: Optional max-width specification via `spp-trigger-{id}-{width}`
 
-### Basic Usage
+## How to Install This Plugin Locally for Development
 
-You can trigger a popup in two ways:
+### Prerequisites
+- Local WordPress installation (WP-CLI recommended)
+- PHP 7.4 or higher
+- WordPress 5.8 or higher
 
-#### Method 1: Class Name (Recommended for custom HTML)
+### Installation Steps
 
-Add the class `spp-trigger-{id}` to any clickable element, where `{id}` is the numeric ID of your Synced Pattern.
+1. **Clone or download this repository:**
+   ```bash
+   cd wp-content/plugins
+   git clone <repository-url> sppopups
+   # or download and extract to wp-content/plugins/sppopups
+   ```
 
-**Example:**
-```html
-<a href="#" class="spp-trigger-1359">Open Popup</a>
-<button class="spp-trigger-1359">Click Me</button>
-<div class="spp-trigger-1359" style="cursor: pointer;">Click here</div>
+2. **Activate the plugin:**
+   ```bash
+   # Via WP-CLI
+   wp plugin activate sppopups --path=.
+   
+   # Or via WordPress Admin → Plugins
+   ```
+
+3. **Verify installation:**
+   - Check that "Synced Patterns" appears under Appearance menu
+   - Create a test synced pattern
+   - Add a trigger to a page/post and test
+
+### Development Setup
+
+The plugin requires no build process. Simply edit files and refresh:
+
+- **PHP files**: Edit in `includes/` directory
+- **JavaScript**: Edit `assets/js/modal.js` or `assets/js/admin.js`
+- **CSS**: Edit `assets/css/modal.css` or `assets/css/admin.css`
+
+### Running Plugin Check
+
+Before submitting to WordPress.org, always run Plugin Check:
+
+```bash
+wp plugin check sppopups --path=.
 ```
 
-#### Method 2: Href Attribute (Perfect for Block Editor Links)
+## Requirements and Dependencies
 
-Set the `href` attribute to `#spp-trigger-{id}` on any link element. This is especially useful in the WordPress Block Editor where you can't easily add custom classes to links.
+### Required
+- **WordPress**: 5.8 or higher
+- **PHP**: 7.4 or higher
 
-**Example:**
-```html
-<a href="#spp-trigger-1359">Open Popup</a>
-```
+### Optional Dependencies
 
-**Block Editor Usage:**
-1. Insert a Link block or add a link to text
-2. Set the URL to `#spp-trigger-1359` (replace `1359` with your pattern ID)
-3. The link will automatically trigger the popup when clicked
+#### AI Experiments Plugin (for TLDR feature)
+- **Plugin**: [WordPress AI Experiments](https://github.com/WordPress/ai-experiments)
+- **Purpose**: Enables AI-powered TLDR generation
+- **Graceful Degradation**: TLDR feature is disabled if plugin is not active
 
-![Block Editor Link Setup](assets/img/screenshot-2.png)
+### WordPress Core Dependencies
+- Synced Patterns (wp_block post type) - Core WordPress feature
+- WordPress REST API - For AJAX endpoints
+- WordPress Transients API - For caching
 
-*Setting the href attribute in the Block Editor*
+### Browser Support
+- Modern browsers with ES5 JavaScript support
+- CSS3 support (animations, backdrop-filter)
+- Fetch API support
 
-### Finding Your Synced Pattern ID
+## Tips for Developers
 
-The easiest way to find pattern IDs is through the admin interface:
+### Extending the Plugin
 
-1. Go to **WordPress Admin → Appearance → Synced Patterns**
-2. You'll see a table listing all available synced patterns
-3. The **ID** column shows the pattern ID prominently (e.g., `1359`)
-4. You can click the "Copy Trigger" button in the Actions column to copy the trigger code
-5. The **Trigger Code** column shows the complete class name (e.g., `spp-trigger-1359`)
-
-![Synced Patterns Admin Table](assets/img/screenshot-5.png)
-
-*The Synced Patterns admin interface showing all available patterns with their IDs and trigger codes*
-
-**Note:** Only synced patterns (not unsynced patterns) can be used for popups. The admin interface only shows synced patterns.
-
-### Per-Post Popup Support Toggle
-
-If your trigger links are injected dynamically (e.g., inside Gravity Forms, AJAX-loaded content, or page builders), the plugin's automatic detection might not find them. In these cases, you can force the popup assets to load on a specific post/page.
-
-**How to use:**
-
-1. Edit the post/page where you have dynamic triggers
-2. Look for the **"Synced Pattern Popup Support"** meta box in the sidebar
-3. Change the toggle from **"Default"** to **"Forced On"**
-4. Save the post
-
-**When to use "Forced On":**
-- Trigger links are inside Gravity Forms
-- Content is loaded via AJAX after page load
-- Page builders that inject content dynamically
-- Any case where the trigger isn't in the raw post content
-
-**When to use "Default":**
-- Trigger links are in regular post content, blocks, or menus
-- The plugin can automatically detect the triggers
-- This covers 99% of use cases
-
-### Multiple Popups on One Page
-
-You can have multiple different popups on the same page - just use different pattern IDs. You can mix both methods:
-
-```html
-<!-- Using class names -->
-<a href="#" class="spp-trigger-1359">Open Pattern 1359</a>
-<button class="spp-trigger-1420">Open Pattern 1420</button>
-
-<!-- Using href attributes (great for Block Editor) -->
-<a href="#spp-trigger-1501">Open Pattern 1501</a>
-```
-
-### Modal Examples
-
-The modal supports any content you can create in a Synced Pattern - from simple text to complex layouts with images, grids, and more.
-
-![Modal with Rich Content](assets/img/screenshot-3.png)
-
-*Example modal displaying an Instagram-style grid layout*
-
-![Modal with Text Content](assets/img/screenshot-4.png)
-
-*Example modal with simple text and list content*
-
-### Creating New Synced Patterns
-
-1. Go to **WordPress Admin → Appearance → Synced Patterns**
-2. Click the **"Add New"** button
-3. This will take you to the pattern editor where you can create a new synced pattern
-4. Make sure to enable the "Synced" option when creating the pattern (this is the default)
-5. Once saved, the pattern will appear in the Synced Patterns list with its ID visible
-
-## How It Works
-
-1. User clicks an element with either:
-   - Class `spp-trigger-{id}`, OR
-   - Href attribute `#spp-trigger-{id}`
-2. JavaScript extracts the numeric ID from the class name or href attribute
-3. Modal opens with a loading spinner
-4. AJAX request is sent to WordPress with nonce verification
-5. Plugin verifies the pattern is a synced pattern (not unsynced)
-6. Plugin checks cache first (for performance)
-7. If not cached, loads the Synced Pattern and renders it
-8. Rendered HTML is cached and displayed in the modal
-9. User can close modal via close button, overlay click, or Escape key
-
-## Security Features
-
-- **Nonce Verification**: All AJAX requests require a valid WordPress nonce
-- **Numeric ID Only**: Only accepts numeric pattern IDs (no slugs or titles) to reduce attack surface
-- **Published Patterns Only**: Only loads published synced patterns
-- **Synced Patterns Only**: Only synced patterns can be used for popups (unsynced patterns are excluded)
-
-## Performance Features
-
-- **Transient Caching**: Rendered HTML is cached for 12 hours by default
-- **Automatic Cache Invalidation**: Cache is cleared when a synced pattern is updated
-- **Cache TTL Filter**: Developers can adjust cache duration using the `simplest_popup_cache_ttl` filter
-
-### Adjusting Cache Duration
-
-Add this to your theme's `functions.php`:
-
+#### Custom Cache TTL
 ```php
-// Set cache to 1 hour instead of default 12 hours
-add_filter( 'simplest_popup_cache_ttl', function() {
-    return HOUR_IN_SECONDS;
+add_filter( 'sppopups_cache_ttl', function( $ttl ) {
+    return 6 * HOUR_IN_SECONDS; // 6 hours instead of 12
 });
 ```
 
-## File Structure
+#### Custom Modal Width
+Use the width suffix in your trigger:
+```html
+<a href="#" class="spp-trigger-123-800">Open 800px Modal</a>
+```
+
+#### Force Assets on Specific Pages
+The plugin automatically detects triggers, but for dynamic content:
+```php
+// In your theme's functions.php
+add_filter( 'sppopups_force_assets', function( $force, $post_id ) {
+    if ( $post_id === 123 ) {
+        return true; // Force assets on post ID 123
+    }
+    return $force;
+}, 10, 2 );
+```
+
+#### Using Abilities API (WordPress 6.9+)
+```php
+// Render popup content programmatically
+$result = wp_execute_ability( 'sppopups/render-popup', array(
+    'pattern_id' => 123
+) );
+```
+
+### Code Structure
 
 ```
-simplest-popup/
-├── simplest-popup.php          # Main plugin file
+sppopups/
+├── sppopups.php                    # Main plugin file
 ├── includes/
-│   ├── class-simplest-popup-plugin.php          # Main plugin class
-│   ├── class-simplest-popup-ajax.php            # AJAX handler
-│   ├── class-simplest-popup-cache.php           # Cache service
-│   ├── class-simplest-popup-pattern.php         # Pattern retrieval
-│   └── class-simplest-popup-admin.php           # Admin interface
+│   ├── class-sppopups-plugin.php   # Main plugin class
+│   ├── class-sppopups-ajax.php     # AJAX handlers
+│   ├── class-sppopups-cache.php    # Cache service
+│   ├── class-sppopups-pattern.php  # Pattern retrieval
+│   ├── class-sppopups-admin.php    # Admin interface
+│   ├── class-sppopups-asset-collector.php  # Asset collection
+│   ├── class-sppopups-trigger-parser.php   # Trigger parsing
+│   ├── class-sppopups-abilities.php       # Abilities API
+│   ├── class-sppopups-settings.php        # Settings management
+│   └── class-sppopups-tldr.php            # TLDR service
 ├── assets/
-│   ├── css/
-│   │   ├── modal.css          # Modal styles
-│   │   └── admin.css          # Admin styles
-│   ├── img/
-│   │   └── screenshot-*.png   # Screenshots for documentation
-│   └── js/
-│       ├── modal.js           # Modal JavaScript
-│       └── admin.js           # Admin JavaScript
-└── README.md                  # This file
+│   ├── css/                        # Stylesheets
+│   ├── js/                         # JavaScript
+│   └── img/                        # Screenshots
+└── languages/                      # Translation files
 ```
 
-## Requirements
+### Coding Standards
+- Follows [WordPress PHP Coding Standards](https://developer.wordpress.org/coding-standards/wordpress-coding-standards/php/)
+- JavaScript uses ES5 (no transpilation needed)
+- All strings are translatable
+- Security: nonces, sanitization, escaping throughout
 
-- WordPress 5.8 or higher
-- PHP 7.4 or higher
+### Testing
+- Run Plugin Check before commits
+- Test on multiple WordPress versions (5.8+)
+- Test with and without AI Experiments plugin
+- Verify accessibility with screen readers
 
-## Browser Support
+## How to Contribute to This Repo
 
-Works in all modern browsers that support:
-- ES5 JavaScript (no build process needed)
-- CSS3 (animations, backdrop-filter)
-- Fetch API
+### Reporting Issues
+1. Check existing issues first
+2. Create a new issue with:
+   - WordPress version
+   - PHP version
+   - Steps to reproduce
+   - Expected vs actual behavior
 
-## Troubleshooting
+### Submitting Pull Requests
+1. **Fork the repository**
+2. **Create a feature branch:**
+   ```bash
+   git checkout -b feature/your-feature-name
+   ```
 
-### Popup doesn't open
+3. **Make your changes:**
+   - Follow WordPress coding standards
+   - Add/update translations if adding strings
+   - Update documentation as needed
+   - Run Plugin Check before committing
 
-1. Check that you're using either:
-   - Class name exactly `spp-trigger-{id}` where `{id}` is numeric, OR
-   - Href attribute exactly `#spp-trigger-{id}` where `{id}` is numeric
-2. Verify the synced pattern ID exists and is published
-3. Verify the pattern is a synced pattern (check in Appearance → Synced Patterns)
-4. Check browser console for JavaScript errors
-5. Ensure the plugin is activated
+4. **Test thoroughly:**
+   - Test on multiple WordPress versions
+   - Test with different themes
+   - Verify no console errors
+   - Check accessibility
 
-### Content not loading
+5. **Commit with clear messages:**
+   ```bash
+   git commit -m "Add feature: description of changes"
+   ```
 
-1. Verify the synced pattern ID is correct (check in Appearance → Synced Patterns)
-2. Check that the pattern is published (not draft)
-3. Verify the pattern is synced (not unsynced) - only synced patterns work
-4. Check browser Network tab for AJAX errors
-5. Verify nonce is being sent (check Network → Payload)
+6. **Push and create PR:**
+   ```bash
+   git push origin feature/your-feature-name
+   ```
 
-### Styling issues
+### Translation Contributions
+- Translation files are in `languages/` directory
+- Use WP-CLI to generate/update POT file:
+  ```bash
+  wp i18n make-pot . languages/sppopups.pot --path=.
+  ```
 
-The plugin uses minimal CSS. If you need to customize styles, you can override them in your theme's CSS using the same class names.
+### Code Review Process
+- All PRs require review
+- Must pass Plugin Check
+- Must follow WordPress coding standards
+- Documentation updates welcome
 
 ## License
 
@@ -239,5 +239,4 @@ GPL v2 or later
 
 ## Support
 
-For issues or questions, please check the plugin documentation or contact support.
-
+For issues, questions, or contributions, please use the GitHub Issues page.

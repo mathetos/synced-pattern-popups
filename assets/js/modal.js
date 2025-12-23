@@ -96,6 +96,14 @@
 			return null;
 		}
 
+		// Check for special TLDR trigger
+		if (triggerString === 'spp-trigger-tldr' || triggerString === '#spp-trigger-tldr') {
+			return {
+				id: 'tldr',
+				type: 'tldr'
+			};
+		}
+
 		var pattern;
 		if (isHref) {
 			// Match pattern: #spp-trigger-{id} or #spp-trigger-{id}-{width}
@@ -847,6 +855,14 @@
 			}
 		}
 
+		// Check if this is a TLDR trigger
+		if (patternData && (patternData.id === 'tldr' || patternData.type === 'tldr')) {
+			e.preventDefault();
+			e.stopPropagation();
+			openTldrModal();
+			return;
+		}
+
 		// If we found valid pattern data, open the modal
 		if (patternData && patternData.id && patternData.id > 0) {
 			e.preventDefault();
@@ -854,6 +870,136 @@
 			openModal(patternData.id, patternData.maxWidth);
 		}
 	});
+
+	/**
+	 * Open TLDR modal with AI-generated summary
+	 */
+	function openTldrModal() {
+		// Verify required elements exist
+		if (!modal || !content || !container || !body) {
+			console.error('Synced Pattern Popups: Required modal elements not found');
+			return;
+		}
+
+		// Get current post ID from localized data or extract from page
+		var postId = null;
+		
+		// Try to get from localized data first
+		if (typeof sppopups !== 'undefined' && sppopups.postId) {
+			postId = sppopups.postId;
+		} else {
+			// Try to extract from body class or data attribute
+			if (body.classList) {
+				// Look for post-id-{id} class
+				var classes = Array.from(body.classList);
+				for (var i = 0; i < classes.length; i++) {
+					var match = classes[i].match(/^postid-(\d+)$/);
+					if (match) {
+						postId = parseInt(match[1], 10);
+						break;
+					}
+				}
+			}
+			// Try data attribute
+			if (!postId && body.dataset && body.dataset.postId) {
+				postId = parseInt(body.dataset.postId, 10);
+			}
+		}
+
+		if (!postId || postId <= 0) {
+			console.error('Synced Pattern Popups: Invalid post ID for TLDR');
+			return;
+		}
+
+		// Save scroll position BEFORE any DOM changes
+		savedScrollPosition = window.pageYOffset || document.documentElement.scrollTop || document.body.scrollTop || 0;
+
+		// Store the element that triggered the modal for focus restoration
+		lastActiveElement = document.activeElement;
+
+		// Reset max-width to default (no custom width for TLDR)
+		currentMaxWidth = null;
+		if (container && container.style) {
+			container.style.maxWidth = '';
+		}
+
+		// Prevent body scroll by saving scroll position
+		if (body && body.style) {
+			body.style.top = '-' + savedScrollPosition + 'px';
+		}
+
+		// Update ARIA attributes
+		if (modal) {
+			modal.setAttribute('aria-hidden', 'false');
+			modal.setAttribute('aria-busy', 'true');
+		}
+
+		// Hide background from assistive technology
+		hideBackgroundFromAT();
+
+		if (modal) {
+			modal.classList.add('active');
+			modal.style.display = 'flex';
+		}
+		if (body && body.classList) {
+			body.classList.add('sppopups-open');
+		}
+		// Use custom loading message for TLDR
+		content.innerHTML = '<div class="sppopups-loading"><div class="sppopups-spinner"></div><p>Generating TLDR</p></div>';
+
+		// Focus modal container or close button for accessibility
+		setTimeout(function() {
+			if (closeBtn) {
+				focusWithoutScroll(closeBtn);
+			} else {
+				focusWithoutScroll(modal);
+			}
+		}, 0);
+
+		// Prepare form data
+		var formData = new FormData();
+		formData.append('action', 'sppopups_get_tldr');
+		formData.append('nonce', sppopups.nonce);
+		formData.append('post_id', postId);
+
+		// Make AJAX request
+		fetch(sppopups.ajaxUrl, {
+			method: 'POST',
+			body: formData,
+			credentials: 'same-origin'
+		})
+		.then(function(response) {
+			if (!response.ok) {
+				throw new Error('HTTP ' + response.status + ': ' + response.statusText);
+			}
+			return response.json();
+		})
+		.then(function(data) {
+			// Update aria-busy to false
+			modal.setAttribute('aria-busy', 'false');
+
+			// Update dialog title from AJAX response
+			var titleElement = modal.querySelector('#sppopups-title');
+			if (titleElement && data.success && data.data && data.data.title) {
+				titleElement.textContent = data.data.title;
+			} else if (titleElement) {
+				titleElement.textContent = 'TLDR';
+			}
+
+			if (data.success && data.data && data.data.html) {
+				// Display TLDR content
+				content.innerHTML = data.data.html;
+			} else {
+				var errorMsg = (data.data && data.data.message) ? data.data.message : sppopups.strings.error;
+				content.innerHTML = '<div class="sppopups-loading"><p>' + errorMsg + '</p></div>';
+			}
+		})
+		.catch(function(error) {
+			console.error('Synced Pattern Popups: Error loading TLDR:', error);
+			modal.setAttribute('aria-busy', 'false');
+			content.innerHTML = '<div class="sppopups-loading"><p>' + sppopups.strings.error + '</p></div>';
+		});
+	}
 
 	// Handle window resize to maintain 6% margin
 	var resizeTimeout;

@@ -53,6 +53,8 @@ class SPPopups_Ajax {
 	public function init() {
 		add_action( 'wp_ajax_sppopups_get_block', array( $this, 'handle_request' ) );
 		add_action( 'wp_ajax_nopriv_sppopups_get_block', array( $this, 'handle_request' ) );
+		add_action( 'wp_ajax_sppopups_get_tldr', array( $this, 'handle_tldr_request' ) );
+		add_action( 'wp_ajax_nopriv_sppopups_get_tldr', array( $this, 'handle_tldr_request' ) );
 	}
 
 	/**
@@ -288,6 +290,93 @@ class SPPopups_Ajax {
 			'global_stylesheet'          => $extracted['global_stylesheet'],
 			'asset_data'                => $extracted['asset_data'],
 			'cached'                    => false,
+		) );
+	}
+
+	/**
+	 * Handle TLDR AJAX request
+	 */
+	public function handle_tldr_request() {
+		// Check rate limit first
+		if ( ! $this->check_rate_limit() ) {
+			wp_send_json_error( array( 'message' => __( 'Too many requests. Please try again later.', 'sppopups' ) ) );
+			return;
+		}
+
+		// Verify nonce
+		$nonce = isset( $_POST['nonce'] ) ? sanitize_text_field( wp_unslash( $_POST['nonce'] ) ) : '';
+		if ( ! wp_verify_nonce( $nonce, 'sppopups_ajax' ) ) {
+			wp_send_json_error( array( 'message' => __( 'Invalid security token. Please refresh the page and try again.', 'sppopups' ) ) );
+			return;
+		}
+
+		// Get post_id from request or use current post
+		$post_id = isset( $_POST['post_id'] ) ? sanitize_text_field( wp_unslash( $_POST['post_id'] ) ) : '';
+
+		// If no post_id provided, try to get from current query
+		if ( empty( $post_id ) ) {
+			global $post;
+			if ( $post && isset( $post->ID ) ) {
+				$post_id = $post->ID;
+			}
+		}
+
+		// Validate post_id
+		if ( empty( $post_id ) || ! is_numeric( $post_id ) ) {
+			wp_send_json_error( array( 'message' => __( 'Invalid request. Post ID required.', 'sppopups' ) ) );
+			return;
+		}
+
+		$post_id = (int) $post_id;
+
+		// Validate post exists and is published
+		$post = get_post( $post_id );
+		if ( ! $post ) {
+			wp_send_json_error( array( 'message' => __( 'Post not found.', 'sppopups' ) ) );
+			return;
+		}
+
+		if ( 'publish' !== $post->post_status ) {
+			wp_send_json_error( array( 'message' => __( 'Post is not published.', 'sppopups' ) ) );
+			return;
+		}
+
+		// Check if user can view this post (for non-logged-in users)
+		if ( ! is_user_logged_in() ) {
+			// Check if post is publicly viewable (WordPress 5.7+)
+			if ( function_exists( 'is_post_publicly_viewable' ) ) {
+				if ( ! is_post_publicly_viewable( $post_id ) ) {
+					wp_send_json_error( array( 'message' => __( 'You do not have permission to view this content.', 'sppopups' ) ) );
+					return;
+				}
+			} else {
+				// Fallback for older WordPress versions: check if post is published
+				if ( 'publish' !== $post->post_status ) {
+					wp_send_json_error( array( 'message' => __( 'You do not have permission to view this content.', 'sppopups' ) ) );
+					return;
+				}
+			}
+		}
+
+		// Get TLDR service
+		$tldr_service = new SPPopups_TLDR( $this->cache_service );
+
+		// Check cache first to determine if result was cached
+		$was_cached = false !== $tldr_service->get_cached_tldr( $post_id );
+
+		// Get TLDR (will use cache if available)
+		$tldr = $tldr_service->get_tldr( $post_id );
+
+		if ( is_wp_error( $tldr ) ) {
+			wp_send_json_error( array( 'message' => $tldr->get_error_message() ) );
+			return;
+		}
+
+		// Return success
+		wp_send_json_success( array(
+			'html'   => '<div class="sppopups-tldr-content">' . wp_kses_post( $tldr ) . '</div>',
+			'title'  => __( 'TLDR', 'sppopups' ),
+			'cached' => $was_cached,
 		) );
 	}
 }

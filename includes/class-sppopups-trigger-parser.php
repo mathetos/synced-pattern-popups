@@ -29,6 +29,14 @@ class SPPopups_Trigger_Parser {
 		$triggers = array();
 		$found_ids = array(); // Track unique triggers to avoid duplicates
 
+		// Scan for TLDR trigger first
+		if ( preg_match( '/\bspp-trigger-tldr\b/', $html ) || preg_match( '/#spp-trigger-tldr/', $html ) ) {
+			$triggers[] = array(
+				'type' => 'tldr',
+				'id'   => 'tldr',
+			);
+		}
+
 		// Scan for class-based triggers: spp-trigger-{id} or spp-trigger-{id}-{width}
 		$class_pattern = '/\bspp-trigger-(\d+)(?:-(\d+))?\b/';
 		if ( preg_match_all( $class_pattern, $html, $class_matches, PREG_SET_ORDER ) ) {

@@ -32,6 +32,8 @@ require_once SPPOPUPS_PLUGIN_DIR . 'includes/class-sppopups-trigger-parser.php';
 require_once SPPOPUPS_PLUGIN_DIR . 'includes/class-sppopups-ajax.php';
 require_once SPPOPUPS_PLUGIN_DIR . 'includes/class-sppopups-admin.php';
 require_once SPPOPUPS_PLUGIN_DIR . 'includes/class-sppopups-abilities.php';
+require_once SPPOPUPS_PLUGIN_DIR . 'includes/class-sppopups-settings.php';
+require_once SPPOPUPS_PLUGIN_DIR . 'includes/class-sppopups-tldr.php';
 require_once SPPOPUPS_PLUGIN_DIR . 'includes/class-sppopups-plugin.php';
 
 // Initialize plugin
@@ -41,6 +43,11 @@ add_action( 'plugins_loaded', 'sppopups_init' );
  * Initialize the plugin
  */
 function sppopups_init() {
+	// Initialize settings
+	$settings = new SPPopups_Settings();
+	$settings->init();
+
+	// Initialize main plugin
 	$plugin = new SPPopups_Plugin();
 	$plugin->init();
 }

@@ -98,6 +98,9 @@ class SPPopups_Plugin {
 		// Invalidate cache when post password is added/removed
 		add_action( 'post_updated', array( $this, 'invalidate_cache_on_update' ), 10, 3 );
 
+		// Invalidate TLDR cache when posts are updated
+		add_action( 'save_post', array( $this, 'invalidate_tldr_cache' ), 10, 1 );
+
 		// Register post meta for popup support toggle
 		add_action( 'init', array( $this, 'register_post_meta' ) );
 	}
@@ -180,7 +183,7 @@ class SPPopups_Plugin {
 					$menu_items = wp_get_nav_menu_items( $menu_id );
 					if ( $menu_items ) {
 						foreach ( $menu_items as $item ) {
-							if ( isset( $item->url ) && preg_match( '/#spp-trigger-\d+(?:-\d+)?/', $item->url ) ) {
+							if ( isset( $item->url ) && ( preg_match( '/#spp-trigger-tldr/', $item->url ) || preg_match( '/#spp-trigger-\d+(?:-\d+)?/', $item->url ) ) ) {
 								return true;
 							}
 						}
@@ -219,6 +222,11 @@ class SPPopups_Plugin {
 	private function content_has_triggers( $content ) {
 		if ( empty( $content ) ) {
 			return false;
+		}
+
+		// Check for TLDR trigger
+		if ( preg_match( '/\bspp-trigger-tldr\b/', $content ) || preg_match( '/#spp-trigger-tldr/', $content ) ) {
+			return true;
 		}
 
 		// Check for class-based triggers: spp-trigger-{id} or spp-trigger-{id}-{width}
@@ -266,6 +274,15 @@ class SPPopups_Plugin {
 		// Get script URLs for JavaScript injection
 		$script_urls = $this->get_script_urls();
 
+		// Get current post ID for TLDR feature
+		$post_id = 0;
+		if ( is_singular() ) {
+			global $post;
+			if ( $post && isset( $post->ID ) ) {
+				$post_id = $post->ID;
+			}
+		}
+
 		// Localize script with AJAX data
 		wp_localize_script(
 			'simplest-popup-modal',
@@ -273,6 +290,7 @@ class SPPopups_Plugin {
 			array(
 				'ajaxUrl'   => admin_url( 'admin-ajax.php' ),
 				'nonce'     => wp_create_nonce( 'sppopups_ajax' ),
+				'postId'    => $post_id,
 				'styleUrls' => $style_urls,
 				'scriptUrls' => $script_urls,
 				'strings'   => array(
@@ -395,6 +413,25 @@ class SPPopups_Plugin {
 		// Clear pattern object cache
 		$pattern_cache_key = 'sppopups_pattern_' . $post_id;
 		wp_cache_delete( $pattern_cache_key, 'sppopups_patterns' );
+	}
+
+	/**
+	 * Invalidate TLDR cache when post is updated
+	 *
+	 * @param int $post_id Post ID
+	 */
+	public function invalidate_tldr_cache( $post_id ) {
+		// Only clear TLDR cache for published posts (not wp_block)
+		$post = get_post( $post_id );
+		if ( ! $post || 'wp_block' === $post->post_type ) {
+			return;
+		}
+
+		// Only clear if post is published
+		if ( 'publish' === $post->post_status ) {
+			$tldr_service = new SPPopups_TLDR( $this->cache_service );
+			$tldr_service->clear_tldr_cache( $post_id );
+		}
 	}
 
 	/**

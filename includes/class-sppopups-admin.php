@@ -132,6 +132,37 @@ class SPPopups_Admin {
 				exit;
 			}
 		}
+
+		// Handle TLDR settings save
+		if ( isset( $_POST['save_tldr_settings'] ) && isset( $_POST['sppopups_tldr_settings_nonce'] ) ) {
+			if ( ! wp_verify_nonce( sanitize_text_field( wp_unslash( $_POST['sppopups_tldr_settings_nonce'] ) ), 'sppopups_save_tldr_settings' ) ) {
+				wp_die( esc_html__( 'Security check failed.', 'sppopups' ) );
+			}
+
+			if ( current_user_can( 'manage_options' ) ) {
+				// Save TLDR enabled
+				$tldr_enabled = isset( $_POST['sppopups_tldr_enabled'] ) ? true : false;
+				update_option( 'sppopups_tldr_enabled', $tldr_enabled );
+
+				// Save TLDR prompt
+				if ( isset( $_POST['sppopups_tldr_prompt'] ) ) {
+					$tldr_prompt = sanitize_textarea_field( wp_unslash( $_POST['sppopups_tldr_prompt'] ) );
+					update_option( 'sppopups_tldr_prompt', $tldr_prompt );
+				}
+
+				// Save TLDR cache TTL
+				if ( isset( $_POST['sppopups_tldr_cache_ttl'] ) ) {
+					$tldr_cache_ttl = absint( $_POST['sppopups_tldr_cache_ttl'] );
+					// Validate range (1-168 hours)
+					if ( $tldr_cache_ttl >= 1 && $tldr_cache_ttl <= 168 ) {
+						update_option( 'sppopups_tldr_cache_ttl', $tldr_cache_ttl );
+					}
+				}
+
+				wp_safe_redirect( admin_url( 'themes.php?page=simplest-popup-patterns&tldr_settings_saved=1' ) );
+				exit;
+			}
+		}
 	}
 
 	/**
@@ -157,6 +188,7 @@ class SPPopups_Admin {
 		$deleted = isset( $_GET['deleted'] ) ? sanitize_text_field( wp_unslash( $_GET['deleted'] ) ) : '';
 		$cache_cleared = isset( $_GET['cache_cleared'] ) ? sanitize_text_field( wp_unslash( $_GET['cache_cleared'] ) ) : '';
 		$deleted_count = isset( $_GET['deleted'] ) ? absint( $_GET['deleted'] ) : 0;
+		$tldr_settings_saved = isset( $_GET['tldr_settings_saved'] ) ? sanitize_text_field( wp_unslash( $_GET['tldr_settings_saved'] ) ) : '';
 		// phpcs:enable WordPress.Security.NonceVerification.Recommended
 		
 		if ( '1' === $deleted ) {
@@ -175,6 +207,10 @@ class SPPopups_Admin {
 				$deleted_count
 			);
 			echo '<div class="notice notice-success is-dismissible"><p>' . esc_html( $message ) . '</p></div>';
+		}
+
+		if ( '1' === $tldr_settings_saved ) {
+			echo '<div class="notice notice-success is-dismissible"><p>' . esc_html__( 'TLDR settings saved successfully.', 'sppopups' ) . '</p></div>';
 		}
 
 		?>
@@ -333,6 +369,12 @@ class SPPopups_Admin {
 					</div>
 				</div>
 			<?php endif; ?>
+
+			<?php
+			// Render TLDR settings section
+			$settings = new SPPopups_Settings();
+			$settings->render_settings_section();
+			?>
 		</div>
 		<?php
 	}
