@@ -6,7 +6,7 @@
 	'use strict';
 
 	// Check if localized data is available
-	if (typeof simplestPopupAdmin === 'undefined') {
+	if (typeof sppopupsAdmin === 'undefined') {
 		return;
 	}
 
@@ -72,8 +72,8 @@
 
 				// Update button state
 				if (button.querySelector('.dashicons')) {
-					button.setAttribute('title', simplestPopupAdmin.strings.copied);
-					button.setAttribute('aria-label', simplestPopupAdmin.strings.copied);
+					button.setAttribute('title', sppopupsAdmin.strings.copied);
+					button.setAttribute('aria-label', sppopupsAdmin.strings.copied);
 				}
 
 				// Reset after 2 seconds
@@ -87,7 +87,7 @@
 			})
 			.catch(function(error) {
 				console.error('Failed to copy:', error);
-				alert(simplestPopupAdmin.strings.copyFailed);
+				alert(sppopupsAdmin.strings.copyFailed);
 			});
 	}
 

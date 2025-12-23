@@ -3,7 +3,7 @@
  * Synced Pattern Service
  * Handles retrieval of WordPress Synced Pattern content
  *
- * @package Simplest_Popup
+ * @package SPPopups
  */
 
 // Exit if accessed directly
@@ -11,7 +11,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-class Simplest_Popup_Pattern {
+class SPPopups_Pattern {
 
 	/**
 	 * Internal cache for sync status checks (request-scoped)
@@ -62,7 +62,7 @@ class Simplest_Popup_Pattern {
 	 * @return string Cache key
 	 */
 	private function get_pattern_cache_key( $pattern_id ) {
-		return 'simplest_popup_pattern_' . (int) $pattern_id;
+		return 'sppopups_pattern_' . (int) $pattern_id;
 	}
 
 	/**
@@ -84,13 +84,13 @@ class Simplest_Popup_Pattern {
 		// Use provided post object or fetch it (with object cache support)
 		if ( null === $pattern ) {
 			$cache_key = $this->get_pattern_cache_key( $pattern_id );
-			$pattern = wp_cache_get( $cache_key, 'simplest_popup_patterns' );
+			$pattern = wp_cache_get( $cache_key, 'sppopups_patterns' );
 			
 			if ( false === $pattern ) {
 				$pattern = get_post( $pattern_id );
 				// Cache for 5 minutes (short cache for post objects)
 				if ( $pattern ) {
-					wp_cache_set( $cache_key, $pattern, 'simplest_popup_patterns', 300 );
+					wp_cache_set( $cache_key, $pattern, 'sppopups_patterns', 300 );
 				}
 			}
 		}
@@ -111,7 +111,7 @@ class Simplest_Popup_Pattern {
 		}
 
 		// Verify pattern visibility - allow filter for plugins to restrict access
-		$can_access = apply_filters( 'simplest_popup_can_access_pattern', true, $pattern_id, $pattern );
+		$can_access = apply_filters( 'sppopups_can_access_pattern', true, $pattern_id, $pattern );
 		if ( ! $can_access ) {
 			return false;
 		}
@@ -135,7 +135,7 @@ class Simplest_Popup_Pattern {
 	 * Get rendered synced pattern HTML
 	 *
 	 * @param int                                    $pattern_id Synced pattern post ID
-	 * @param Simplest_Popup_Style_Collector|null $style_collector Optional style collector instance
+	 * @param SPPopups_Asset_Collector|null $style_collector Optional asset collector instance
 	 * @return string|array|false Rendered HTML (string), array with HTML and styles, or false if not found
 	 */
 	public function get_rendered_content( $pattern_id, $style_collector = null ) {
@@ -146,7 +146,7 @@ class Simplest_Popup_Pattern {
 		}
 
 		// Start style collection if collector provided
-		if ( $style_collector instanceof Simplest_Popup_Style_Collector ) {
+		if ( $style_collector instanceof SPPopups_Asset_Collector ) {
 			$style_collector->start_collection( $pattern_id );
 		}
 
@@ -155,7 +155,7 @@ class Simplest_Popup_Pattern {
 		// and block rendering, avoiding unwanted side effects from plugins that hook into 'the_content'
 		// The filter includes do_blocks at priority 9, which properly renders blocks and triggers
 		// all necessary hooks for asset enqueuing (including third-party blocks like Kadence)
-		$html = apply_filters( 'simplest_popup_the_content', $content );
+		$html = apply_filters( 'sppopups_the_content', $content );
 
 		// Get block support CSS from Style Engine store
 		$block_supports_css = '';
@@ -181,7 +181,7 @@ class Simplest_Popup_Pattern {
 		}
 
 		// Finish style collection and get styles
-		if ( $style_collector instanceof Simplest_Popup_Style_Collector ) {
+		if ( $style_collector instanceof SPPopups_Asset_Collector ) {
 			// Get asset data BEFORE finish_collection() resets the collected arrays
 			$asset_data = $style_collector->get_asset_data();
 			// Now finish collection (this resets the arrays)
@@ -205,7 +205,7 @@ class Simplest_Popup_Pattern {
 				'block_supports_css'        => $block_supports_css,
 				'block_style_variation_css' => $block_style_variation_css,
 				'global_stylesheet'         => $global_stylesheet,
-				'asset_data'                => Simplest_Popup_Cache::get_default_asset_data(),
+				'asset_data'                => SPPopups_Cache::get_default_asset_data(),
 			);
 		}
 

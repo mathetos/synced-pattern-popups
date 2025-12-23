@@ -3,7 +3,7 @@
  * Cache Service
  * Handles transient caching for rendered synced pattern content
  *
- * @package Simplest_Popup
+ * @package SPPopups
  */
 
 // Exit if accessed directly
@@ -11,7 +11,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-class Simplest_Popup_Cache {
+class SPPopups_Cache {
 
 	/**
 	 * Cached TTL value (request-scoped)
@@ -22,7 +22,7 @@ class Simplest_Popup_Cache {
 
 	/**
 	 * Get cache TTL (time to live)
-	 * Can be filtered via 'simplest_popup_cache_ttl'
+	 * Can be filtered via 'sppopups_cache_ttl'
 	 * Result is cached per request to avoid repeated filter execution
 	 *
 	 * @return int Cache TTL in seconds
@@ -34,7 +34,7 @@ class Simplest_Popup_Cache {
 		}
 
 		// Call filter once and cache the result
-		self::$cached_ttl = (int) apply_filters( 'simplest_popup_cache_ttl', SIMPLEST_POPUP_CACHE_TTL );
+		self::$cached_ttl = (int) apply_filters( 'sppopups_cache_ttl', SPPOPUPS_CACHE_TTL );
 
 		return self::$cached_ttl;
 	}
@@ -46,7 +46,7 @@ class Simplest_Popup_Cache {
 	 * @return string Cache key
 	 */
 	private function get_cache_key( $pattern_id ) {
-		return 'simplest_popup_block_' . (int) $pattern_id;
+		return 'sppopups_block_' . (int) $pattern_id;
 	}
 
 	/**
@@ -55,7 +55,7 @@ class Simplest_Popup_Cache {
 	 * @return string Cache group
 	 */
 	private function get_cache_group() {
-		return 'simplest_popup';
+		return 'sppopups';
 	}
 
 	/**
@@ -212,7 +212,7 @@ class Simplest_Popup_Cache {
 	public function clear_all() {
 		global $wpdb;
 
-		$pattern = '_transient_simplest_popup_block_%';
+		$pattern = '_transient_sppopups_block_%';
 		$group = $this->get_cache_group();
 		
 		// Clear object cache group (if function exists - WordPress 6.1+)

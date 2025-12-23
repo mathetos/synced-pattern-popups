@@ -3,7 +3,7 @@
  * Admin Interface
  * Handles admin menu and list table for synced patterns
  *
- * @package Simplest_Popup
+ * @package SPPopups
  */
 
 // Exit if accessed directly
@@ -11,32 +11,32 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-class Simplest_Popup_Admin {
+class SPPopups_Admin {
 
 	/**
 	 * Pattern service instance
 	 *
-	 * @var Simplest_Popup_Pattern
+	 * @var SPPopups_Pattern
 	 */
 	private $pattern_service;
 
 	/**
 	 * Cache service instance
 	 *
-	 * @var Simplest_Popup_Cache
+	 * @var SPPopups_Cache
 	 */
 	private $cache_service;
 
 	/**
 	 * Constructor
 	 *
-	 * @param Simplest_Popup_Pattern $pattern_service Pattern service instance
-	 * @param Simplest_Popup_Cache   $cache_service   Cache service instance
+	 * @param SPPopups_Pattern $pattern_service Pattern service instance
+	 * @param SPPopups_Cache   $cache_service   Cache service instance
 	 */
-	public function __construct( Simplest_Popup_Pattern $pattern_service, Simplest_Popup_Cache $cache_service = null ) {
+	public function __construct( SPPopups_Pattern $pattern_service, SPPopups_Cache $cache_service = null ) {
 		$this->pattern_service = $pattern_service;
 		// Create cache service if not provided
-		$this->cache_service = $cache_service ? $cache_service : new Simplest_Popup_Cache();
+		$this->cache_service = $cache_service ? $cache_service : new SPPopups_Cache();
 	}
 
 	/**
@@ -57,8 +57,8 @@ class Simplest_Popup_Admin {
 	 */
 	public function add_admin_menu() {
 		add_theme_page(
-			__( 'Synced Patterns', 'simplest-popup' ),
-			__( 'Synced Patterns', 'simplest-popup' ),
+			__( 'Synced Patterns', 'sppopups' ),
+			__( 'Synced Patterns', 'sppopups' ),
 			'edit_posts',
 			'simplest-popup-patterns',
 			array( $this, 'render_admin_page' )
@@ -77,26 +77,26 @@ class Simplest_Popup_Admin {
 
 		wp_enqueue_style(
 			'simplest-popup-admin',
-			SIMPLEST_POPUP_PLUGIN_URL . 'assets/css/admin.css',
+			SPPOPUPS_PLUGIN_URL . 'assets/css/admin.css',
 			array(),
-			SIMPLEST_POPUP_VERSION
+			SPPOPUPS_VERSION
 		);
 
 		wp_enqueue_script(
 			'simplest-popup-admin',
-			SIMPLEST_POPUP_PLUGIN_URL . 'assets/js/admin.js',
+			SPPOPUPS_PLUGIN_URL . 'assets/js/admin.js',
 			array(),
-			SIMPLEST_POPUP_VERSION,
+			SPPOPUPS_VERSION,
 			true
 		);
 
 		wp_localize_script(
 			'simplest-popup-admin',
-			'simplestPopupAdmin',
+			'sppopupsAdmin',
 			array(
 				'strings' => array(
-					'copied' => __( 'Copied!', 'simplest-popup' ),
-					'copyFailed' => __( 'Failed to copy', 'simplest-popup' ),
+					'copied' => __( 'Copied!', 'sppopups' ),
+					'copyFailed' => __( 'Failed to copy', 'sppopups' ),
 				),
 			)
 		);
@@ -160,7 +160,7 @@ class Simplest_Popup_Admin {
 		// phpcs:enable WordPress.Security.NonceVerification.Recommended
 		
 		if ( '1' === $deleted ) {
-			echo '<div class="notice notice-success is-dismissible"><p>' . esc_html__( 'Pattern deleted successfully.', 'simplest-popup' ) . '</p></div>';
+			echo '<div class="notice notice-success is-dismissible"><p>' . esc_html__( 'Pattern deleted successfully.', 'sppopups' ) . '</p></div>';
 		}
 
 		if ( '1' === $cache_cleared ) {
@@ -180,10 +180,10 @@ class Simplest_Popup_Admin {
 		?>
 		<div class="wrap">
 			<h1 class="wp-heading-inline">
-				<?php esc_html_e( 'Synced Patterns', 'simplest-popup' ); ?>
+				<?php esc_html_e( 'Synced Patterns', 'sppopups' ); ?>
 			</h1>
 			<a href="<?php echo esc_url( admin_url( 'post-new.php?post_type=wp_block' ) ); ?>" class="page-title-action">
-				<?php esc_html_e( 'Add New', 'simplest-popup' ); ?>
+				<?php esc_html_e( 'Add New', 'sppopups' ); ?>
 			</a>
 			<?php
 			$clear_cache_url = wp_nonce_url(
@@ -192,34 +192,34 @@ class Simplest_Popup_Admin {
 			);
 			?>
 			<a href="<?php echo esc_url( $clear_cache_url ); ?>" class="page-title-action" style="margin-left: 8px;">
-				<?php esc_html_e( 'Clear Transient Cache', 'simplest-popup' ); ?>
+				<?php esc_html_e( 'Clear Transient Cache', 'sppopups' ); ?>
 			</a>
 			<hr class="wp-header-end">
 
 			<p class="description">
-				<?php esc_html_e( 'Manage synced patterns that can be used as popups. Only synced patterns are available for popup triggers.', 'simplest-popup' ); ?>
+				<?php esc_html_e( 'Manage synced patterns that can be used as popups. Only synced patterns are available for popup triggers.', 'sppopups' ); ?>
 			</p>
 
 			<?php if ( empty( $patterns ) ) : ?>
 				<div class="notice notice-info">
 					<p>
-						<?php esc_html_e( 'No synced patterns found.', 'simplest-popup' ); ?>
+						<?php esc_html_e( 'No synced patterns found.', 'sppopups' ); ?>
 						<a href="<?php echo esc_url( admin_url( 'post-new.php?post_type=wp_block' ) ); ?>">
-							<?php esc_html_e( 'Create your first synced pattern', 'simplest-popup' ); ?>
+							<?php esc_html_e( 'Create your first synced pattern', 'sppopups' ); ?>
 						</a>
 					</p>
 				</div>
 			<?php else : ?>
-				<div class="simplest-popup-table-wrapper">
-					<table class="wp-list-table widefat fixed striped simplest-popup-patterns-table">
+				<div class="sppopups-table-wrapper">
+					<table class="wp-list-table widefat fixed striped sppopups-patterns-table">
 					<thead>
 						<tr>
-							<th class="column-id"><?php esc_html_e( 'ID', 'simplest-popup' ); ?></th>
-							<th class="column-title"><?php esc_html_e( 'Title', 'simplest-popup' ); ?></th>
-							<th class="column-status"><?php esc_html_e( 'Status', 'simplest-popup' ); ?></th>
-							<th class="column-sync-status"><?php esc_html_e( 'Sync Status', 'simplest-popup' ); ?></th>
-							<th class="column-trigger"><?php esc_html_e( 'Trigger Code', 'simplest-popup' ); ?></th>
-							<th class="column-actions"><?php esc_html_e( 'Actions', 'simplest-popup' ); ?></th>
+							<th class="column-id"><?php esc_html_e( 'ID', 'sppopups' ); ?></th>
+							<th class="column-title"><?php esc_html_e( 'Title', 'sppopups' ); ?></th>
+							<th class="column-status"><?php esc_html_e( 'Status', 'sppopups' ); ?></th>
+							<th class="column-sync-status"><?php esc_html_e( 'Sync Status', 'sppopups' ); ?></th>
+							<th class="column-trigger"><?php esc_html_e( 'Trigger Code', 'sppopups' ); ?></th>
+							<th class="column-actions"><?php esc_html_e( 'Actions', 'sppopups' ); ?></th>
 						</tr>
 					</thead>
 					<tbody>
@@ -259,7 +259,7 @@ class Simplest_Popup_Admin {
 								<td class="column-title">
 									<strong>
 										<?php
-										$pattern_title = isset( $pattern->post_title ) && ! empty( $pattern->post_title ) ? $pattern->post_title : __( '(no title)', 'simplest-popup' );
+										$pattern_title = isset( $pattern->post_title ) && ! empty( $pattern->post_title ) ? $pattern->post_title : __( '(no title)', 'sppopups' );
 										if ( $edit_url ) :
 											?>
 											<a href="<?php echo esc_url( $edit_url ); ?>">
@@ -284,9 +284,9 @@ class Simplest_Popup_Admin {
 								</td>
 								<td class="column-sync-status">
 									<?php if ( $is_synced ) : ?>
-										<span class="status-badge status-synced"><?php esc_html_e( 'Synced', 'simplest-popup' ); ?></span>
-									<?php else : ?>
-										<span class="status-badge status-unsynced"><?php esc_html_e( 'Unsynced', 'simplest-popup' ); ?></span>
+										<span class="status-badge status-synced"><?php esc_html_e( 'Synced', 'sppopups' ); ?></span>
+										<?php else : ?>
+										<span class="status-badge status-unsynced"><?php esc_html_e( 'Unsynced', 'sppopups' ); ?></span>
 									<?php endif; ?>
 								</td>
 								<td class="column-trigger">
@@ -295,7 +295,7 @@ class Simplest_Popup_Admin {
 								<td class="column-actions">
 									<?php if ( $edit_url ) : ?>
 										<a href="<?php echo esc_url( $edit_url ); ?>" class="button button-small">
-											<?php esc_html_e( 'Edit', 'simplest-popup' ); ?>
+											<?php esc_html_e( 'Edit', 'sppopups' ); ?>
 										</a>
 									<?php endif; ?>
 									<?php if ( current_user_can( 'delete_post', $pattern_id ) ) : ?>
@@ -312,7 +312,7 @@ class Simplest_Popup_Admin {
 										class="button button-small copy-trigger" 
 										data-copy="<?php echo esc_attr( $trigger_code ); ?>"
 									>
-										<?php esc_html_e( 'Copy Trigger', 'simplest-popup' ); ?>
+										<?php esc_html_e( 'Copy Trigger', 'sppopups' ); ?>
 									</button>
 								</td>
 							</tr>
@@ -321,14 +321,14 @@ class Simplest_Popup_Admin {
 				</table>
 				</div>
 
-				<div class="simplest-popup-usage-instructions">
+				<div class="sppopups-usage-instructions">
 					<strong><?php esc_html_e( 'How to use:', 'simplest-popup' ); ?></strong>
 					<div>
 						<?php esc_html_e( 'Method 1 - Class name:', 'simplest-popup' ); ?>
 						<code>&lt;a href="#" class="wppt-popup-123"&gt;Open Popup&lt;/a&gt;</code>
 					</div>
 					<div>
-						<?php esc_html_e( 'Method 2 - Href attribute (for Block Editor):', 'simplest-popup' ); ?>
+						<?php esc_html_e( 'Method 2 - Href attribute (for Block Editor):', 'sppopups' ); ?>
 						<code>&lt;a href="#wppt-popup-123"&gt;Open Popup&lt;/a&gt;</code>
 					</div>
 				</div>
@@ -351,7 +351,7 @@ class Simplest_Popup_Admin {
 
 			add_meta_box(
 				'simplest-popup-support',
-				__( 'Synced Pattern Popup Support', 'simplest-popup' ),
+				__( 'Synced Pattern Popup Support', 'sppopups' ),
 				array( $this, 'render_popup_support_metabox' ),
 				$post_type,
 				'side',
@@ -367,28 +367,28 @@ class Simplest_Popup_Admin {
 	 */
 	public function render_popup_support_metabox( $post ) {
 		// Add nonce for security
-		wp_nonce_field( 'simplest_popup_support_metabox', 'simplest_popup_support_nonce' );
+		wp_nonce_field( 'sppopups_support_metabox', 'sppopups_support_nonce' );
 
 		// Get current value
-		$current_value = get_post_meta( $post->ID, '_simplest_popup_support', true );
+		$current_value = get_post_meta( $post->ID, '_sppopups_support', true );
 		if ( empty( $current_value ) ) {
 			$current_value = 'default';
 		}
 		?>
-		<div class="simplest-popup-support-metabox">
+		<div class="sppopups-support-metabox">
 			<fieldset>
 				<label>
-					<input type="radio" name="simplest_popup_support" value="default" <?php checked( $current_value, 'default' ); ?> />
-					<strong><?php esc_html_e( 'Default', 'simplest-popup' ); ?></strong>
+					<input type="radio" name="sppopups_support" value="default" <?php checked( $current_value, 'default' ); ?> />
+					<strong><?php esc_html_e( 'Default', 'sppopups' ); ?></strong>
 				</label>
 				<br>
 				<label>
-					<input type="radio" name="simplest_popup_support" value="forced" <?php checked( $current_value, 'forced' ); ?> />
-					<strong><?php esc_html_e( 'Forced On', 'simplest-popup' ); ?></strong>
+					<input type="radio" name="sppopups_support" value="forced" <?php checked( $current_value, 'forced' ); ?> />
+					<strong><?php esc_html_e( 'Forced On', 'sppopups' ); ?></strong>
 				</label>
 			</fieldset>
 			<p class="description" style="margin-top: 12px; margin-bottom: 0;">
-				<?php esc_html_e( 'In most cases you can leave this on Default. Use Forced On if your trigger link/class is injected dynamically (e.g., forms, AJAX, page builders) and the popup assets aren\'t loading.', 'simplest-popup' ); ?>
+				<?php esc_html_e( 'In most cases you can leave this on Default. Use Forced On if your trigger link/class is injected dynamically (e.g., forms, AJAX, page builders) and the popup assets aren\'t loading.', 'sppopups' ); ?>
 			</p>
 		</div>
 		<?php
@@ -401,13 +401,13 @@ class Simplest_Popup_Admin {
 	 */
 	public function save_popup_support_metabox( $post_id ) {
 		// Check if nonce is set
-		if ( ! isset( $_POST['simplest_popup_support_nonce'] ) ) {
+		if ( ! isset( $_POST['sppopups_support_nonce'] ) ) {
 			return;
 		}
 
 		// Verify nonce
-		$nonce = isset( $_POST['simplest_popup_support_nonce'] ) ? sanitize_text_field( wp_unslash( $_POST['simplest_popup_support_nonce'] ) ) : '';
-		if ( ! wp_verify_nonce( $nonce, 'simplest_popup_support_metabox' ) ) {
+		$nonce = isset( $_POST['sppopups_support_nonce'] ) ? sanitize_text_field( wp_unslash( $_POST['sppopups_support_nonce'] ) ) : '';
+		if ( ! wp_verify_nonce( $nonce, 'sppopups_support_metabox' ) ) {
 			return;
 		}
 
@@ -427,7 +427,7 @@ class Simplest_Popup_Admin {
 		}
 
 		// Get and sanitize the value
-		$value = isset( $_POST['simplest_popup_support'] ) ? sanitize_text_field( wp_unslash( $_POST['simplest_popup_support'] ) ) : 'default';
+		$value = isset( $_POST['sppopups_support'] ) ? sanitize_text_field( wp_unslash( $_POST['sppopups_support'] ) ) : 'default';
 		$allowed = array( 'default', 'forced' );
 		
 		if ( ! in_array( $value, $allowed, true ) ) {
@@ -435,7 +435,7 @@ class Simplest_Popup_Admin {
 		}
 
 		// Update post meta
-		update_post_meta( $post_id, '_simplest_popup_support', $value );
+		update_post_meta( $post_id, '_sppopups_support', $value );
 	}
 }
 

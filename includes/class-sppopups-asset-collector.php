@@ -1,9 +1,9 @@
 <?php
 /**
- * Style Collector Service
- * Collects style handles required for blocks during rendering
+ * Asset Collector Service
+ * Collects style and script handles required for blocks during rendering
  *
- * @package Simplest_Popup
+ * @package SPPopups
  */
 
 // Exit if accessed directly
@@ -11,7 +11,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-class Simplest_Popup_Style_Collector {
+class SPPopups_Asset_Collector {
 
 	/**
 	 * Current pattern ID being rendered
@@ -265,7 +265,7 @@ class Simplest_Popup_Style_Collector {
 		);
 
 		// Allow filtering of editor styles list
-		$editor_styles = apply_filters( 'simplest_popup_editor_styles', $editor_styles );
+		$editor_styles = apply_filters( 'sppopups_editor_styles', $editor_styles );
 
 		$styles = array_diff( $styles, $editor_styles );
 
@@ -277,7 +277,7 @@ class Simplest_Popup_Style_Collector {
 		);
 
 		// Allow filtering of editor prefixes
-		$editor_prefixes = apply_filters( 'simplest_popup_editor_style_prefixes', $editor_prefixes );
+		$editor_prefixes = apply_filters( 'sppopups_editor_style_prefixes', $editor_prefixes );
 
 		$styles = array_filter( $styles, function( $handle ) use ( $editor_prefixes ) {
 			foreach ( $editor_prefixes as $prefix ) {
@@ -372,7 +372,7 @@ class Simplest_Popup_Style_Collector {
 
 			// Get src URL
 			if ( ! empty( $style_obj->src ) ) {
-				$asset['src'] = Simplest_Popup_Plugin::normalize_asset_url(
+				$asset['src'] = SPPopups_Plugin::normalize_asset_url(
 					$style_obj->src,
 					$handle,
 					'style',
@@ -412,7 +412,7 @@ class Simplest_Popup_Style_Collector {
 
 			// Get src URL
 			if ( ! empty( $script_obj->src ) ) {
-				$asset['src'] = Simplest_Popup_Plugin::normalize_asset_url(
+				$asset['src'] = SPPopups_Plugin::normalize_asset_url(
 					$script_obj->src,
 					$handle,
 					'script',

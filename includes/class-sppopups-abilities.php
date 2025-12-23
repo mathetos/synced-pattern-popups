@@ -1,10 +1,10 @@
 <?php
 /**
  * Abilities API Registration
- * Registers Simplest Popup abilities for WordPress 6.9+ Abilities API
+ * Registers Synced Pattern Popups abilities for WordPress 6.9+ Abilities API
  * Gracefully degrades on older WordPress versions
  *
- * @package Simplest_Popup
+ * @package SPPopups
  */
 
 // Exit if accessed directly
@@ -12,37 +12,37 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-class Simplest_Popup_Abilities {
+class SPPopups_Abilities {
 
 	/**
 	 * Pattern service instance
 	 *
-	 * @var Simplest_Popup_Pattern
+	 * @var SPPopups_Pattern
 	 */
 	private $pattern_service;
 
 	/**
 	 * Cache service instance
 	 *
-	 * @var Simplest_Popup_Cache
+	 * @var SPPopups_Cache
 	 */
 	private $cache_service;
 
 	/**
-	 * Style collector instance
+	 * Asset collector instance
 	 *
-	 * @var Simplest_Popup_Style_Collector
+	 * @var SPPopups_Asset_Collector
 	 */
 	private $style_collector;
 
 	/**
 	 * Constructor
 	 *
-	 * @param Simplest_Popup_Pattern         $pattern_service Pattern service instance
-	 * @param Simplest_Popup_Cache           $cache_service   Cache service instance
-	 * @param Simplest_Popup_Style_Collector $style_collector Style collector instance
+	 * @param SPPopups_Pattern         $pattern_service Pattern service instance
+	 * @param SPPopups_Cache           $cache_service   Cache service instance
+	 * @param SPPopups_Asset_Collector $style_collector Asset collector instance
 	 */
-	public function __construct( Simplest_Popup_Pattern $pattern_service, Simplest_Popup_Cache $cache_service, Simplest_Popup_Style_Collector $style_collector ) {
+	public function __construct( SPPopups_Pattern $pattern_service, SPPopups_Cache $cache_service, SPPopups_Asset_Collector $style_collector ) {
 		$this->pattern_service = $pattern_service;
 		$this->cache_service = $cache_service;
 		$this->style_collector = $style_collector;
@@ -59,6 +59,33 @@ class Simplest_Popup_Abilities {
 			return;
 		}
 
+		// Register category before abilities (required by Abilities API)
+		add_action( 'wp_abilities_api_categories_init', array( $this, 'register_category' ) );
+		// Register abilities on the proper hook (required by Abilities API)
+		add_action( 'wp_abilities_api_init', array( $this, 'register_abilities' ) );
+	}
+
+	/**
+	 * Register ability category
+	 * Called on wp_abilities_api_categories_init action
+	 */
+	public function register_category() {
+		if ( function_exists( 'wp_register_ability_category' ) ) {
+			wp_register_ability_category(
+				'sppopups',
+				array(
+					'label'       => __( 'Synced Pattern Popups', 'sppopups' ),
+					'description' => __( 'Abilities for managing popup content from Synced Patterns.', 'sppopups' ),
+				)
+			);
+		}
+	}
+
+	/**
+	 * Register all abilities
+	 * Called on wp_abilities_api_init action
+	 */
+	public function register_abilities() {
 		// Register all abilities
 		$this->register_render_ability();
 		$this->register_list_patterns_ability();
@@ -69,17 +96,18 @@ class Simplest_Popup_Abilities {
 
 	/**
 	 * Check if user has permission for an ability
+	 * Signature matches Abilities API: callable( mixed $input= ): (bool|WP_Error)
 	 *
-	 * @param string $ability_name Ability name
-	 * @param array  $context      Optional context data
-	 * @return bool True if user has permission
+	 * @param mixed $input Optional input data (unused for permission check)
+	 * @return bool|WP_Error True if user has permission, false or WP_Error otherwise
 	 */
-	private function check_permission( $ability_name, $context = array() ) {
+	public function check_permission( $input = null ) {
 		// Default permission: Editors+ (edit_others_posts)
 		$allowed = current_user_can( 'edit_others_posts' );
 
 		// Allow filter for custom permission logic
-		$allowed = apply_filters( 'simplest_popup_ability_permission', $allowed, $ability_name, $context );
+		// Note: We can't pass ability_name here since we don't have context, but filter can check current ability
+		$allowed = apply_filters( 'sppopups_ability_permission', $allowed, null, array() );
 
 		return $allowed;
 	}
@@ -89,16 +117,17 @@ class Simplest_Popup_Abilities {
 	 */
 	private function register_render_ability() {
 		wp_register_ability(
-			'simplest-popup/render',
+			'sppopups/render',
 			array(
-				'name'        => __( 'Render Popup Content', 'simplest-popup' ),
-				'description' => __( 'Renders a synced pattern as popup content with all required styles and assets.', 'simplest-popup' ),
+				'label'       => __( 'Render Popup Content', 'sppopups' ),
+				'description' => __( 'Renders a synced pattern as popup content with all required styles and assets.', 'sppopups' ),
+				'category'    => 'sppopups',
 				'input_schema' => array(
 					'type'       => 'object',
 					'properties' => array(
 						'pattern_id' => array(
 							'type'        => 'integer',
-							'description' => __( 'The ID of the synced pattern to render.', 'simplest-popup' ),
+							'description' => __( 'The ID of the synced pattern to render.', 'sppopups' ),
 							'required'    => true,
 						),
 					),
@@ -109,37 +138,47 @@ class Simplest_Popup_Abilities {
 					'properties' => array(
 						'html'                      => array(
 							'type'        => 'string',
-							'description' => __( 'Rendered HTML content.', 'simplest-popup' ),
+							'description' => __( 'Rendered HTML content.', 'sppopups' ),
 						),
 						'title'                     => array(
 							'type'        => 'string',
-							'description' => __( 'Pattern title.', 'simplest-popup' ),
+							'description' => __( 'Pattern title.', 'sppopups' ),
 						),
 						'styles'                    => array(
 							'type'        => 'array',
-							'description' => __( 'Array of style handles required for this pattern.', 'simplest-popup' ),
+							'description' => __( 'Array of style handles required for this pattern.', 'sppopups' ),
 							'items'       => array( 'type' => 'string' ),
 						),
 						'block_supports_css'        => array(
 							'type'        => 'string',
-							'description' => __( 'Block supports CSS from Style Engine.', 'simplest-popup' ),
+							'description' => __( 'Block supports CSS from Style Engine.', 'sppopups' ),
 						),
 						'block_style_variation_css' => array(
 							'type'        => 'string',
-							'description' => __( 'Block style variation CSS (is-style-* classes).', 'simplest-popup' ),
+							'description' => __( 'Block style variation CSS (is-style-* classes).', 'sppopups' ),
 						),
 						'global_stylesheet'         => array(
 							'type'        => 'string',
-							'description' => __( 'Global stylesheet for CSS variables.', 'simplest-popup' ),
+							'description' => __( 'Global stylesheet for CSS variables.', 'sppopups' ),
 						),
 						'asset_data'                => array(
 							'type'        => 'object',
-							'description' => __( 'Detailed asset data (styles and scripts with URLs and inline content).', 'simplest-popup' ),
+							'description' => __( 'Detailed asset data (styles and scripts with URLs and inline content).', 'sppopups' ),
 						),
 					),
 				),
-				'permission_callback' => array( $this, 'check_permission' ),
-				'callback'            => array( $this, 'execute_render' ),
+				'meta'                => array(
+					'mcp' => array(
+						'public' => true,
+						'type'   => 'tool',
+					),
+				),
+				'permission_callback' => function( $input = null ) {
+					return $this->check_permission( $input );
+				},
+				'execute_callback'    => function( $params ) {
+					return $this->execute_render( $params );
+				},
 			)
 		);
 	}
@@ -153,27 +192,27 @@ class Simplest_Popup_Abilities {
 	public function execute_render( $params ) {
 		// Validate pattern_id
 		if ( ! isset( $params['pattern_id'] ) || ! is_numeric( $params['pattern_id'] ) ) {
-			return new WP_Error( 'invalid_pattern_id', __( 'Invalid pattern ID.', 'simplest-popup' ), array( 'status' => 400 ) );
+			return new WP_Error( 'invalid_pattern_id', __( 'Invalid pattern ID.', 'sppopups' ), array( 'status' => 400 ) );
 		}
 
 		$pattern_id = (int) $params['pattern_id'];
 
 		// Validate range
 		if ( $pattern_id <= 0 || $pattern_id > 2147483647 ) {
-			return new WP_Error( 'invalid_pattern_id', __( 'Pattern ID out of valid range.', 'simplest-popup' ), array( 'status' => 400 ) );
+			return new WP_Error( 'invalid_pattern_id', __( 'Pattern ID out of valid range.', 'sppopups' ), array( 'status' => 400 ) );
 		}
 
 		// Get pattern post object for title
 		$pattern = get_post( $pattern_id );
 		if ( ! $pattern || $pattern->post_type !== 'wp_block' ) {
-			return new WP_Error( 'pattern_not_found', __( 'Pattern not found.', 'simplest-popup' ), array( 'status' => 404 ) );
+			return new WP_Error( 'pattern_not_found', __( 'Pattern not found.', 'sppopups' ), array( 'status' => 404 ) );
 		}
 
 		// Get rendered content with asset collection
 		$rendered = $this->pattern_service->get_rendered_content( $pattern_id, $this->style_collector );
 
 		if ( false === $rendered ) {
-			return new WP_Error( 'render_failed', __( 'Failed to render pattern content.', 'simplest-popup' ), array( 'status' => 500 ) );
+			return new WP_Error( 'render_failed', __( 'Failed to render pattern content.', 'sppopups' ), array( 'status' => 500 ) );
 		}
 
 		// Normalize response (handle both string and array returns)
@@ -184,12 +223,12 @@ class Simplest_Popup_Abilities {
 				'block_supports_css'        => '',
 				'block_style_variation_css' => '',
 				'global_stylesheet'         => '',
-				'asset_data'                => Simplest_Popup_Cache::get_default_asset_data(),
+				'asset_data'                => SPPopups_Cache::get_default_asset_data(),
 			);
 		}
 
 		// Add title
-		$rendered['title'] = $pattern->post_title ? $pattern->post_title : __( '(no title)', 'simplest-popup' );
+		$rendered['title'] = $pattern->post_title ? $pattern->post_title : __( '(no title)', 'sppopups' );
 
 		return $rendered;
 	}
@@ -199,16 +238,17 @@ class Simplest_Popup_Abilities {
 	 */
 	private function register_list_patterns_ability() {
 		wp_register_ability(
-			'simplest-popup/list-synced-patterns',
+			'sppopups/list-synced-patterns',
 			array(
-				'name'        => __( 'List Synced Patterns', 'simplest-popup' ),
-				'description' => __( 'Returns a list of all synced patterns available for popups.', 'simplest-popup' ),
+				'label'       => __( 'List Synced Patterns', 'sppopups' ),
+				'description' => __( 'Returns a list of all synced patterns available for popups.', 'sppopups' ),
+				'category'    => 'sppopups',
 				'input_schema' => array(
 					'type'       => 'object',
 					'properties' => array(
 						'status' => array(
 							'type'        => 'string',
-							'description' => __( 'Filter by post status (e.g., "publish", "draft"). Optional.', 'simplest-popup' ),
+							'description' => __( 'Filter by post status (e.g., "publish", "draft"). Optional.', 'sppopups' ),
 							'enum'        => array( 'publish', 'draft', 'private', 'pending', 'any' ),
 						),
 					),
@@ -218,7 +258,7 @@ class Simplest_Popup_Abilities {
 					'properties' => array(
 						'patterns' => array(
 							'type'        => 'array',
-							'description' => __( 'Array of synced pattern objects.', 'simplest-popup' ),
+							'description' => __( 'Array of synced pattern objects.', 'sppopups' ),
 							'items'       => array(
 								'type'       => 'object',
 								'properties' => array(
@@ -232,8 +272,14 @@ class Simplest_Popup_Abilities {
 						),
 					),
 				),
+				'meta'                => array(
+					'mcp' => array(
+						'public' => true,
+						'type'   => 'tool',
+					),
+				),
 				'permission_callback' => array( $this, 'check_permission' ),
-				'callback'            => array( $this, 'execute_list_patterns' ),
+				'execute_callback'    => array( $this, 'execute_list_patterns' ),
 			)
 		);
 	}
@@ -263,7 +309,7 @@ class Simplest_Popup_Abilities {
 
 			$patterns[] = array(
 				'id'          => (int) $post->ID,
-				'title'       => $post->post_title ? $post->post_title : __( '(no title)', 'simplest-popup' ),
+				'title'       => $post->post_title ? $post->post_title : __( '(no title)', 'sppopups' ),
 				'status'      => $post->post_status,
 				'sync_status' => $is_synced ? 'synced' : 'unsynced',
 				'edit_url'    => get_edit_post_link( $post->ID, 'raw' ),
@@ -278,16 +324,17 @@ class Simplest_Popup_Abilities {
 	 */
 	private function register_cache_clear_ability() {
 		wp_register_ability(
-			'simplest-popup/cache-clear',
+			'sppopups/cache-clear',
 			array(
-				'name'        => __( 'Clear Pattern Cache', 'simplest-popup' ),
-				'description' => __( 'Clears the cached content for a specific synced pattern.', 'simplest-popup' ),
+				'label'       => __( 'Clear Pattern Cache', 'sppopups' ),
+				'description' => __( 'Clears the cached content for a specific synced pattern.', 'sppopups' ),
+				'category'    => 'sppopups',
 				'input_schema' => array(
 					'type'       => 'object',
 					'properties' => array(
 						'pattern_id' => array(
 							'type'        => 'integer',
-							'description' => __( 'The ID of the pattern to clear cache for.', 'simplest-popup' ),
+							'description' => __( 'The ID of the pattern to clear cache for.', 'sppopups' ),
 							'required'    => true,
 						),
 					),
@@ -298,12 +345,18 @@ class Simplest_Popup_Abilities {
 					'properties' => array(
 						'cleared' => array(
 							'type'        => 'boolean',
-							'description' => __( 'Whether the cache was successfully cleared.', 'simplest-popup' ),
+							'description' => __( 'Whether the cache was successfully cleared.', 'sppopups' ),
 						),
 					),
 				),
+				'meta'                => array(
+					'mcp' => array(
+						'public' => true,
+						'type'   => 'tool',
+					),
+				),
 				'permission_callback' => array( $this, 'check_permission' ),
-				'callback'            => array( $this, 'execute_cache_clear' ),
+				'execute_callback'    => array( $this, 'execute_cache_clear' ),
 			)
 		);
 	}
@@ -317,22 +370,22 @@ class Simplest_Popup_Abilities {
 	public function execute_cache_clear( $params ) {
 		// Validate pattern_id
 		if ( ! isset( $params['pattern_id'] ) || ! is_numeric( $params['pattern_id'] ) ) {
-			return new WP_Error( 'invalid_pattern_id', __( 'Invalid pattern ID.', 'simplest-popup' ), array( 'status' => 400 ) );
+			return new WP_Error( 'invalid_pattern_id', __( 'Invalid pattern ID.', 'sppopups' ), array( 'status' => 400 ) );
 		}
 
 		$pattern_id = (int) $params['pattern_id'];
 
 		// Validate range
 		if ( $pattern_id <= 0 || $pattern_id > 2147483647 ) {
-			return new WP_Error( 'invalid_pattern_id', __( 'Pattern ID out of valid range.', 'simplest-popup' ), array( 'status' => 400 ) );
+			return new WP_Error( 'invalid_pattern_id', __( 'Pattern ID out of valid range.', 'sppopups' ), array( 'status' => 400 ) );
 		}
 
 		// Clear cache
 		$cleared = $this->cache_service->delete( $pattern_id );
 
 		// Also clear pattern object cache
-		$pattern_cache_key = 'simplest_popup_pattern_' . $pattern_id;
-		wp_cache_delete( $pattern_cache_key, 'simplest_popup_patterns' );
+		$pattern_cache_key = 'sppopups_pattern_' . $pattern_id;
+		wp_cache_delete( $pattern_cache_key, 'sppopups_patterns' );
 
 		return array( 'cleared' => $cleared );
 	}
@@ -342,10 +395,11 @@ class Simplest_Popup_Abilities {
 	 */
 	private function register_cache_clear_all_ability() {
 		wp_register_ability(
-			'simplest-popup/cache-clear-all',
+			'sppopups/cache-clear-all',
 			array(
-				'name'        => __( 'Clear All Popup Cache', 'simplest-popup' ),
-				'description' => __( 'Clears all cached popup content for all synced patterns.', 'simplest-popup' ),
+				'label'       => __( 'Clear All Popup Cache', 'sppopups' ),
+				'description' => __( 'Clears all cached popup content for all synced patterns.', 'sppopups' ),
+				'category'    => 'sppopups',
 				'input_schema' => array(
 					'type' => 'object',
 					'properties' => array(),
@@ -355,12 +409,18 @@ class Simplest_Popup_Abilities {
 					'properties' => array(
 						'deleted_count' => array(
 							'type'        => 'integer',
-							'description' => __( 'Number of cache entries deleted.', 'simplest-popup' ),
+							'description' => __( 'Number of cache entries deleted.', 'sppopups' ),
 						),
 					),
 				),
+				'meta'                => array(
+					'mcp' => array(
+						'public' => true,
+						'type'   => 'tool',
+					),
+				),
 				'permission_callback' => array( $this, 'check_permission' ),
-				'callback'            => array( $this, 'execute_cache_clear_all' ),
+				'execute_callback'    => array( $this, 'execute_cache_clear_all' ),
 			)
 		);
 	}
@@ -382,20 +442,21 @@ class Simplest_Popup_Abilities {
 	 */
 	private function register_scan_triggers_ability() {
 		wp_register_ability(
-			'simplest-popup/scan-triggers',
+			'sppopups/scan-triggers',
 			array(
-				'name'        => __( 'Scan for Popup Triggers', 'simplest-popup' ),
-				'description' => __( 'Scans HTML content or a post/page for popup trigger links and classes.', 'simplest-popup' ),
+				'label'       => __( 'Scan for Popup Triggers', 'sppopups' ),
+				'description' => __( 'Scans HTML content or a post/page for popup trigger links and classes.', 'sppopups' ),
+				'category'    => 'sppopups',
 				'input_schema' => array(
 					'type'       => 'object',
 					'properties' => array(
 						'post_id' => array(
 							'type'        => 'integer',
-							'description' => __( 'Post ID to scan. Mutually exclusive with html parameter.', 'simplest-popup' ),
+							'description' => __( 'Post ID to scan. Mutually exclusive with html parameter.', 'sppopups' ),
 						),
 						'html'    => array(
 							'type'        => 'string',
-							'description' => __( 'Raw HTML content to scan. Mutually exclusive with post_id parameter.', 'simplest-popup' ),
+							'description' => __( 'Raw HTML content to scan. Mutually exclusive with post_id parameter.', 'sppopups' ),
 						),
 					),
 				),
@@ -404,27 +465,33 @@ class Simplest_Popup_Abilities {
 					'properties' => array(
 						'triggers' => array(
 							'type'        => 'array',
-							'description' => __( 'Array of discovered trigger objects.', 'simplest-popup' ),
+							'description' => __( 'Array of discovered trigger objects.', 'sppopups' ),
 							'items'       => array(
 								'type'       => 'object',
 								'properties' => array(
 									'type'      => array(
 										'type'        => 'string',
-										'description' => __( 'Trigger type: "class" or "href".', 'simplest-popup' ),
+										'description' => __( 'Trigger type: "class" or "href".', 'sppopups' ),
 										'enum'        => array( 'class', 'href' ),
 									),
 									'id'        => array( 'type' => 'integer' ),
 									'max_width' => array(
 										'type'        => 'integer',
-										'description' => __( 'Optional max-width in pixels.', 'simplest-popup' ),
+										'description' => __( 'Optional max-width in pixels.', 'sppopups' ),
 									),
 								),
 							),
 						),
 					),
 				),
+				'meta'                => array(
+					'mcp' => array(
+						'public' => true,
+						'type'   => 'tool',
+					),
+				),
 				'permission_callback' => array( $this, 'check_permission' ),
-				'callback'            => array( $this, 'execute_scan_triggers' ),
+				'execute_callback'    => array( $this, 'execute_scan_triggers' ),
 			)
 		);
 	}
@@ -443,13 +510,13 @@ class Simplest_Popup_Abilities {
 			$post_id = (int) $params['post_id'];
 			$post = get_post( $post_id );
 			if ( ! $post ) {
-				return new WP_Error( 'post_not_found', __( 'Post not found.', 'simplest-popup' ), array( 'status' => 404 ) );
+				return new WP_Error( 'post_not_found', __( 'Post not found.', 'sppopups' ), array( 'status' => 404 ) );
 			}
 			$html = $post->post_content;
 		} elseif ( isset( $params['html'] ) && is_string( $params['html'] ) ) {
 			$html = $params['html'];
 		} else {
-			return new WP_Error( 'missing_parameter', __( 'Either post_id or html parameter is required.', 'simplest-popup' ), array( 'status' => 400 ) );
+			return new WP_Error( 'missing_parameter', __( 'Either post_id or html parameter is required.', 'sppopups' ), array( 'status' => 400 ) );
 		}
 
 		if ( empty( $html ) ) {
@@ -457,7 +524,7 @@ class Simplest_Popup_Abilities {
 		}
 
 		// Use trigger parser to scan HTML
-		$parser = new Simplest_Popup_Trigger_Parser();
+		$parser = new SPPopups_Trigger_Parser();
 		$triggers = $parser->scan_html( $html );
 
 		return array( 'triggers' => $triggers );

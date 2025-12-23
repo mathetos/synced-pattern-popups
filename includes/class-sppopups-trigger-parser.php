@@ -4,7 +4,7 @@
  * Parses HTML content to extract popup trigger information
  * Shared utility for both frontend JavaScript and backend PHP (abilities)
  *
- * @package Simplest_Popup
+ * @package SPPopups
  */
 
 // Exit if accessed directly
@@ -12,7 +12,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-class Simplest_Popup_Trigger_Parser {
+class SPPopups_Trigger_Parser {
 
 	/**
 	 * Scan HTML content for popup triggers

@@ -3,7 +3,7 @@
  * AJAX Handler
  * Handles AJAX requests for synced pattern content with nonce verification
  *
- * @package Simplest_Popup
+ * @package SPPopups
  */
 
 // Exit if accessed directly
@@ -11,37 +11,37 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-class Simplest_Popup_Ajax {
+class SPPopups_Ajax {
 
 	/**
 	 * Pattern service
 	 *
-	 * @var Simplest_Popup_Pattern
+	 * @var SPPopups_Pattern
 	 */
 	private $pattern_service;
 
 	/**
 	 * Cache service
 	 *
-	 * @var Simplest_Popup_Cache
+	 * @var SPPopups_Cache
 	 */
 	private $cache_service;
 
 	/**
-	 * Style collector instance
+	 * Asset collector instance
 	 *
-	 * @var Simplest_Popup_Style_Collector|null
+	 * @var SPPopups_Asset_Collector|null
 	 */
 	private $style_collector;
 
 	/**
 	 * Constructor
 	 *
-	 * @param Simplest_Popup_Pattern              $pattern_service Pattern service instance
-	 * @param Simplest_Popup_Cache                $cache_service   Cache service instance
-	 * @param Simplest_Popup_Style_Collector|null $style_collector Optional style collector instance
+	 * @param SPPopups_Pattern              $pattern_service Pattern service instance
+	 * @param SPPopups_Cache                $cache_service   Cache service instance
+	 * @param SPPopups_Asset_Collector|null $style_collector Optional asset collector instance
 	 */
-	public function __construct( Simplest_Popup_Pattern $pattern_service, Simplest_Popup_Cache $cache_service, $style_collector = null ) {
+	public function __construct( SPPopups_Pattern $pattern_service, SPPopups_Cache $cache_service, $style_collector = null ) {
 		$this->pattern_service = $pattern_service;
 		$this->cache_service = $cache_service;
 		$this->style_collector = $style_collector;
@@ -51,8 +51,8 @@ class Simplest_Popup_Ajax {
 	 * Initialize AJAX hooks
 	 */
 	public function init() {
-		add_action( 'wp_ajax_simplest_popup_get_block', array( $this, 'handle_request' ) );
-		add_action( 'wp_ajax_nopriv_simplest_popup_get_block', array( $this, 'handle_request' ) );
+		add_action( 'wp_ajax_sppopups_get_block', array( $this, 'handle_request' ) );
+		add_action( 'wp_ajax_nopriv_sppopups_get_block', array( $this, 'handle_request' ) );
 	}
 
 	/**
@@ -69,7 +69,7 @@ class Simplest_Popup_Ajax {
 			'block_supports_css'        => '',
 			'block_style_variation_css' => '',
 			'global_stylesheet'          => '',
-			'asset_data'                => Simplest_Popup_Cache::get_default_asset_data(),
+			'asset_data'                => SPPopups_Cache::get_default_asset_data(),
 		);
 
 		if ( is_array( $data ) ) {
@@ -78,7 +78,7 @@ class Simplest_Popup_Ajax {
 			$result['block_supports_css']        = isset( $data['block_supports_css'] ) ? $data['block_supports_css'] : '';
 			$result['block_style_variation_css'] = isset( $data['block_style_variation_css'] ) ? $data['block_style_variation_css'] : '';
 			$result['global_stylesheet']          = isset( $data['global_stylesheet'] ) ? $data['global_stylesheet'] : '';
-			$result['asset_data']                = isset( $data['asset_data'] ) && is_array( $data['asset_data'] ) ? $data['asset_data'] : Simplest_Popup_Cache::get_default_asset_data();
+			$result['asset_data']                = isset( $data['asset_data'] ) && is_array( $data['asset_data'] ) ? $data['asset_data'] : SPPopups_Cache::get_default_asset_data();
 		} else {
 			// Backward compatibility: old format (string only)
 			$result['html'] = $data;
@@ -102,10 +102,10 @@ class Simplest_Popup_Ajax {
 		}
 
 		// Rate limit: 60 requests per minute per IP (configurable via filter)
-		$max_requests = apply_filters( 'simplest_popup_rate_limit_requests', 60 );
-		$time_window = apply_filters( 'simplest_popup_rate_limit_window', 60 ); // seconds
+		$max_requests = apply_filters( 'sppopups_rate_limit_requests', 60 );
+		$time_window = apply_filters( 'sppopups_rate_limit_window', 60 ); // seconds
 
-		$transient_key = 'simplest_popup_rate_limit_' . md5( $ip );
+		$transient_key = 'sppopups_rate_limit_' . md5( $ip );
 		$requests = get_transient( $transient_key );
 
 		if ( false === $requests ) {
@@ -166,14 +166,26 @@ class Simplest_Popup_Ajax {
 	public function handle_request() {
 		// Check rate limit first (before any processing)
 		if ( ! $this->check_rate_limit() ) {
-			wp_send_json_error( array( 'message' => __( 'Too many requests. Please try again later.', 'simplest-popup' ) ) );
+			// #region agent log
+			$log_data = array(
+				'sessionId' => 'debug-session',
+				'runId' => 'run1',
+				'hypothesisId' => 'B',
+				'location' => 'class-simplest-popup-ajax.php:175',
+				'message' => 'Rate limit exceeded',
+				'data' => array(),
+				'timestamp' => time() * 1000,
+			);
+			file_put_contents( rtrim( ABSPATH, '/\\' ) . '/.cursor/debug.log', wp_json_encode( $log_data ) . "\n", FILE_APPEND );
+			// #endregion
+			wp_send_json_error( array( 'message' => __( 'Too many requests. Please try again later.', 'sppopups' ) ) );
 			return;
 		}
 
 		// Verify nonce
 		$nonce = isset( $_POST['nonce'] ) ? sanitize_text_field( wp_unslash( $_POST['nonce'] ) ) : '';
-		if ( ! wp_verify_nonce( $nonce, 'simplest_popup_ajax' ) ) {
-			wp_send_json_error( array( 'message' => __( 'Invalid security token. Please refresh the page and try again.', 'simplest-popup' ) ) );
+		if ( ! wp_verify_nonce( $nonce, 'sppopups_ajax' ) ) {
+			wp_send_json_error( array( 'message' => __( 'Invalid security token. Please refresh the page and try again.', 'sppopups' ) ) );
 			return;
 		}
 
@@ -181,13 +193,13 @@ class Simplest_Popup_Ajax {
 		$pattern_id = isset( $_POST['block_id'] ) ? sanitize_text_field( wp_unslash( $_POST['block_id'] ) ) : '';
 
 		if ( empty( $pattern_id ) ) {
-			wp_send_json_error( array( 'message' => __( 'Invalid request.', 'simplest-popup' ) ) );
+			wp_send_json_error( array( 'message' => __( 'Invalid request.', 'sppopups' ) ) );
 			return;
 		}
 
 		// Validate numeric ID only
 		if ( ! is_numeric( $pattern_id ) || $pattern_id <= 0 ) {
-			wp_send_json_error( array( 'message' => __( 'Invalid request.', 'simplest-popup' ) ) );
+			wp_send_json_error( array( 'message' => __( 'Invalid request.', 'sppopups' ) ) );
 			return;
 		}
 
@@ -195,22 +207,22 @@ class Simplest_Popup_Ajax {
 
 		// Validate pattern ID range (prevent extremely large IDs that could cause memory issues)
 		// WordPress post IDs are typically well below this, but set a reasonable upper bound
-		$max_pattern_id = apply_filters( 'simplest_popup_max_pattern_id', 2147483647 ); // Max 32-bit integer
+		$max_pattern_id = apply_filters( 'sppopups_max_pattern_id', 2147483647 ); // Max 32-bit integer
 		if ( $pattern_id > $max_pattern_id ) {
-			wp_send_json_error( array( 'message' => __( 'Invalid request.', 'simplest-popup' ) ) );
+			wp_send_json_error( array( 'message' => __( 'Invalid request.', 'sppopups' ) ) );
 			return;
 		}
 
 		// Verify pattern is synced
 		if ( ! $this->pattern_service->is_synced_pattern( $pattern_id ) ) {
-			wp_send_json_error( array( 'message' => __( 'Invalid request.', 'simplest-popup' ) ) );
+			wp_send_json_error( array( 'message' => __( 'Invalid request.', 'sppopups' ) ) );
 			return;
 		}
 
 		// Get pattern title for accessibility
 		$pattern_title = get_the_title( $pattern_id );
 		if ( empty( $pattern_title ) ) {
-			$pattern_title = __( 'Popup', 'simplest-popup' );
+			$pattern_title = __( 'Popup', 'sppopups' );
 		}
 
 		// Check cache first
@@ -236,15 +248,15 @@ class Simplest_Popup_Ajax {
 
 		// Create style collector if not provided
 		$style_collector = $this->style_collector;
-		if ( ! $style_collector instanceof Simplest_Popup_Style_Collector ) {
-			$style_collector = new Simplest_Popup_Style_Collector();
+		if ( ! $style_collector instanceof SPPopups_Asset_Collector ) {
+			$style_collector = new SPPopups_Asset_Collector();
 		}
 
 		// Get and render pattern content with style collection
 		$rendered_data = $this->pattern_service->get_rendered_content( $pattern_id, $style_collector );
 
 		if ( $rendered_data === false ) {
-			wp_send_json_error( array( 'message' => __( 'Content not available.', 'simplest-popup' ) ) );
+			wp_send_json_error( array( 'message' => __( 'Content not available.', 'sppopups' ) ) );
 			return;
 		}
 
@@ -252,7 +264,7 @@ class Simplest_Popup_Ajax {
 		$extracted = $this->extract_rendered_data( $rendered_data );
 
 		if ( empty( $extracted['html'] ) ) {
-			wp_send_json_error( array( 'message' => __( 'Content not available.', 'simplest-popup' ) ) );
+			wp_send_json_error( array( 'message' => __( 'Content not available.', 'sppopups' ) ) );
 			return;
 		}
 

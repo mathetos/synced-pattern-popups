@@ -1,33 +1,33 @@
 /**
- * Simplest Popup Modal JavaScript
+ * Synced Pattern Popups Modal JavaScript
  * No build process - plain vanilla JavaScript
  */
 (function() {
 	'use strict';
 
 	// Get localized data from WordPress
-	if (typeof simplestPopup === 'undefined') {
-		console.error('Simplest Popup: Localized data not found');
+	if (typeof sppopups === 'undefined') {
+		console.error('Synced Pattern Popups: Localized data not found');
 		return;
 	}
 
-	var modal = document.getElementById('simplest-popup-modal');
+	var modal = document.getElementById('sppopups-modal');
 	if (!modal) {
 		return;
 	}
 
-	var overlay = modal.querySelector('.simplest-popup-overlay');
-	var closeBtn = modal.querySelector('.simplest-popup-close');
-	var closeFooterBtn = modal.querySelector('.simplest-popup-close-footer');
-	var content = modal.querySelector('.simplest-popup-content');
-	var container = modal.querySelector('.simplest-popup-container');
+	var overlay = modal.querySelector('.sppopups-overlay');
+	var closeBtn = modal.querySelector('.sppopups-close');
+	var closeFooterBtn = modal.querySelector('.sppopups-close-footer');
+	var content = modal.querySelector('.sppopups-content');
+	var container = modal.querySelector('.sppopups-container');
 	var body = document.body;
 
 	if (!overlay || !closeBtn || !content || !container) {
 		return;
 	}
 
-	var loadingHtml = '<div class="simplest-popup-loading"><div class="simplest-popup-spinner"></div><p>' + simplestPopup.strings.loading + '</p></div>';
+	var loadingHtml = '<div class="sppopups-loading"><div class="sppopups-spinner"></div><p>' + sppopups.strings.loading + '</p></div>';
 	
 	// Store current max-width setting for resize handling
 	var currentMaxWidth = null;
@@ -193,7 +193,7 @@
 			return;
 		}
 		
-		var styleId = 'simplest-popup-' + idPrefix + '-' + Date.now();
+		var styleId = 'sppopups-' + idPrefix + '-' + Date.now();
 		var existingStyle = document.getElementById(styleId);
 		if (!existingStyle) {
 			var styleTag = document.createElement('style');
@@ -237,9 +237,9 @@
 		// Most block styles are in wp-includes/css/dist/block-library/style.min.css
 		// But third-party blocks vary, so we need a more robust solution
 		
-		// Check if simplestPopup has styleUrls object
-		if (simplestPopup.styleUrls && simplestPopup.styleUrls[handle]) {
-			styleUrl = simplestPopup.styleUrls[handle];
+		// Check if sppopups has styleUrls object
+		if (sppopups.styleUrls && sppopups.styleUrls[handle]) {
+			styleUrl = sppopups.styleUrls[handle];
 		} else {
 			// Fallback: try to construct URL from handle
 			// This is a best-effort approach
@@ -336,9 +336,9 @@
 		// Get script URL
 		var scriptUrl = '';
 		
-		// Check if simplestPopup has scriptUrls object
-		if (simplestPopup.scriptUrls && simplestPopup.scriptUrls[handle]) {
-			scriptUrl = simplestPopup.scriptUrls[handle];
+		// Check if sppopups has scriptUrls object
+		if (sppopups.scriptUrls && sppopups.scriptUrls[handle]) {
+			scriptUrl = sppopups.scriptUrls[handle];
 		} else {
 			// Fallback: try to construct URL from handle
 			// This is a best-effort approach
@@ -448,7 +448,7 @@
 	 * @return {Array} Array of focusable elements
 	 */
 	function getFocusableElements() {
-		var card = modal.querySelector('.simplest-popup-card');
+		var card = modal.querySelector('.sppopups-card');
 		if (!card) {
 			return [];
 		}
@@ -483,7 +483,7 @@
 		
 		bodyChildren.forEach(function(element) {
 			// Skip the modal itself
-			if (element.id === 'simplest-popup-modal') {
+			if (element.id === 'sppopups-modal') {
 				return;
 			}
 			
@@ -555,7 +555,7 @@
 		
 		modal.classList.add('active');
 		modal.style.display = 'flex';
-		body.classList.add('simplest-popup-open');
+		body.classList.add('sppopups-open');
 		content.innerHTML = loadingHtml;
 		
 		// Focus modal container or close button for accessibility
@@ -572,12 +572,12 @@
 
 		// Prepare form data for POST request
 		var formData = new FormData();
-		formData.append('action', 'simplest_popup_get_block');
+		formData.append('action', 'sppopups_get_block');
 		formData.append('block_id', patternId);
-		formData.append('nonce', simplestPopup.nonce);
+		formData.append('nonce', sppopups.nonce);
 
 		// Fetch synced pattern content via AJAX
-		fetch(simplestPopup.ajaxUrl, {
+		fetch(sppopups.ajaxUrl, {
 			method: 'POST',
 			body: formData
 		})
@@ -592,7 +592,7 @@
 				modal.setAttribute('aria-busy', 'false');
 				
 				// Update dialog title from AJAX response
-				var titleElement = modal.querySelector('#simplest-popup-title');
+				var titleElement = modal.querySelector('#sppopups-title');
 				if (titleElement && data.success && data.data && data.data.title) {
 					titleElement.textContent = data.data.title;
 				} else if (titleElement) {
@@ -689,18 +689,18 @@
 						content.innerHTML = data.data.html;
 					}).catch(function(error) {
 						// Even if asset injection fails, show content
-						console.error('Simplest Popup: Error injecting assets:', error);
+						console.error('Synced Pattern Popups: Error injecting assets:', error);
 						content.innerHTML = data.data.html;
 					});
 				} else {
-					var errorMsg = (data.data && data.data.message) ? data.data.message : simplestPopup.strings.notFound;
-					content.innerHTML = '<div class="simplest-popup-loading"><p>' + errorMsg + '</p></div>';
+					var errorMsg = (data.data && data.data.message) ? data.data.message : sppopups.strings.notFound;
+					content.innerHTML = '<div class="sppopups-loading"><p>' + errorMsg + '</p></div>';
 				}
 			})
 			.catch(function(error) {
-				console.error('Simplest Popup: Error loading block:', error);
+				console.error('Synced Pattern Popups: Error loading block:', error);
 				modal.setAttribute('aria-busy', 'false');
-				content.innerHTML = '<div class="simplest-popup-loading"><p>' + simplestPopup.strings.error + '</p></div>';
+				content.innerHTML = '<div class="sppopups-loading"><p>' + sppopups.strings.error + '</p></div>';
 			});
 	}
 
@@ -717,7 +717,7 @@
 		
 		modal.classList.remove('active');
 		modal.style.display = 'none';
-		body.classList.remove('simplest-popup-open');
+		body.classList.remove('sppopups-open');
 		
 		// Reset max-width to default
 		container.style.maxWidth = '';

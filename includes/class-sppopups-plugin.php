@@ -3,7 +3,7 @@
  * Main Plugin Class
  * Handles front-end enqueuing and modal output
  *
- * @package Simplest_Popup
+ * @package SPPopups
  */
 
 // Exit if accessed directly
@@ -11,47 +11,47 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-class Simplest_Popup_Plugin {
+class SPPopups_Plugin {
 
 	/**
 	 * AJAX handler instance
 	 *
-	 * @var Simplest_Popup_Ajax
+	 * @var SPPopups_Ajax
 	 */
 	private $ajax_handler;
 
 	/**
 	 * Cache service instance
 	 *
-	 * @var Simplest_Popup_Cache
+	 * @var SPPopups_Cache
 	 */
 	private $cache_service;
 
 	/**
 	 * Admin interface instance
 	 *
-	 * @var Simplest_Popup_Admin
+	 * @var SPPopups_Admin
 	 */
 	private $admin;
 
 	/**
 	 * Pattern service instance (shared)
 	 *
-	 * @var Simplest_Popup_Pattern
+	 * @var SPPopups_Pattern
 	 */
 	private $pattern_service;
 
 	/**
-	 * Style collector instance (shared)
+	 * Asset collector instance (shared)
 	 *
-	 * @var Simplest_Popup_Style_Collector
+	 * @var SPPopups_Asset_Collector
 	 */
 	private $style_collector;
 
 	/**
 	 * Abilities instance (WP 6.9+ only)
 	 *
-	 * @var Simplest_Popup_Abilities|null
+	 * @var SPPopups_Abilities|null
 	 */
 	private $abilities;
 
@@ -60,24 +60,24 @@ class Simplest_Popup_Plugin {
 	 */
 	public function init() {
 		// Create shared service instances
-		$this->pattern_service = new Simplest_Popup_Pattern();
-		$this->cache_service = new Simplest_Popup_Cache();
-		$this->style_collector = new Simplest_Popup_Style_Collector();
+		$this->pattern_service = new SPPopups_Pattern();
+		$this->cache_service = new SPPopups_Cache();
+		$this->style_collector = new SPPopups_Asset_Collector();
 
 		// Initialize AJAX handler with shared services
-		$this->ajax_handler = new Simplest_Popup_Ajax( $this->pattern_service, $this->cache_service, $this->style_collector );
+		$this->ajax_handler = new SPPopups_Ajax( $this->pattern_service, $this->cache_service, $this->style_collector );
 		$this->ajax_handler->init();
 
 		// Initialize admin interface with shared services
 		if ( is_admin() ) {
-			$this->admin = new Simplest_Popup_Admin( $this->pattern_service, $this->cache_service );
+			$this->admin = new SPPopups_Admin( $this->pattern_service, $this->cache_service );
 			$this->admin->init();
 		}
 
 		// Initialize Abilities API registration (WP 6.9+ only)
 		// This will gracefully skip if Abilities API is not available
 		if ( function_exists( 'wp_register_ability' ) ) {
-			$this->abilities = new Simplest_Popup_Abilities( $this->pattern_service, $this->cache_service, $this->style_collector );
+			$this->abilities = new SPPopups_Abilities( $this->pattern_service, $this->cache_service, $this->style_collector );
 			$this->abilities->init();
 		}
 
@@ -115,26 +115,26 @@ class Simplest_Popup_Plugin {
 
 		// Apply block hooks before do_blocks (priority 8)
 		if ( function_exists( 'apply_block_hooks_to_content_from_post_object' ) ) {
-			add_filter( 'simplest_popup_the_content', 'apply_block_hooks_to_content_from_post_object', 8 );
+			add_filter( 'sppopups_the_content', 'apply_block_hooks_to_content_from_post_object', 8 );
 		}
 
 		// Render blocks (priority 9) - CRITICAL for block rendering and asset enqueuing
 		if ( function_exists( 'do_blocks' ) ) {
-			add_filter( 'simplest_popup_the_content', 'do_blocks', 9 );
+			add_filter( 'sppopups_the_content', 'do_blocks', 9 );
 		}
 
 		// Core WordPress content formatting functions
-		add_filter( 'simplest_popup_the_content', 'wptexturize' );
-		add_filter( 'simplest_popup_the_content', 'convert_smilies', 20 );
-		add_filter( 'simplest_popup_the_content', 'wpautop' );
-		add_filter( 'simplest_popup_the_content', 'shortcode_unautop' );
-		add_filter( 'simplest_popup_the_content', 'do_shortcode', 11 );
-		add_filter( 'simplest_popup_the_content', 'wp_filter_content_tags', 12 );
+		add_filter( 'sppopups_the_content', 'wptexturize' );
+		add_filter( 'sppopups_the_content', 'convert_smilies', 20 );
+		add_filter( 'sppopups_the_content', 'wpautop' );
+		add_filter( 'sppopups_the_content', 'shortcode_unautop' );
+		add_filter( 'sppopups_the_content', 'do_shortcode', 11 );
+		add_filter( 'sppopups_the_content', 'wp_filter_content_tags', 12 );
 
 		// oEmbed support (if wp_embed is available)
 		if ( $wp_embed ) {
-			add_filter( 'simplest_popup_the_content', array( $wp_embed, 'run_shortcode' ), 8 );
-			add_filter( 'simplest_popup_the_content', array( $wp_embed, 'autoembed' ), 8 );
+			add_filter( 'sppopups_the_content', array( $wp_embed, 'run_shortcode' ), 8 );
+			add_filter( 'sppopups_the_content', array( $wp_embed, 'autoembed' ), 8 );
 		}
 	}
 
@@ -152,13 +152,13 @@ class Simplest_Popup_Plugin {
 		// Check if post has forced popup support enabled
 		if ( is_singular() ) {
 			global $post;
-			if ( $post && get_post_meta( $post->ID, '_simplest_popup_support', true ) === 'forced' ) {
+			if ( $post && get_post_meta( $post->ID, '_sppopups_support', true ) === 'forced' ) {
 				return true;
 			}
 		}
 
 		// Allow filter to force loading
-		if ( apply_filters( 'simplest_popup_force_load_assets', false ) ) {
+		if ( apply_filters( 'sppopups_force_load_assets', false ) ) {
 			return true;
 		}
 
@@ -198,7 +198,7 @@ class Simplest_Popup_Plugin {
 			// Only check if there are active widgets
 			if ( is_active_widget( false, false, 'text' ) || is_active_widget( false, false, 'html' ) || is_active_widget( false, false, 'custom_html' ) ) {
 				// Widgets might contain triggers, use filter to allow theme/plugin to indicate
-				$widget_has_triggers = apply_filters( 'simplest_popup_widgets_have_triggers', false );
+				$widget_has_triggers = apply_filters( 'sppopups_widgets_have_triggers', false );
 			}
 		}
 
@@ -207,7 +207,7 @@ class Simplest_Popup_Plugin {
 		}
 
 		// Allow filter to override detection
-		return apply_filters( 'simplest_popup_has_triggers', false );
+		return apply_filters( 'sppopups_has_triggers', false );
 	}
 
 	/**
@@ -246,17 +246,17 @@ class Simplest_Popup_Plugin {
 		// Enqueue CSS
 		wp_enqueue_style(
 			'simplest-popup-modal',
-			SIMPLEST_POPUP_PLUGIN_URL . 'assets/css/modal.css',
+			SPPOPUPS_PLUGIN_URL . 'assets/css/modal.css',
 			array(),
-			SIMPLEST_POPUP_VERSION
+			SPPOPUPS_VERSION
 		);
 
 		// Enqueue JavaScript
 		wp_enqueue_script(
 			'simplest-popup-modal',
-			SIMPLEST_POPUP_PLUGIN_URL . 'assets/js/modal.js',
+			SPPOPUPS_PLUGIN_URL . 'assets/js/modal.js',
 			array(),
-			SIMPLEST_POPUP_VERSION,
+			SPPOPUPS_VERSION,
 			true
 		);
 
@@ -269,16 +269,16 @@ class Simplest_Popup_Plugin {
 		// Localize script with AJAX data
 		wp_localize_script(
 			'simplest-popup-modal',
-			'simplestPopup',
+			'sppopups',
 			array(
 				'ajaxUrl'   => admin_url( 'admin-ajax.php' ),
-				'nonce'     => wp_create_nonce( 'simplest_popup_ajax' ),
+				'nonce'     => wp_create_nonce( 'sppopups_ajax' ),
 				'styleUrls' => $style_urls,
 				'scriptUrls' => $script_urls,
 				'strings'   => array(
-					'loading'  => __( 'Loading content...', 'simplest-popup' ),
-					'error'    => __( 'Error loading content. Please try again.', 'simplest-popup' ),
-					'notFound' => __( 'Content not found.', 'simplest-popup' ),
+					'loading'  => __( 'Loading content...', 'sppopups' ),
+					'error'    => __( 'Error loading content. Please try again.', 'sppopups' ),
+					'notFound' => __( 'Content not found.', 'sppopups' ),
 				),
 			)
 		);
@@ -289,27 +289,27 @@ class Simplest_Popup_Plugin {
 	 */
 	public function output_modal() {
 		?>
-		<!-- Simplest Popup Modal -->
-		<div id="simplest-popup-modal" class="simplest-popup-modal" role="dialog" aria-modal="true" aria-hidden="true" aria-labelledby="simplest-popup-title" aria-describedby="simplest-popup-desc" tabindex="-1" style="display: none;">
-			<div class="simplest-popup-overlay"></div>
-			<div class="simplest-popup-container">
-				<div class="simplest-popup-card">
-					<h2 id="simplest-popup-title" class="simplest-popup-sr-only"></h2>
-					<p id="simplest-popup-desc" class="simplest-popup-sr-only"><?php esc_html_e( 'Press Escape to close. Tab stays within the popup.', 'simplest-popup' ); ?></p>
-					<button class="simplest-popup-close" aria-label="<?php esc_attr_e( 'Close modal', 'simplest-popup' ); ?>" type="button">
+		<!-- Synced Pattern Popups Modal -->
+		<div id="sppopups-modal" class="sppopups-modal" role="dialog" aria-modal="true" aria-hidden="true" aria-labelledby="sppopups-title" aria-describedby="sppopups-desc" tabindex="-1" style="display: none;">
+			<div class="sppopups-overlay"></div>
+			<div class="sppopups-container">
+				<div class="sppopups-card">
+					<h2 id="sppopups-title" class="sppopups-sr-only"></h2>
+					<p id="sppopups-desc" class="sppopups-sr-only"><?php esc_html_e( 'Press Escape to close. Tab stays within the popup.', 'sppopups' ); ?></p>
+					<button class="sppopups-close" aria-label="<?php esc_attr_e( 'Close modal', 'sppopups' ); ?>" type="button">
 						<svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
 							<path d="M18 6L6 18M6 6L18 18" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
 						</svg>
 					</button>
-					<div class="simplest-popup-content">
-						<div class="simplest-popup-loading">
-							<div class="simplest-popup-spinner"></div>
-							<p><?php esc_html_e( 'Loading content...', 'simplest-popup' ); ?></p>
+					<div class="sppopups-content">
+						<div class="sppopups-loading">
+							<div class="sppopups-spinner"></div>
+							<p><?php esc_html_e( 'Loading content...', 'sppopups' ); ?></p>
 						</div>
 					</div>
-					<div class="simplest-popup-footer">
-						<button class="simplest-popup-close-footer" type="button" aria-label="<?php esc_attr_e( 'Close modal', 'simplest-popup' ); ?>">
-							<?php esc_html_e( 'Close', 'simplest-popup' ); ?> →
+					<div class="sppopups-footer">
+						<button class="sppopups-close-footer" type="button" aria-label="<?php esc_attr_e( 'Close modal', 'sppopups' ); ?>">
+							<?php esc_html_e( 'Close', 'sppopups' ); ?> →
 						</button>
 					</div>
 				</div>
@@ -393,8 +393,8 @@ class Simplest_Popup_Plugin {
 		$this->cache_service->delete( $post_id );
 		
 		// Clear pattern object cache
-		$pattern_cache_key = 'simplest_popup_pattern_' . $post_id;
-		wp_cache_delete( $pattern_cache_key, 'simplest_popup_patterns' );
+		$pattern_cache_key = 'sppopups_pattern_' . $post_id;
+		wp_cache_delete( $pattern_cache_key, 'sppopups_patterns' );
 	}
 
 	/**
@@ -411,7 +411,7 @@ class Simplest_Popup_Plugin {
 
 			register_post_meta(
 				$post_type,
-				'_simplest_popup_support',
+				'_sppopups_support',
 				array(
 					'type'              => 'string',
 					'single'            => true,

@@ -1,10 +1,10 @@
 /**
- * Simplest Popup Modal Styles
+ * Synced Pattern Popups Modal Styles
  * No build process - plain CSS
  */
 
 /* Screen reader only utility class */
-.simplest-popup-sr-only {
+.sppopups-sr-only {
 	position: absolute;
 	width: 1px;
 	height: 1px;
@@ -16,7 +16,7 @@
 	border-width: 0;
 }
 
-.simplest-popup-modal {
+.sppopups-modal {
 	position: fixed;
 	top: 0;
 	left: 0;
@@ -35,7 +35,7 @@
 	padding-right: max(20px, env(safe-area-inset-right));
 }
 
-.simplest-popup-overlay {
+.sppopups-overlay {
 	position: absolute;
 	top: 0;
 	left: 0;
@@ -46,7 +46,7 @@
 	-webkit-backdrop-filter: blur(8px);
 }
 
-.simplest-popup-container {
+.sppopups-container {
 	position: relative;
 	width: 100%;
 	max-width: 600px;
@@ -61,7 +61,7 @@
 }
 
 /* Gradient border effect */
-.simplest-popup-container::before {
+.sppopups-container::before {
 	content: '';
 	position: absolute;
 	top: -3px;
@@ -87,24 +87,24 @@
 	padding: 3px;
 }
 
-.simplest-popup-content::-webkit-scrollbar {
+.sppopups-content::-webkit-scrollbar {
 	width: 8px;
 }
 
-.simplest-popup-content::-webkit-scrollbar-track {
+.sppopups-content::-webkit-scrollbar-track {
 	background: transparent;
 }
 
-.simplest-popup-content::-webkit-scrollbar-thumb {
+.sppopups-content::-webkit-scrollbar-thumb {
 	background: rgba(0, 0, 0, 0.2);
 	border-radius: 4px;
 }
 
-.simplest-popup-content::-webkit-scrollbar-thumb:hover {
+.sppopups-content::-webkit-scrollbar-thumb:hover {
 	background: rgba(0, 0, 0, 0.3);
 }
 
-.simplest-popup-footer {
+.sppopups-footer {
 	position: sticky;
 	bottom: 0;
 	background: #ffffff;
@@ -116,7 +116,7 @@
 	flex-shrink: 0;
 }
 
-.simplest-popup-close-footer {
+.sppopups-close-footer {
 	background: none;
 	border: none;
 	color: #666;
@@ -129,23 +129,23 @@
 	line-height: 1.5;
 }
 
-.simplest-popup-close-footer:hover {
+.sppopups-close-footer:hover {
 	color: #000;
 }
 
-.simplest-popup-close-footer:focus {
+.sppopups-close-footer:focus {
 	outline: 2px solid #5E53C0;
 	outline-offset: 2px;
 	border-radius: 2px;
 }
 
-.simplest-popup-card {
+.sppopups-card {
 	background: #ffffff;
 	border-radius: 8px;
 	box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
 	position: relative;
 	padding: 0;
-	animation: simplest-popup-fade-in 0.3s ease-out;
+	animation: sppopups-fade-in 0.3s ease-out;
 	/* Ensure content doesn't overflow */
 	overflow: hidden;
 	border: none;
@@ -158,22 +158,22 @@
 }
 
 /* Make images and media responsive within the modal */
-.simplest-popup-content img,
-.simplest-popup-content video,
-.simplest-popup-content iframe,
-.simplest-popup-content embed,
-.simplest-popup-content object {
+.sppopups-content img,
+.sppopups-content video,
+.sppopups-content iframe,
+.sppopups-content embed,
+.sppopups-content object {
 	max-width: 100%;
 	height: auto;
 }
 
-.simplest-popup-content iframe,
-.simplest-popup-content embed,
-.simplest-popup-content object {
+.sppopups-content iframe,
+.sppopups-content embed,
+.sppopups-content object {
 	width: 100%;
 }
 
-@keyframes simplest-popup-fade-in {
+@keyframes sppopups-fade-in {
 	from {
 		opacity: 0;
 		transform: scale(0.95) translateY(-20px);
@@ -184,7 +184,7 @@
 	}
 }
 
-.simplest-popup-close {
+.sppopups-close {
 	position: absolute;
 	top: 16px;
 	right: 16px;
@@ -208,27 +208,27 @@
 	box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
 }
 
-.simplest-popup-close:hover {
+.sppopups-close:hover {
 	color: #000;
 	background: rgba(255, 255, 255, 1);
 	transform: scale(1.1);
 }
 
-.simplest-popup-close:active {
+.sppopups-close:active {
 	transform: scale(0.95);
 }
 
-.simplest-popup-close:focus {
+.sppopups-close:focus {
 	outline: 2px solid #5E53C0;
 	outline-offset: 2px;
 }
 
-.simplest-popup-close svg {
+.sppopups-close svg {
 	width: 20px;
 	height: 20px;
 }
 
-.simplest-popup-content {
+.sppopups-content {
 	width: 100%;
 	min-height: 200px;
 	position: relative;
@@ -245,11 +245,11 @@
 	scrollbar-color: rgba(0, 0, 0, 0.2) transparent;
 }
 
-.simplest-popup-content > *:first-child {
+.sppopups-content > *:first-child {
 	padding: 5%;
 }
 
-.simplest-popup-loading {
+.sppopups-loading {
 	display: flex;
 	flex-direction: column;
 	align-items: center;
@@ -258,23 +258,23 @@
 	text-align: center;
 }
 
-.simplest-popup-loading p {
+.sppopups-loading p {
 	margin-top: 20px;
 	color: #666;
 	font-size: 16px;
 	margin-bottom: 0;
 }
 
-.simplest-popup-spinner {
+.sppopups-spinner {
 	width: 50px;
 	height: 50px;
 	border: 4px solid #f3f3f3;
 	border-top: 4px solid #5E53C0;
 	border-radius: 50%;
-	animation: simplest-popup-spin 1s linear infinite;
+	animation: sppopups-spin 1s linear infinite;
 }
 
-@keyframes simplest-popup-spin {
+@keyframes sppopups-spin {
 	0% {
 		transform: rotate(0deg);
 	}
@@ -283,11 +283,11 @@
 	}
 }
 
-.simplest-popup-modal.active {
+.sppopups-modal.active {
 	display: flex;
 }
 
-body.simplest-popup-open {
+body.sppopups-open {
 	overflow: hidden;
 	/* Prevent body scroll on mobile */
 	position: fixed;
@@ -299,7 +299,7 @@ body.simplest-popup-open {
 
 /* Small devices (phones, 480px and down) */
 @media screen and (max-width: 480px) {
-	.simplest-popup-modal {
+	.sppopups-modal {
 		padding: 10px;
 		padding-top: max(10px, env(safe-area-inset-top));
 		padding-bottom: max(10px, env(safe-area-inset-bottom));
@@ -307,30 +307,30 @@ body.simplest-popup-open {
 		padding-right: max(10px, env(safe-area-inset-right));
 	}
 
-	.simplest-popup-container {
+	.sppopups-container {
 		max-width: 100%;
 		max-height: calc(100vh - 20px);
 		max-height: calc(100vh - max(20px, env(safe-area-inset-top)) - max(20px, env(safe-area-inset-bottom)));
 		border-radius: 6px;
 	}
 
-	.simplest-popup-container::before {
+	.sppopups-container::before {
 		border-radius: 8px;
 	}
 
-	.simplest-popup-card {
+	.sppopups-card {
 		box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
 	}
 
-	.simplest-popup-content {
+	.sppopups-content {
 		padding: 20px 16px;
 	}
 
-	.simplest-popup-footer {
+	.sppopups-footer {
 		padding: 12px 16px;
 	}
 
-	.simplest-popup-close {
+	.sppopups-close {
 		top: 12px;
 		right: 12px;
 		width: 44px;
@@ -339,78 +339,78 @@ body.simplest-popup-open {
 		background: rgba(255, 255, 255, 0.95);
 	}
 
-	.simplest-popup-close svg {
+	.sppopups-close svg {
 		width: 24px;
 		height: 24px;
 	}
 
-	.simplest-popup-loading {
+	.sppopups-loading {
 		padding: 40px 16px;
 	}
 
-	.simplest-popup-loading p {
+	.sppopups-loading p {
 		font-size: 14px;
 	}
 }
 
 /* Medium devices (tablets, 481px to 768px) */
 @media screen and (min-width: 481px) and (max-width: 768px) {
-	.simplest-popup-modal {
+	.sppopups-modal {
 		padding: 15px;
 	}
 
-	.simplest-popup-container {
+	.sppopups-container {
 		max-width: 90%;
 		max-height: 85vh;
 	}
 
-	.simplest-popup-content {
+	.sppopups-content {
 		padding: 24px;
 	}
 
-	.simplest-popup-footer {
+	.sppopups-footer {
 		padding: 14px 24px;
 	}
 }
 
 /* Large devices (desktops, 769px and up) */
 @media screen and (min-width: 769px) {
-	.simplest-popup-container {
+	.sppopups-container {
 		max-width: 600px;
 	}
 }
 
 /* Extra large devices (large desktops, 1200px and up) */
 @media screen and (min-width: 1200px) {
-	.simplest-popup-container {
+	.sppopups-container {
 		max-width: 700px;
 	}
 }
 
 /* Landscape orientation on mobile */
 @media screen and (max-height: 500px) and (orientation: landscape) {
-	.simplest-popup-modal {
+	.sppopups-modal {
 		padding: 10px;
 		align-items: flex-start;
 		padding-top: max(10px, env(safe-area-inset-top));
 	}
 
-	.simplest-popup-container {
+	.sppopups-container {
 		max-height: calc(100vh - 20px);
 		max-height: calc(100vh - max(20px, env(safe-area-inset-top)) - max(20px, env(safe-area-inset-bottom)));
 		margin-top: 10px;
 		border-radius: 6px;
 	}
 
-	.simplest-popup-container::before {
+	.sppopups-container::before {
 		border-radius: 8px;
 	}
 
-	.simplest-popup-content {
+	.sppopups-content {
 		padding: 16px;
 	}
 
-	.simplest-popup-footer {
+	.sppopups-footer {
 		padding: 12px 16px;
 	}
 }
@@ -418,35 +418,35 @@ body.simplest-popup-open {
 /* High DPI displays */
 @media screen and (-webkit-min-device-pixel-ratio: 2),
 	screen and (min-resolution: 192dpi) {
-	.simplest-popup-card {
+	.sppopups-card {
 		box-shadow: 0 20px 60px rgba(0, 0, 0, 0.25);
 	}
 }
 
 /* Override editor-specific styles that leak into frontend */
 /* These styles are intended for the Block Editor, not the frontend */
-.simplest-popup-content .is-selected,
-.simplest-popup-content .has-child-selected,
-.simplest-popup-content [class*="is-selected"],
-.simplest-popup-content [class*="has-child-selected"] {
+.sppopups-content .is-selected,
+.sppopups-content .has-child-selected,
+.sppopups-content [class*="is-selected"],
+.sppopups-content [class*="has-child-selected"] {
 	outline: none !important;
 	box-shadow: none !important;
 }
 
 /* Disable editor hover states for blocks */
-.simplest-popup-content .wp-block:hover,
-.simplest-popup-content [class*="wp-block"]:hover {
+.sppopups-content .wp-block:hover,
+.sppopups-content [class*="wp-block"]:hover {
 	outline: none !important;
 	box-shadow: none !important;
 }
 
 /* Specifically target Kadence blocks editor styles */
-.simplest-popup-content .wp-block-kadence-column.is-selected,
-.simplest-popup-content .wp-block-kadence-column.has-child-selected,
-.simplest-popup-content .wp-block-kadence-column:hover,
-.simplest-popup-content .wp-block-kadence-rowlayout.is-selected,
-.simplest-popup-content .wp-block-kadence-rowlayout.has-child-selected,
-.simplest-popup-content .wp-block-kadence-rowlayout:hover {
+.sppopups-content .wp-block-kadence-column.is-selected,
+.sppopups-content .wp-block-kadence-column.has-child-selected,
+.sppopups-content .wp-block-kadence-column:hover,
+.sppopups-content .wp-block-kadence-rowlayout.is-selected,
+.sppopups-content .wp-block-kadence-rowlayout.has-child-selected,
+.sppopups-content .wp-block-kadence-rowlayout:hover {
 	outline: none !important;
 	outline-offset: 0 !important;
 	box-shadow: none !important;
@@ -454,15 +454,15 @@ body.simplest-popup-open {
 
 /* Reduced motion preference */
 @media (prefers-reduced-motion: reduce) {
-	.simplest-popup-card {
+	.sppopups-card {
 		animation: none;
 	}
 
-	.simplest-popup-close {
+	.sppopups-close {
 		transition: none;
 	}
 
-	.simplest-popup-close:hover {
+	.sppopups-close:hover {
 		transform: none;
 	}
 }

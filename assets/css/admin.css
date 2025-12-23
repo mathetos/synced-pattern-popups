@@ -1,15 +1,15 @@
 /**
- * Simplest Popup Admin Styles
+ * Synced Pattern Popups Admin Styles
  */
 
-.simplest-popup-table-wrapper {
+.sppopups-table-wrapper {
 	width: 100%;
 	overflow-x: auto;
 	-webkit-overflow-scrolling: touch;
 	margin-top: 20px;
 }
 
-.simplest-popup-patterns-table {
+.sppopups-patterns-table {
 	margin-top: 0;
 	border: 1px solid #c3c4c7;
 	border-radius: 4px;
@@ -22,15 +22,15 @@
 	box-sizing: border-box;
 }
 
-.simplest-popup-patterns-table thead {
+.sppopups-patterns-table thead {
 	display: table-header-group;
 }
 
-.simplest-popup-patterns-table tbody {
+.sppopups-patterns-table tbody {
 	display: table-row-group;
 }
 
-.simplest-popup-patterns-table thead th {
+.sppopups-patterns-table thead th {
 	background: #f6f7f7;
 	border-bottom: 1px solid #c3c4c7;
 	font-weight: 600;
@@ -42,71 +42,71 @@
 	white-space: nowrap;
 }
 
-.simplest-popup-patterns-table thead th:first-child {
+.sppopups-patterns-table thead th:first-child {
 	border-top-left-radius: 4px;
 }
 
-.simplest-popup-patterns-table thead th:last-child {
+.sppopups-patterns-table thead th:last-child {
 	border-top-right-radius: 4px;
 }
 
-.simplest-popup-patterns-table tbody td {
+.sppopups-patterns-table tbody td {
 	padding: 12px 16px;
 	border-bottom: 1px solid #f0f0f1;
 	vertical-align: middle;
 }
 
-.simplest-popup-patterns-table tbody tr:last-child td {
+.sppopups-patterns-table tbody tr:last-child td {
 	border-bottom: none;
 }
 
-.simplest-popup-patterns-table tbody tr:hover {
+.sppopups-patterns-table tbody tr:hover {
 	background: #f6f7f7;
 }
 
-.simplest-popup-patterns-table .column-id {
+.sppopups-patterns-table .column-id {
 	width: 80px;
 }
 
-.simplest-popup-patterns-table .column-id .pattern-id {
+.sppopups-patterns-table .column-id .pattern-id {
 	font-size: 14px;
 	font-weight: 600;
 	color: #1d2327;
 	display: inline-block;
 }
 
-.simplest-popup-patterns-table .column-title {
+.sppopups-patterns-table .column-title {
 	width: 25%;
 }
 
-.simplest-popup-patterns-table .column-title strong a {
+.sppopups-patterns-table .column-title strong a {
 	color: #2271b1;
 	text-decoration: none;
 	font-weight: 600;
 }
 
-.simplest-popup-patterns-table .column-title strong a:hover {
+.sppopups-patterns-table .column-title strong a:hover {
 	color: #135e96;
 	text-decoration: underline;
 }
 
-.simplest-popup-patterns-table .column-status,
-.simplest-popup-patterns-table .column-sync-status {
+.sppopups-patterns-table .column-status,
+.sppopups-patterns-table .column-sync-status {
 	width: 120px;
 }
 
-.simplest-popup-patterns-table .column-trigger {
+.sppopups-patterns-table .column-trigger {
 	width: 220px;
 	min-width: 180px;
 }
 
-.simplest-popup-patterns-table .column-actions {
+.sppopups-patterns-table .column-actions {
 	width: auto;
 	white-space: nowrap;
 	min-width: 200px;
 }
 
-.simplest-popup-patterns-table .trigger-code-input {
+.sppopups-patterns-table .trigger-code-input {
 	font-family: 'Courier New', Courier, monospace;
 	font-size: 13px;
 	background: #f6f7f7;
@@ -120,14 +120,14 @@
 	box-sizing: border-box;
 }
 
-.simplest-popup-patterns-table .trigger-code-input:focus {
+.sppopups-patterns-table .trigger-code-input:focus {
 	background: #fff;
 	border-color: #2271b1;
 	outline: none;
 	box-shadow: 0 0 0 1px #2271b1;
 }
 
-.simplest-popup-patterns-table .status-badge {
+.sppopups-patterns-table .status-badge {
 	display: inline-block;
 	padding: 4px 10px;
 	border-radius: 12px;
@@ -137,27 +137,27 @@
 	white-space: nowrap;
 }
 
-.simplest-popup-patterns-table .status-badge.status-publish {
+.sppopups-patterns-table .status-badge.status-publish {
 	background: #00a32a;
 	color: #fff;
 }
 
-.simplest-popup-patterns-table .status-badge.status-draft {
+.sppopups-patterns-table .status-badge.status-draft {
 	background: #dba617;
 	color: #fff;
 }
 
-.simplest-popup-patterns-table .status-badge.status-synced {
+.sppopups-patterns-table .status-badge.status-synced {
 	background: #2271b1;
 	color: #fff;
 }
 
-.simplest-popup-patterns-table .status-badge.status-unsynced {
+.sppopups-patterns-table .status-badge.status-unsynced {
 	background: #d63638;
 	color: #fff;
 }
 
-.simplest-popup-patterns-table .column-actions .button {
+.sppopups-patterns-table .column-actions .button {
 	margin-right: 8px;
 	margin-bottom: 0;
 	padding: 6px 12px;
@@ -170,53 +170,53 @@
 	transition: all 0.15s ease;
 }
 
-.simplest-popup-patterns-table .column-actions .button:hover {
+.sppopups-patterns-table .column-actions .button:hover {
 	border-color: #2271b1;
 	color: #2271b1;
 	background: #fff;
 }
 
-.simplest-popup-patterns-table .column-actions .button:focus {
+.sppopups-patterns-table .column-actions .button:focus {
 	border-color: #2271b1;
 	color: #2271b1;
 	box-shadow: 0 0 0 1px #2271b1;
 	outline: none;
 }
 
-.simplest-popup-patterns-table .column-actions .delete-pattern {
+.sppopups-patterns-table .column-actions .delete-pattern {
 	color: #b32d2e;
 	border-color: #d63638;
 }
 
-.simplest-popup-patterns-table .column-actions .delete-pattern:hover {
+.sppopups-patterns-table .column-actions .delete-pattern:hover {
 	color: #fff;
 	background: #d63638;
 	border-color: #d63638;
 }
 
-.simplest-popup-patterns-table .column-actions .copy-trigger {
+.sppopups-patterns-table .column-actions .copy-trigger {
 	margin-right: 0;
 }
 
 /* Responsive table adjustments */
 @media screen and (max-width: 782px) {
-	.simplest-popup-patterns-table {
+	.sppopups-patterns-table {
 		display: block;
 		overflow-x: auto;
 		-webkit-overflow-scrolling: touch;
 	}
 
-	.simplest-popup-patterns-table thead,
-	.simplest-popup-patterns-table tbody,
-	.simplest-popup-patterns-table tr {
+	.sppopups-patterns-table thead,
+	.sppopups-patterns-table tbody,
+	.sppopups-patterns-table tr {
 		display: block;
 	}
 
-	.simplest-popup-patterns-table thead {
+	.sppopups-patterns-table thead {
 		display: none;
 	}
 
-	.simplest-popup-patterns-table tbody tr {
+	.sppopups-patterns-table tbody tr {
 		border: 1px solid #c3c4c7;
 		border-radius: 4px;
 		margin-bottom: 12px;
@@ -224,14 +224,14 @@
 		background: #fff;
 	}
 
-	.simplest-popup-patterns-table tbody td {
+	.sppopups-patterns-table tbody td {
 		display: block;
 		border: none;
 		padding: 8px 0;
 		text-align: left;
 	}
 
-	.simplest-popup-patterns-table tbody td:before {
+	.sppopups-patterns-table tbody td:before {
 		content: attr(data-label);
 		font-weight: 600;
 		display: inline-block;
@@ -240,7 +240,7 @@
 		margin-right: 8px;
 	}
 
-	.simplest-popup-patterns-table .column-actions {
+	.sppopups-patterns-table .column-actions {
 		display: flex;
 		flex-wrap: wrap;
 		gap: 8px;
@@ -249,7 +249,7 @@
 		border-top: 1px solid #f0f0f1;
 	}
 
-	.simplest-popup-patterns-table .column-actions .button {
+	.sppopups-patterns-table .column-actions .button {
 		margin-right: 0;
 		flex: 1;
 		min-width: 100px;
@@ -257,7 +257,7 @@
 }
 
 /* How to use section styling */
-.simplest-popup-usage-instructions {
+.sppopups-usage-instructions {
 	margin-top: 32px;
 	padding: 24px;
 	background: #f6f7f7;
@@ -269,7 +269,7 @@
 	color: #1d2327;
 }
 
-.simplest-popup-usage-instructions strong {
+.sppopups-usage-instructions strong {
 	display: block;
 	margin-bottom: 12px;
 	font-size: 15px;
@@ -277,7 +277,7 @@
 	color: #1d2327;
 }
 
-.simplest-popup-usage-instructions code {
+.sppopups-usage-instructions code {
 	display: block;
 	margin: 8px 0 16px 0;
 	padding: 12px;
@@ -291,7 +291,7 @@
 	overflow-x: auto;
 }
 
-.simplest-popup-usage-instructions br {
+.sppopups-usage-instructions br {
 	line-height: 1.8;
 }
 
