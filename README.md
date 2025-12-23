@@ -41,6 +41,30 @@ The plugin is designed with developers in mind:
 - **Responsive Design**: Works on all screen sizes with mobile-optimized interactions
 - **Custom Width Support**: Optional max-width specification via `spp-trigger-{id}-{width}`
 
+## Screenshots
+
+### Admin Interface
+![Synced Patterns Admin Menu](assets/img/screenshot-1.png)
+
+*The Synced Patterns menu item appears under Appearance in WordPress Admin*
+
+![Synced Patterns Admin Table](assets/img/screenshot-5.png)
+
+*The admin interface showing all available synced patterns with their IDs, trigger codes, and management options*
+
+### Usage Examples
+![Block Editor Link Setup](assets/img/screenshot-2.png)
+
+*Setting up a popup trigger using the href attribute in the WordPress Block Editor*
+
+![Modal with Rich Content](assets/img/screenshot-3.png)
+
+*Example modal displaying an Instagram-style grid layout with images and complex block layouts*
+
+![Modal with Text Content](assets/img/screenshot-4.png)
+
+*Example modal with simple text content, lists, and formatted blocks*
+
 ## How to Install This Plugin Locally for Development
 
 ### Prerequisites

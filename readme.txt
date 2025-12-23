@@ -154,11 +154,11 @@ PHP 7.4 or higher.
 
 == Screenshots ==
 
-1. Admin interface showing all synced patterns with IDs and trigger codes
-2. Block Editor link setup with href trigger
-3. Modal displaying rich content with images and layout
-4. Modal with simple text content
-5. AI TLDR settings configuration
+1. The Synced Patterns menu item appears under Appearance in WordPress Admin
+2. Setting up a popup trigger using the href attribute in the WordPress Block Editor
+3. Example modal displaying an Instagram-style grid layout with images and complex block layouts
+4. Example modal with simple text content, lists, and formatted blocks
+5. The admin interface showing all available synced patterns with their IDs, trigger codes, and management options
 
 == Changelog ==
 
