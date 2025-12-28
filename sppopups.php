@@ -1,7 +1,6 @@
 <?php
 /**
  * Plugin Name: Synced Pattern Popups
- * Plugin URI: https://www.mattcromwell.com/sppopups
  * Description: A lightweight modal popup system that loads WordPress Synced Pattern content on demand. Trigger with class "spp-trigger-{id}".
  * Version: 1.0.0
  * Author: WP Product Talk
