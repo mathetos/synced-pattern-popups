@@ -1,5 +1,5 @@
 === Synced Pattern Popups ===
-Contributors: wpproducttalk
+Contributors: webdevmattcrom
 Tags: popup, modal, synced-patterns, ai, tldr
 Requires at least: 5.8
 Tested up to: 6.9
@@ -7,7 +7,7 @@ Stable tag: 1.0.0
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
-A lightweight modal popup system that loads WordPress Synced Pattern content on demand. Trigger with class "spp-trigger-{id}".
+A modal popup system that loads WordPress Synced Pattern content on demand. Trigger with class "spp-trigger-{id}".
 
 == Description ==
 

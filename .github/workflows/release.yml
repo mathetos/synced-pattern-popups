@@ -1,0 +1,126 @@
+name: Create Release ZIP
+
+on:
+  release:
+    types: [created]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # Need full history for changelog generation
+      
+      - name: Extract version from tag
+        id: version
+        run: |
+          VERSION=${GITHUB_REF#refs/tags/}
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+          echo "Extracted version: $VERSION"
+      
+      - name: Generate Changelog
+        id: changelog
+        run: |
+          # Get previous tag
+          PREV_TAG=$(git describe --tags --abbrev=0 HEAD~1 2>/dev/null || echo "")
+          
+          echo "Previous tag: ${PREV_TAG:-'none (first release)'}"
+          
+          # Generate changelog
+          if [ -z "$PREV_TAG" ]; then
+            # First release - get all commits
+            CHANGELOG=$(git log --pretty=format:"- %s (%h)" --no-merges)
+          else
+            # Get commits between tags
+            CHANGELOG=$(git log ${PREV_TAG}..HEAD --pretty=format:"- %s (%h)" --no-merges)
+          fi
+          
+          # Handle empty changelog
+          if [ -z "$CHANGELOG" ]; then
+            CHANGELOG="- No changes detected"
+          fi
+          
+          # Format as markdown
+          CHANGELOG_MD="## Changes in ${{ steps.version.outputs.version }}
+          
+          $CHANGELOG"
+          
+          # Output for release body
+          echo "changelog<<EOF" >> $GITHUB_OUTPUT
+          echo "$CHANGELOG_MD" >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
+          
+          # Also output to console for debugging
+          echo "Generated changelog:"
+          echo "$CHANGELOG_MD"
+      
+      - name: Create ZIP file
+        id: zip
+        run: |
+          VERSION="${{ steps.version.outputs.version }}"
+          ZIP_NAME="sppopups-${VERSION}.zip"
+          
+          echo "Creating ZIP: $ZIP_NAME"
+          
+          # Create temporary directory for ZIP contents
+          mkdir -p /tmp/sppopups-release
+          
+          # Copy plugin files to temp directory, excluding unwanted files
+          # This ensures ZIP extracts to sppopups/ folder (WordPress standard)
+          rsync -av \
+            --exclude='.git' \
+            --exclude='.github' \
+            --exclude='.gitignore' \
+            --exclude='node_modules' \
+            --exclude='.DS_Store' \
+            --exclude='.cursor' \
+            --exclude='.vscode' \
+            --exclude='.idea' \
+            --exclude='Thumbs.db' \
+            --exclude='*.zip' \
+            ./ /tmp/sppopups-release/sppopups/
+          
+          # Create ZIP from temporary directory
+          cd /tmp/sppopups-release
+          zip -r "${GITHUB_WORKSPACE}/${ZIP_NAME}" sppopups/
+          cd "${GITHUB_WORKSPACE}"
+          
+          # Clean up temporary directory
+          rm -rf /tmp/sppopups-release
+          
+          # Verify ZIP was created
+          if [ ! -f "${ZIP_NAME}" ]; then
+            echo "Error: ZIP file was not created"
+            exit 1
+          fi
+          
+          # Get file size for verification
+          ZIP_SIZE=$(stat -c%s "${ZIP_NAME}" 2>/dev/null || echo "unknown")
+          echo "ZIP file created: ${ZIP_NAME} (${ZIP_SIZE} bytes)"
+          
+          # Verify ZIP structure (should contain sppopups/ folder)
+          if ! unzip -l "${ZIP_NAME}" | grep -q "sppopups/"; then
+            echo "Warning: ZIP structure may be incorrect"
+          else
+            echo "ZIP structure verified: contains sppopups/ folder"
+          fi
+          
+          # Output ZIP path
+          echo "zip_path=${ZIP_NAME}" >> $GITHUB_OUTPUT
+          echo "zip_name=${ZIP_NAME}" >> $GITHUB_OUTPUT
+      
+      - name: Upload Release Asset
+        uses: softprops/action-gh-release@v1
+        with:
+          files: ${{ steps.zip.outputs.zip_path }}
+          body: ${{ steps.changelog.outputs.changelog }}
+          draft: false
+          prerelease: false
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
