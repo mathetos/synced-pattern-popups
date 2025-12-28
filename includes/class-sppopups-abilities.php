@@ -89,8 +89,7 @@ class SPPopups_Abilities {
 		// Register all abilities
 		$this->register_render_ability();
 		$this->register_list_patterns_ability();
-		$this->register_cache_clear_ability();
-		$this->register_cache_clear_all_ability();
+		$this->register_clear_cache_ability();
 		$this->register_scan_triggers_ability();
 	}
 
@@ -215,18 +214,6 @@ class SPPopups_Abilities {
 			return new WP_Error( 'render_failed', __( 'Failed to render pattern content.', 'sppopups' ), array( 'status' => 500 ) );
 		}
 
-		// Normalize response (handle both string and array returns)
-		if ( is_string( $rendered ) ) {
-			$rendered = array(
-				'html'                      => $rendered,
-				'styles'                    => array(),
-				'block_supports_css'        => '',
-				'block_style_variation_css' => '',
-				'global_stylesheet'         => '',
-				'asset_data'                => SPPopups_Cache::get_default_asset_data(),
-			);
-		}
-
 		// Add title
 		$rendered['title'] = $pattern->post_title ? $pattern->post_title : __( '(no title)', 'sppopups' );
 
@@ -320,21 +307,21 @@ class SPPopups_Abilities {
 	}
 
 	/**
-	 * Register cache clear ability
+	 * Register clear cache ability
 	 */
-	private function register_cache_clear_ability() {
+	private function register_clear_cache_ability() {
 		wp_register_ability(
-			'sppopups/cache-clear',
+			'sppopups/clear-cache',
 			array(
-				'label'       => __( 'Clear Pattern Cache', 'sppopups' ),
-				'description' => __( 'Clears the cached content for a specific synced pattern.', 'sppopups' ),
+				'label'       => __( 'Clear Popup Cache', 'sppopups' ),
+				'description' => __( 'Clears cached popup content for a specific synced pattern or all patterns.', 'sppopups' ),
 				'category'    => 'sppopups',
 				'input_schema' => array(
 					'type'       => 'object',
 					'properties' => array(
 						'pattern_id' => array(
-							'type'        => 'integer',
-							'description' => __( 'The ID of the pattern to clear cache for.', 'sppopups' ),
+							'type'        => array( 'integer', 'string' ),
+							'description' => __( 'The ID of the pattern to clear cache for (integer), or "all" (string) to clear all cached content.', 'sppopups' ),
 							'required'    => true,
 						),
 					),
@@ -343,9 +330,13 @@ class SPPopups_Abilities {
 				'output_schema' => array(
 					'type'       => 'object',
 					'properties' => array(
-						'cleared' => array(
+						'cleared'      => array(
 							'type'        => 'boolean',
-							'description' => __( 'Whether the cache was successfully cleared.', 'sppopups' ),
+							'description' => __( 'Whether the cache was successfully cleared. For single pattern operations, this indicates success. For "all" operations, this is true if any entries were deleted.', 'sppopups' ),
+						),
+						'deleted_count' => array(
+							'type'        => 'integer',
+							'description' => __( 'Number of cache entries deleted. For single pattern operations, this will be 0 or 1. For "all" operations, this is the total count.', 'sppopups' ),
 						),
 					),
 				),
@@ -356,85 +347,57 @@ class SPPopups_Abilities {
 					),
 				),
 				'permission_callback' => array( $this, 'check_permission' ),
-				'execute_callback'    => array( $this, 'execute_cache_clear' ),
+				'execute_callback'    => array( $this, 'execute_clear_cache' ),
 			)
 		);
 	}
 
 	/**
-	 * Execute cache clear ability
+	 * Execute clear cache ability
 	 *
 	 * @param array $params Ability parameters
 	 * @return array|WP_Error Success status or error
 	 */
-	public function execute_cache_clear( $params ) {
-		// Validate pattern_id
-		if ( ! isset( $params['pattern_id'] ) || ! is_numeric( $params['pattern_id'] ) ) {
-			return new WP_Error( 'invalid_pattern_id', __( 'Invalid pattern ID.', 'sppopups' ), array( 'status' => 400 ) );
+	public function execute_clear_cache( $params ) {
+		// Validate pattern_id is present
+		if ( ! isset( $params['pattern_id'] ) ) {
+			return new WP_Error( 'missing_pattern_id', __( 'pattern_id parameter is required.', 'sppopups' ), array( 'status' => 400 ) );
 		}
 
-		$pattern_id = (int) $params['pattern_id'];
+		$pattern_id = $params['pattern_id'];
+
+		// Handle "all" case
+		if ( 'all' === $pattern_id || 'all' === strtolower( (string) $pattern_id ) ) {
+			$deleted = $this->cache_service->clear_all();
+			return array(
+				'cleared'      => $deleted > 0,
+				'deleted_count' => $deleted,
+			);
+		}
+
+		// Validate pattern_id is numeric for single pattern
+		if ( ! is_numeric( $pattern_id ) ) {
+			return new WP_Error( 'invalid_pattern_id', __( 'pattern_id must be an integer or "all".', 'sppopups' ), array( 'status' => 400 ) );
+		}
+
+		$pattern_id = (int) $pattern_id;
 
 		// Validate range
 		if ( $pattern_id <= 0 || $pattern_id > 2147483647 ) {
 			return new WP_Error( 'invalid_pattern_id', __( 'Pattern ID out of valid range.', 'sppopups' ), array( 'status' => 400 ) );
 		}
 
-		// Clear cache
+		// Clear cache for single pattern
 		$cleared = $this->cache_service->delete( $pattern_id );
 
 		// Also clear pattern object cache
 		$pattern_cache_key = 'sppopups_pattern_' . $pattern_id;
 		wp_cache_delete( $pattern_cache_key, 'sppopups_patterns' );
 
-		return array( 'cleared' => $cleared );
-	}
-
-	/**
-	 * Register cache clear all ability
-	 */
-	private function register_cache_clear_all_ability() {
-		wp_register_ability(
-			'sppopups/cache-clear-all',
-			array(
-				'label'       => __( 'Clear All Popup Cache', 'sppopups' ),
-				'description' => __( 'Clears all cached popup content for all synced patterns.', 'sppopups' ),
-				'category'    => 'sppopups',
-				'input_schema' => array(
-					'type' => 'object',
-					'properties' => array(),
-				),
-				'output_schema' => array(
-					'type'       => 'object',
-					'properties' => array(
-						'deleted_count' => array(
-							'type'        => 'integer',
-							'description' => __( 'Number of cache entries deleted.', 'sppopups' ),
-						),
-					),
-				),
-				'meta'                => array(
-					'mcp' => array(
-						'public' => true,
-						'type'   => 'tool',
-					),
-				),
-				'permission_callback' => array( $this, 'check_permission' ),
-				'execute_callback'    => array( $this, 'execute_cache_clear_all' ),
-			)
+		return array(
+			'cleared'      => $cleared,
+			'deleted_count' => $cleared ? 1 : 0,
 		);
-	}
-
-	/**
-	 * Execute cache clear all ability
-	 *
-	 * @param array $params Ability parameters (unused)
-	 * @return array Result with deleted count
-	 */
-	public function execute_cache_clear_all( $params ) {
-		$deleted = $this->cache_service->clear_all();
-
-		return array( 'deleted_count' => $deleted );
 	}
 
 	/**

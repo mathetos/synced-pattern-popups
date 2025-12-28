@@ -59,9 +59,8 @@ class SPPopups_Ajax {
 
 	/**
 	 * Extract rendered data from cache or render result
-	 * Handles both old (string) and new (array) formats
 	 *
-	 * @param mixed $data Cached data or rendered data (string or array)
+	 * @param array $data Cached data or rendered data (array format)
 	 * @return array Extracted data with all components
 	 */
 	private function extract_rendered_data( $data ) {
@@ -81,9 +80,6 @@ class SPPopups_Ajax {
 			$result['block_style_variation_css'] = isset( $data['block_style_variation_css'] ) ? $data['block_style_variation_css'] : '';
 			$result['global_stylesheet']          = isset( $data['global_stylesheet'] ) ? $data['global_stylesheet'] : '';
 			$result['asset_data']                = isset( $data['asset_data'] ) && is_array( $data['asset_data'] ) ? $data['asset_data'] : SPPopups_Cache::get_default_asset_data();
-		} else {
-			// Backward compatibility: old format (string only)
-			$result['html'] = $data;
 		}
 
 		return $result;

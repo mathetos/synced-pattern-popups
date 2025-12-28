@@ -76,7 +76,7 @@ class SPPopups_Cache {
 	 * Uses object cache if available, falls back to transients
 	 *
 	 * @param int $pattern_id Synced pattern ID
-	 * @return string|array|false Cached HTML (string), array with HTML and styles, or false if not cached
+	 * @return array|false Array with HTML and styles, or false if not cached
 	 */
 	public function get( $pattern_id ) {
 		$cache_key = $this->get_cache_key( $pattern_id );
@@ -85,7 +85,12 @@ class SPPopups_Cache {
 		// Try object cache first (faster if available)
 		$cached = wp_cache_get( $cache_key, $group );
 		if ( false !== $cached ) {
-			return $this->normalize_cached_data( $cached );
+			$normalized = $this->normalize_cached_data( $cached );
+			// If normalization failed (invalid format), treat as cache miss
+			if ( false === $normalized ) {
+				return false;
+			}
+			return $normalized;
 		}
 
 		// Fallback to transient
@@ -93,6 +98,10 @@ class SPPopups_Cache {
 		if ( false !== $transient ) {
 			// Prime object cache for next time
 			$normalized = $this->normalize_cached_data( $transient );
+			// If normalization failed (invalid format), treat as cache miss
+			if ( false === $normalized ) {
+				return false;
+			}
 			wp_cache_set( $cache_key, $transient, $group, $this->get_cache_ttl() );
 			return $normalized;
 		}
@@ -101,10 +110,10 @@ class SPPopups_Cache {
 	}
 
 	/**
-	 * Normalize cached data to handle both old (string) and new (array) formats
+	 * Normalize cached data (array format or JSON-encoded array)
 	 *
-	 * @param mixed $data Cached data (string or array)
-	 * @return string|array Normalized data
+	 * @param mixed $data Cached data (array or JSON-encoded array string)
+	 * @return array|false Normalized array data or false if invalid
 	 */
 	private function normalize_cached_data( $data ) {
 		$normalized = null;
@@ -118,12 +127,12 @@ class SPPopups_Cache {
 			if ( json_last_error() === JSON_ERROR_NONE && is_array( $decoded ) ) {
 				$normalized = $decoded;
 			} else {
-				// Backward compatibility: return string as HTML-only
-				return $data;
+				// Invalid format - return false
+				return false;
 			}
 		} else {
-			// Fallback: return as-is
-			return $data;
+			// Invalid type - return false
+			return false;
 		}
 
 		// Ensure asset_data exists with default empty arrays if missing

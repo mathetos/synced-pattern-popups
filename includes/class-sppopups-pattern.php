@@ -136,7 +136,7 @@ class SPPopups_Pattern {
 	 *
 	 * @param int                                    $pattern_id Synced pattern post ID
 	 * @param SPPopups_Asset_Collector|null $style_collector Optional asset collector instance
-	 * @return string|array|false Rendered HTML (string), array with HTML and styles, or false if not found
+	 * @return array|false Array with HTML and styles, or false if not found
 	 */
 	public function get_rendered_content( $pattern_id, $style_collector = null ) {
 		$content = $this->get_content( $pattern_id );
@@ -197,20 +197,15 @@ class SPPopups_Pattern {
 			);
 		}
 
-		// If no collector, still return block support CSS, block style variation CSS, and global stylesheet for backward compatibility
-		if ( ! empty( $block_supports_css ) || ! empty( $block_style_variation_css ) || ! empty( $global_stylesheet ) ) {
-			return array(
-				'html'                      => $html,
-				'styles'                    => array(),
-				'block_supports_css'        => $block_supports_css,
-				'block_style_variation_css' => $block_style_variation_css,
-				'global_stylesheet'         => $global_stylesheet,
-				'asset_data'                => SPPopups_Cache::get_default_asset_data(),
-			);
-		}
-
-		// Backward compatibility: return HTML string if no collector
-		return $html;
+		// If no collector, still return array format with block support CSS, block style variation CSS, and global stylesheet
+		return array(
+			'html'                      => $html,
+			'styles'                    => array(),
+			'block_supports_css'        => $block_supports_css,
+			'block_style_variation_css' => $block_style_variation_css,
+			'global_stylesheet'         => $global_stylesheet,
+			'asset_data'                => SPPopups_Cache::get_default_asset_data(),
+		);
 	}
 
 	/**
