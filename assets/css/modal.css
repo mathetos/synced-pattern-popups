@@ -423,32 +423,34 @@ body.sppopups-open {
 	}
 }
 
-/* Override editor-specific styles that leak into frontend */
-/* These styles are intended for the Block Editor, not the frontend */
-.sppopups-content .is-selected,
-.sppopups-content .has-child-selected,
-.sppopups-content [class*="is-selected"],
-.sppopups-content [class*="has-child-selected"] {
-	outline: none !important;
-	box-shadow: none !important;
-}
-
-/* Disable editor hover states for blocks */
-.sppopups-content .wp-block:hover,
-.sppopups-content [class*="wp-block"]:hover {
-	outline: none !important;
-	box-shadow: none !important;
-}
-
-/* Specifically target Kadence blocks editor styles */
-.sppopups-content .wp-block-kadence-column.is-selected,
-.sppopups-content .wp-block-kadence-column.has-child-selected,
-.sppopups-content .wp-block-kadence-column:hover,
-.sppopups-content .wp-block-kadence-rowlayout.is-selected,
-.sppopups-content .wp-block-kadence-rowlayout.has-child-selected,
-.sppopups-content .wp-block-kadence-rowlayout:hover {
+/* Prevent Kadence editor hover styles from appearing on frontend */
+/* These styles only apply when our modal CSS is loaded (frontend only) */
+/* Target frontend only by excluding block editor contexts */
+body:not(.block-editor-page):not(.wp-admin) .wp-block-kadence-column.is-selected,
+body:not(.block-editor-page):not(.wp-admin) .wp-block-kadence-column.has-child-selected,
+body:not(.block-editor-page):not(.wp-admin) .wp-block-kadence-column:hover,
+body:not(.block-editor-page):not(.wp-admin) .wp-block-kadence-rowlayout.is-selected,
+body:not(.block-editor-page):not(.wp-admin) .wp-block-kadence-rowlayout.has-child-selected,
+body:not(.block-editor-page):not(.wp-admin) .wp-block-kadence-rowlayout:hover,
+body:not(.block-editor-page):not(.wp-admin) [class*="wp-block-kadence"].is-selected,
+body:not(.block-editor-page):not(.wp-admin) [class*="wp-block-kadence"].has-child-selected,
+body:not(.block-editor-page):not(.wp-admin) [class*="wp-block-kadence"]:hover,
+body:not(.block-editor-page):not(.wp-admin) .kt-inside-inner-col.is-selected,
+body:not(.block-editor-page):not(.wp-admin) .kt-inside-inner-col.has-child-selected,
+body:not(.block-editor-page):not(.wp-admin) .kt-inside-inner-col:hover {
 	outline: none !important;
 	outline-offset: 0 !important;
+	box-shadow: none !important;
+}
+
+/* Disable editor hover states for all blocks on frontend */
+body:not(.block-editor-page):not(.wp-admin) .wp-block.is-selected,
+body:not(.block-editor-page):not(.wp-admin) .wp-block.has-child-selected,
+body:not(.block-editor-page):not(.wp-admin) .wp-block:hover,
+body:not(.block-editor-page):not(.wp-admin) [class*="wp-block"].is-selected,
+body:not(.block-editor-page):not(.wp-admin) [class*="wp-block"].has-child-selected,
+body:not(.block-editor-page):not(.wp-admin) [class*="wp-block"]:hover {
+	outline: none !important;
 	box-shadow: none !important;
 }
 

@@ -1,6 +1,6 @@
 === Synced Pattern Popups ===
 Contributors: wpproducttalk
-Tags: popup, modal, synced-patterns, reusable-blocks, ai, tldr
+Tags: popup, modal, synced-patterns, ai, tldr
 Requires at least: 5.8
 Tested up to: 6.9
 Stable tag: 1.0.0
