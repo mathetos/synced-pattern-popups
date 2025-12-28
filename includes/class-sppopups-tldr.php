@@ -168,12 +168,160 @@ class SPPopups_TLDR {
 
 			// generate_text() returns a string directly
 			if ( is_string( $result ) ) {
-				return trim( $result );
+				$markdown = trim( $result );
+				// Convert markdown to HTML
+				$html = $this->markdown_to_html( $markdown );
+				return $html;
 			}
 
 			return new WP_Error( 'invalid_response', __( 'Invalid response from AI service.', 'sppopups' ) );
 		} catch ( Exception $e ) {
 			return new WP_Error( 'ai_generation_failed', __( 'Failed to generate TLDR: ', 'sppopups' ) . $e->getMessage() );
+		}
+	}
+
+	/**
+	 * Convert markdown to HTML
+	 * Handles common markdown syntax: headers, bold, italic, lists, paragraphs
+	 *
+	 * @param string $markdown Markdown text
+	 * @return string HTML (sanitized)
+	 */
+	private function markdown_to_html( $markdown ) {
+		if ( empty( $markdown ) ) {
+			return '';
+		}
+
+		$html = $markdown;
+
+		// Split into lines for processing
+		$lines = explode( "\n", $html );
+		$processed_lines = array();
+		$in_list = false;
+		$list_type = null; // 'ul' or 'ol'
+		$list_items = array();
+
+		foreach ( $lines as $line ) {
+			$trimmed = trim( $line );
+			
+			// Check for headers
+			if ( preg_match( '/^###\s+(.+)$/', $trimmed, $matches ) ) {
+				$this->flush_list( $processed_lines, $in_list, $list_type, $list_items );
+				$processed_lines[] = '<h3>' . $this->process_inline_markdown( $matches[1] ) . '</h3>';
+				continue;
+			} elseif ( preg_match( '/^##\s+(.+)$/', $trimmed, $matches ) ) {
+				$this->flush_list( $processed_lines, $in_list, $list_type, $list_items );
+				$processed_lines[] = '<h2>' . $this->process_inline_markdown( $matches[1] ) . '</h2>';
+				continue;
+			} elseif ( preg_match( '/^#\s+(.+)$/', $trimmed, $matches ) ) {
+				$this->flush_list( $processed_lines, $in_list, $list_type, $list_items );
+				$processed_lines[] = '<h1>' . $this->process_inline_markdown( $matches[1] ) . '</h1>';
+				continue;
+			}
+			
+			// Check for unordered list
+			if ( preg_match( '/^[\-\*]\s+(.+)$/', $trimmed, $matches ) ) {
+				if ( ! $in_list || $list_type !== 'ul' ) {
+					$this->flush_list( $processed_lines, $in_list, $list_type, $list_items );
+					$in_list = true;
+					$list_type = 'ul';
+				}
+				$list_items[] = '<li>' . $this->process_inline_markdown( $matches[1] ) . '</li>';
+				continue;
+			}
+			
+			// Check for ordered list
+			if ( preg_match( '/^\d+\.\s+(.+)$/', $trimmed, $matches ) ) {
+				if ( ! $in_list || $list_type !== 'ol' ) {
+					$this->flush_list( $processed_lines, $in_list, $list_type, $list_items );
+					$in_list = true;
+					$list_type = 'ol';
+				}
+				$list_items[] = '<li>' . $this->process_inline_markdown( $matches[1] ) . '</li>';
+				continue;
+			}
+			
+			// Empty line - flush list if active
+			if ( empty( $trimmed ) ) {
+				$this->flush_list( $processed_lines, $in_list, $list_type, $list_items );
+				$processed_lines[] = '';
+				continue;
+			}
+			
+			// Regular paragraph line
+			$this->flush_list( $processed_lines, $in_list, $list_type, $list_items );
+			$processed_lines[] = $this->process_inline_markdown( $trimmed );
+		}
+		
+		// Flush any remaining list
+		$this->flush_list( $processed_lines, $in_list, $list_type, $list_items );
+		
+		// Join lines and wrap paragraphs
+		$html = implode( "\n", $processed_lines );
+		
+		// Wrap consecutive non-empty, non-tag lines in paragraphs
+		// Split by double newlines first
+		$blocks = preg_split( '/\n\s*\n/', $html );
+		$wrapped_blocks = array();
+		foreach ( $blocks as $block ) {
+			$block = trim( $block );
+			if ( empty( $block ) ) {
+				continue;
+			}
+			// Don't wrap if it's already a tag (heading, list, etc.)
+			if ( preg_match( '/^<(ul|ol|h[1-6]|li)/', $block ) ) {
+				$wrapped_blocks[] = $block;
+			} else {
+				// Convert single newlines to <br> and wrap in <p>
+				$block = nl2br( $block, false );
+				$wrapped_blocks[] = '<p>' . $block . '</p>';
+			}
+		}
+		$html = implode( "\n\n", $wrapped_blocks );
+		
+		// Clean up any empty tags
+		$html = preg_replace( '/<p>\s*<\/p>/', '', $html );
+
+		// Sanitize HTML to ensure security
+		$html = wp_kses_post( $html );
+
+		return trim( $html );
+	}
+
+	/**
+	 * Process inline markdown (bold, italic) within a line
+	 *
+	 * @param string $text Text to process
+	 * @return string Processed text
+	 */
+	private function process_inline_markdown( $text ) {
+		// Convert bold (**text** or __text__)
+		$text = preg_replace( '/\*\*(.+?)\*\*/', '<strong>$1</strong>', $text );
+		$text = preg_replace( '/__(.+?)__/', '<strong>$1</strong>', $text );
+		
+		// Convert italic (*text* or _text_) - but avoid conflicts with bold
+		// Match single * or _ that's not part of ** or __
+		$text = preg_replace( '/(?<!\*)\*(?!\*)([^*]+?)(?<!\*)\*(?!\*)/', '<em>$1</em>', $text );
+		$text = preg_replace( '/(?<!_)_(?!_)([^_]+?)(?<!_)_(?!_)/', '<em>$1</em>', $text );
+		
+		return $text;
+	}
+
+	/**
+	 * Flush accumulated list items to processed lines
+	 *
+	 * @param array  $processed_lines Reference to processed lines array
+	 * @param bool   $in_list Reference to in_list flag
+	 * @param string $list_type Reference to list type
+	 * @param array  $list_items Reference to list items array
+	 */
+	private function flush_list( &$processed_lines, &$in_list, &$list_type, &$list_items ) {
+		if ( $in_list && ! empty( $list_items ) ) {
+			$tag = ( $list_type === 'ol' ) ? 'ol' : 'ul';
+			$processed_lines[] = '<' . $tag . '>' . "\n" . implode( "\n", $list_items ) . "\n" . '</' . $tag . '>';
+			$list_items = array();
+			$in_list = false;
+			$list_type = null;
 		}
 	}
 

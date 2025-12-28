@@ -86,7 +86,7 @@ class SPPopups_Settings {
 	 * @return string Default prompt
 	 */
 	private function get_default_prompt() {
-		return "Create a concise TLDR (Too Long; Didn't Read) summary of the following content. The summary should be 2-3 sentences and capture the main points:\n\n{content}";
+		return "Create a concise TLDR (Too Long; Didn't Read) summary of the following content. Format your response using Markdown syntax (use **bold** for emphasis, * for lists, ## for headings, etc.). The summary should be 2-3 sentences and capture the main points:\n\n{content}";
 	}
 
 	/**
@@ -270,7 +270,7 @@ class SPPopups_Settings {
 	 * @return string Prompt template
 	 */
 	public static function get_tldr_prompt() {
-		$default = "Create a concise TLDR (Too Long; Didn't Read) summary of the following content. The summary should be 2-3 sentences and capture the main points:\n\n{content}";
+		$default = "Create a concise TLDR (Too Long; Didn't Read) summary of the following content. Format your response using Markdown syntax (use **bold** for emphasis, * for lists, ## for headings, etc.). The summary should be 2-3 sentences and capture the main points:\n\n{content}";
 		return get_option( 'sppopups_tldr_prompt', $default );
 	}
 
