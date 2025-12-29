@@ -294,9 +294,9 @@ class SPPopups_Plugin {
 				'styleUrls' => $style_urls,
 				'scriptUrls' => $script_urls,
 				'strings'   => array(
-					'loading'  => __( 'Loading content...', 'sppopups' ),
-					'error'    => __( 'Error loading content. Please try again.', 'sppopups' ),
-					'notFound' => __( 'Content not found.', 'sppopups' ),
+					'loading'  => __( 'Loading content...', 'synced-pattern-popups' ),
+					'error'    => __( 'Error loading content. Please try again.', 'synced-pattern-popups' ),
+					'notFound' => __( 'Content not found.', 'synced-pattern-popups' ),
 				),
 			)
 		);
@@ -313,8 +313,8 @@ class SPPopups_Plugin {
 			<div class="sppopups-container">
 				<div class="sppopups-card">
 					<h2 id="sppopups-title" class="sppopups-sr-only"></h2>
-					<p id="sppopups-desc" class="sppopups-sr-only"><?php esc_html_e( 'Press Escape to close. Tab stays within the popup.', 'sppopups' ); ?></p>
-					<button class="sppopups-close" aria-label="<?php esc_attr_e( 'Close modal', 'sppopups' ); ?>" type="button">
+					<p id="sppopups-desc" class="sppopups-sr-only"><?php esc_html_e( 'Press Escape to close. Tab stays within the popup.', 'synced-pattern-popups' ); ?></p>
+					<button class="sppopups-close" aria-label="<?php esc_attr_e( 'Close modal', 'synced-pattern-popups' ); ?>" type="button">
 						<svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
 							<path d="M18 6L6 18M6 6L18 18" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
 						</svg>
@@ -322,12 +322,12 @@ class SPPopups_Plugin {
 					<div class="sppopups-content">
 						<div class="sppopups-loading">
 							<div class="sppopups-spinner"></div>
-							<p><?php esc_html_e( 'Loading content...', 'sppopups' ); ?></p>
+							<p><?php esc_html_e( 'Loading content...', 'synced-pattern-popups' ); ?></p>
 						</div>
 					</div>
 					<div class="sppopups-footer">
-						<button class="sppopups-close-footer" type="button" aria-label="<?php esc_attr_e( 'Close modal', 'sppopups' ); ?>">
-							<?php esc_html_e( 'Close', 'sppopups' ); ?> →
+						<button class="sppopups-close-footer" type="button" aria-label="<?php esc_attr_e( 'Close modal', 'synced-pattern-popups' ); ?>">
+							<?php esc_html_e( 'Close', 'synced-pattern-popups' ); ?> →
 						</button>
 					</div>
 				</div>

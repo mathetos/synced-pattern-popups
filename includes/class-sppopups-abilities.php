@@ -74,8 +74,8 @@ class SPPopups_Abilities {
 			wp_register_ability_category(
 				'sppopups',
 				array(
-					'label'       => __( 'Synced Pattern Popups', 'sppopups' ),
-					'description' => __( 'Abilities for managing popup content from Synced Patterns.', 'sppopups' ),
+					'label'       => __( 'Synced Pattern Popups', 'synced-pattern-popups' ),
+					'description' => __( 'Abilities for managing popup content from Synced Patterns.', 'synced-pattern-popups' ),
 				)
 			);
 		}
@@ -118,15 +118,15 @@ class SPPopups_Abilities {
 		wp_register_ability(
 			'sppopups/render',
 			array(
-				'label'       => __( 'Render Popup Content', 'sppopups' ),
-				'description' => __( 'Renders a synced pattern as popup content with all required styles and assets.', 'sppopups' ),
+				'label'       => __( 'Render Popup Content', 'synced-pattern-popups' ),
+				'description' => __( 'Renders a synced pattern as popup content with all required styles and assets.', 'synced-pattern-popups' ),
 				'category'    => 'sppopups',
 				'input_schema' => array(
 					'type'       => 'object',
 					'properties' => array(
 						'pattern_id' => array(
 							'type'        => 'integer',
-							'description' => __( 'The ID of the synced pattern to render.', 'sppopups' ),
+							'description' => __( 'The ID of the synced pattern to render.', 'synced-pattern-popups' ),
 							'required'    => true,
 						),
 					),
@@ -137,32 +137,32 @@ class SPPopups_Abilities {
 					'properties' => array(
 						'html'                      => array(
 							'type'        => 'string',
-							'description' => __( 'Rendered HTML content.', 'sppopups' ),
+							'description' => __( 'Rendered HTML content.', 'synced-pattern-popups' ),
 						),
 						'title'                     => array(
 							'type'        => 'string',
-							'description' => __( 'Pattern title.', 'sppopups' ),
+							'description' => __( 'Pattern title.', 'synced-pattern-popups' ),
 						),
 						'styles'                    => array(
 							'type'        => 'array',
-							'description' => __( 'Array of style handles required for this pattern.', 'sppopups' ),
+							'description' => __( 'Array of style handles required for this pattern.', 'synced-pattern-popups' ),
 							'items'       => array( 'type' => 'string' ),
 						),
 						'block_supports_css'        => array(
 							'type'        => 'string',
-							'description' => __( 'Block supports CSS from Style Engine.', 'sppopups' ),
+							'description' => __( 'Block supports CSS from Style Engine.', 'synced-pattern-popups' ),
 						),
 						'block_style_variation_css' => array(
 							'type'        => 'string',
-							'description' => __( 'Block style variation CSS (is-style-* classes).', 'sppopups' ),
+							'description' => __( 'Block style variation CSS (is-style-* classes).', 'synced-pattern-popups' ),
 						),
 						'global_stylesheet'         => array(
 							'type'        => 'string',
-							'description' => __( 'Global stylesheet for CSS variables.', 'sppopups' ),
+							'description' => __( 'Global stylesheet for CSS variables.', 'synced-pattern-popups' ),
 						),
 						'asset_data'                => array(
 							'type'        => 'object',
-							'description' => __( 'Detailed asset data (styles and scripts with URLs and inline content).', 'sppopups' ),
+							'description' => __( 'Detailed asset data (styles and scripts with URLs and inline content).', 'synced-pattern-popups' ),
 						),
 					),
 				),
@@ -191,31 +191,31 @@ class SPPopups_Abilities {
 	public function execute_render( $params ) {
 		// Validate pattern_id
 		if ( ! isset( $params['pattern_id'] ) || ! is_numeric( $params['pattern_id'] ) ) {
-			return new WP_Error( 'invalid_pattern_id', __( 'Invalid pattern ID.', 'sppopups' ), array( 'status' => 400 ) );
+			return new WP_Error( 'invalid_pattern_id', __( 'Invalid pattern ID.', 'synced-pattern-popups' ), array( 'status' => 400 ) );
 		}
 
 		$pattern_id = (int) $params['pattern_id'];
 
 		// Validate range
 		if ( $pattern_id <= 0 || $pattern_id > 2147483647 ) {
-			return new WP_Error( 'invalid_pattern_id', __( 'Pattern ID out of valid range.', 'sppopups' ), array( 'status' => 400 ) );
+			return new WP_Error( 'invalid_pattern_id', __( 'Pattern ID out of valid range.', 'synced-pattern-popups' ), array( 'status' => 400 ) );
 		}
 
 		// Get pattern post object for title
 		$pattern = get_post( $pattern_id );
 		if ( ! $pattern || $pattern->post_type !== 'wp_block' ) {
-			return new WP_Error( 'pattern_not_found', __( 'Pattern not found.', 'sppopups' ), array( 'status' => 404 ) );
+			return new WP_Error( 'pattern_not_found', __( 'Pattern not found.', 'synced-pattern-popups' ), array( 'status' => 404 ) );
 		}
 
 		// Get rendered content with asset collection
 		$rendered = $this->pattern_service->get_rendered_content( $pattern_id, $this->style_collector );
 
 		if ( false === $rendered ) {
-			return new WP_Error( 'render_failed', __( 'Failed to render pattern content.', 'sppopups' ), array( 'status' => 500 ) );
+			return new WP_Error( 'render_failed', __( 'Failed to render pattern content.', 'synced-pattern-popups' ), array( 'status' => 500 ) );
 		}
 
 		// Add title
-		$rendered['title'] = $pattern->post_title ? $pattern->post_title : __( '(no title)', 'sppopups' );
+		$rendered['title'] = $pattern->post_title ? $pattern->post_title : __( '(no title)', 'synced-pattern-popups' );
 
 		return $rendered;
 	}
@@ -227,15 +227,15 @@ class SPPopups_Abilities {
 		wp_register_ability(
 			'sppopups/list-synced-patterns',
 			array(
-				'label'       => __( 'List Synced Patterns', 'sppopups' ),
-				'description' => __( 'Returns a list of all synced patterns available for popups.', 'sppopups' ),
+				'label'       => __( 'List Synced Patterns', 'synced-pattern-popups' ),
+				'description' => __( 'Returns a list of all synced patterns available for popups.', 'synced-pattern-popups' ),
 				'category'    => 'sppopups',
 				'input_schema' => array(
 					'type'       => 'object',
 					'properties' => array(
 						'status' => array(
 							'type'        => 'string',
-							'description' => __( 'Filter by post status (e.g., "publish", "draft"). Optional.', 'sppopups' ),
+							'description' => __( 'Filter by post status (e.g., "publish", "draft"). Optional.', 'synced-pattern-popups' ),
 							'enum'        => array( 'publish', 'draft', 'private', 'pending', 'any' ),
 						),
 					),
@@ -245,7 +245,7 @@ class SPPopups_Abilities {
 					'properties' => array(
 						'patterns' => array(
 							'type'        => 'array',
-							'description' => __( 'Array of synced pattern objects.', 'sppopups' ),
+							'description' => __( 'Array of synced pattern objects.', 'synced-pattern-popups' ),
 							'items'       => array(
 								'type'       => 'object',
 								'properties' => array(
@@ -296,7 +296,7 @@ class SPPopups_Abilities {
 
 			$patterns[] = array(
 				'id'          => (int) $post->ID,
-				'title'       => $post->post_title ? $post->post_title : __( '(no title)', 'sppopups' ),
+				'title'       => $post->post_title ? $post->post_title : __( '(no title)', 'synced-pattern-popups' ),
 				'status'      => $post->post_status,
 				'sync_status' => $is_synced ? 'synced' : 'unsynced',
 				'edit_url'    => get_edit_post_link( $post->ID, 'raw' ),
@@ -313,15 +313,15 @@ class SPPopups_Abilities {
 		wp_register_ability(
 			'sppopups/clear-cache',
 			array(
-				'label'       => __( 'Clear Popup Cache', 'sppopups' ),
-				'description' => __( 'Clears cached popup content for a specific synced pattern or all patterns.', 'sppopups' ),
+				'label'       => __( 'Clear Popup Cache', 'synced-pattern-popups' ),
+				'description' => __( 'Clears cached popup content for a specific synced pattern or all patterns.', 'synced-pattern-popups' ),
 				'category'    => 'sppopups',
 				'input_schema' => array(
 					'type'       => 'object',
 					'properties' => array(
 						'pattern_id' => array(
 							'type'        => array( 'integer', 'string' ),
-							'description' => __( 'The ID of the pattern to clear cache for (integer), or "all" (string) to clear all cached content.', 'sppopups' ),
+							'description' => __( 'The ID of the pattern to clear cache for (integer), or "all" (string) to clear all cached content.', 'synced-pattern-popups' ),
 							'required'    => true,
 						),
 					),
@@ -332,11 +332,11 @@ class SPPopups_Abilities {
 					'properties' => array(
 						'cleared'      => array(
 							'type'        => 'boolean',
-							'description' => __( 'Whether the cache was successfully cleared. For single pattern operations, this indicates success. For "all" operations, this is true if any entries were deleted.', 'sppopups' ),
+							'description' => __( 'Whether the cache was successfully cleared. For single pattern operations, this indicates success. For "all" operations, this is true if any entries were deleted.', 'synced-pattern-popups' ),
 						),
 						'deleted_count' => array(
 							'type'        => 'integer',
-							'description' => __( 'Number of cache entries deleted. For single pattern operations, this will be 0 or 1. For "all" operations, this is the total count.', 'sppopups' ),
+							'description' => __( 'Number of cache entries deleted. For single pattern operations, this will be 0 or 1. For "all" operations, this is the total count.', 'synced-pattern-popups' ),
 						),
 					),
 				),
@@ -361,7 +361,7 @@ class SPPopups_Abilities {
 	public function execute_clear_cache( $params ) {
 		// Validate pattern_id is present
 		if ( ! isset( $params['pattern_id'] ) ) {
-			return new WP_Error( 'missing_pattern_id', __( 'pattern_id parameter is required.', 'sppopups' ), array( 'status' => 400 ) );
+			return new WP_Error( 'missing_pattern_id', __( 'pattern_id parameter is required.', 'synced-pattern-popups' ), array( 'status' => 400 ) );
 		}
 
 		$pattern_id = $params['pattern_id'];
@@ -377,14 +377,14 @@ class SPPopups_Abilities {
 
 		// Validate pattern_id is numeric for single pattern
 		if ( ! is_numeric( $pattern_id ) ) {
-			return new WP_Error( 'invalid_pattern_id', __( 'pattern_id must be an integer or "all".', 'sppopups' ), array( 'status' => 400 ) );
+			return new WP_Error( 'invalid_pattern_id', __( 'pattern_id must be an integer or "all".', 'synced-pattern-popups' ), array( 'status' => 400 ) );
 		}
 
 		$pattern_id = (int) $pattern_id;
 
 		// Validate range
 		if ( $pattern_id <= 0 || $pattern_id > 2147483647 ) {
-			return new WP_Error( 'invalid_pattern_id', __( 'Pattern ID out of valid range.', 'sppopups' ), array( 'status' => 400 ) );
+			return new WP_Error( 'invalid_pattern_id', __( 'Pattern ID out of valid range.', 'synced-pattern-popups' ), array( 'status' => 400 ) );
 		}
 
 		// Clear cache for single pattern
@@ -407,19 +407,19 @@ class SPPopups_Abilities {
 		wp_register_ability(
 			'sppopups/scan-triggers',
 			array(
-				'label'       => __( 'Scan for Popup Triggers', 'sppopups' ),
-				'description' => __( 'Scans HTML content or a post/page for popup trigger links and classes.', 'sppopups' ),
+				'label'       => __( 'Scan for Popup Triggers', 'synced-pattern-popups' ),
+				'description' => __( 'Scans HTML content or a post/page for popup trigger links and classes.', 'synced-pattern-popups' ),
 				'category'    => 'sppopups',
 				'input_schema' => array(
 					'type'       => 'object',
 					'properties' => array(
 						'post_id' => array(
 							'type'        => 'integer',
-							'description' => __( 'Post ID to scan. Mutually exclusive with html parameter.', 'sppopups' ),
+							'description' => __( 'Post ID to scan. Mutually exclusive with html parameter.', 'synced-pattern-popups' ),
 						),
 						'html'    => array(
 							'type'        => 'string',
-							'description' => __( 'Raw HTML content to scan. Mutually exclusive with post_id parameter.', 'sppopups' ),
+							'description' => __( 'Raw HTML content to scan. Mutually exclusive with post_id parameter.', 'synced-pattern-popups' ),
 						),
 					),
 				),
@@ -428,19 +428,19 @@ class SPPopups_Abilities {
 					'properties' => array(
 						'triggers' => array(
 							'type'        => 'array',
-							'description' => __( 'Array of discovered trigger objects.', 'sppopups' ),
+							'description' => __( 'Array of discovered trigger objects.', 'synced-pattern-popups' ),
 							'items'       => array(
 								'type'       => 'object',
 								'properties' => array(
 									'type'      => array(
 										'type'        => 'string',
-										'description' => __( 'Trigger type: "class" or "href".', 'sppopups' ),
+										'description' => __( 'Trigger type: "class" or "href".', 'synced-pattern-popups' ),
 										'enum'        => array( 'class', 'href' ),
 									),
 									'id'        => array( 'type' => 'integer' ),
 									'max_width' => array(
 										'type'        => 'integer',
-										'description' => __( 'Optional max-width in pixels.', 'sppopups' ),
+										'description' => __( 'Optional max-width in pixels.', 'synced-pattern-popups' ),
 									),
 								),
 							),
@@ -473,13 +473,13 @@ class SPPopups_Abilities {
 			$post_id = (int) $params['post_id'];
 			$post = get_post( $post_id );
 			if ( ! $post ) {
-				return new WP_Error( 'post_not_found', __( 'Post not found.', 'sppopups' ), array( 'status' => 404 ) );
+				return new WP_Error( 'post_not_found', __( 'Post not found.', 'synced-pattern-popups' ), array( 'status' => 404 ) );
 			}
 			$html = $post->post_content;
 		} elseif ( isset( $params['html'] ) && is_string( $params['html'] ) ) {
 			$html = $params['html'];
 		} else {
-			return new WP_Error( 'missing_parameter', __( 'Either post_id or html parameter is required.', 'sppopups' ), array( 'status' => 400 ) );
+			return new WP_Error( 'missing_parameter', __( 'Either post_id or html parameter is required.', 'synced-pattern-popups' ), array( 'status' => 400 ) );
 		}
 
 		if ( empty( $html ) ) {

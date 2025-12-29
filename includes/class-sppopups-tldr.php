@@ -40,12 +40,12 @@ class SPPopups_TLDR {
 		// Validate post ID
 		$post_id = (int) $post_id;
 		if ( $post_id <= 0 ) {
-			return new WP_Error( 'invalid_post_id', __( 'Invalid post ID.', 'sppopups' ) );
+			return new WP_Error( 'invalid_post_id', __( 'Invalid post ID.', 'synced-pattern-popups' ) );
 		}
 
 		// Check if TLDR is enabled
 		if ( ! SPPopups_Settings::is_tldr_enabled() ) {
-			return new WP_Error( 'tldr_disabled', __( 'TLDR feature is disabled.', 'sppopups' ) );
+			return new WP_Error( 'tldr_disabled', __( 'TLDR feature is disabled.', 'synced-pattern-popups' ) );
 		}
 
 		// Check cache first
@@ -57,7 +57,7 @@ class SPPopups_TLDR {
 
 		// Check if AI is available
 		if ( ! $this->is_ai_available() ) {
-			return new WP_Error( 'ai_unavailable', __( 'AI service is not available. Please check AI Experiments plugin configuration.', 'sppopups' ) );
+			return new WP_Error( 'ai_unavailable', __( 'AI service is not available. Please check AI Experiments plugin configuration.', 'synced-pattern-popups' ) );
 		}
 
 		// Extract content
@@ -67,7 +67,7 @@ class SPPopups_TLDR {
 		}
 
 		if ( empty( $content ) ) {
-			return new WP_Error( 'no_content', __( 'No content found to generate TLDR.', 'sppopups' ) );
+			return new WP_Error( 'no_content', __( 'No content found to generate TLDR.', 'synced-pattern-popups' ) );
 		}
 
 		// Generate TLDR
@@ -91,12 +91,12 @@ class SPPopups_TLDR {
 	public function extract_primary_content( $post_id ) {
 		$post = get_post( $post_id );
 		if ( ! $post ) {
-			return new WP_Error( 'post_not_found', __( 'Post not found.', 'sppopups' ) );
+			return new WP_Error( 'post_not_found', __( 'Post not found.', 'synced-pattern-popups' ) );
 		}
 
 		// Check if post is published
 		if ( 'publish' !== $post->post_status ) {
-			return new WP_Error( 'post_not_published', __( 'Post is not published.', 'sppopups' ) );
+			return new WP_Error( 'post_not_published', __( 'Post is not published.', 'synced-pattern-popups' ) );
 		}
 
 		$content = '';
@@ -146,7 +146,7 @@ class SPPopups_TLDR {
 	 */
 	public function generate_tldr( $content ) {
 		if ( ! class_exists( 'WordPress\AI_Client\AI_Client' ) ) {
-			return new WP_Error( 'ai_client_unavailable', __( 'AI Client is not available.', 'sppopups' ) );
+			return new WP_Error( 'ai_client_unavailable', __( 'AI Client is not available.', 'synced-pattern-popups' ) );
 		}
 
 		// Get prompt template
@@ -174,9 +174,9 @@ class SPPopups_TLDR {
 				return $html;
 			}
 
-			return new WP_Error( 'invalid_response', __( 'Invalid response from AI service.', 'sppopups' ) );
+			return new WP_Error( 'invalid_response', __( 'Invalid response from AI service.', 'synced-pattern-popups' ) );
 		} catch ( Exception $e ) {
-			return new WP_Error( 'ai_generation_failed', __( 'Failed to generate TLDR: ', 'sppopups' ) . $e->getMessage() );
+			return new WP_Error( 'ai_generation_failed', __( 'Failed to generate TLDR: ', 'synced-pattern-popups' ) . $e->getMessage() );
 		}
 	}
 

@@ -7,7 +7,7 @@
  * Author URI: https://www.mattcromwell.com
  * License: GPL v2 or later
  * License URI: https://www.gnu.org/licenses/gpl-2.0.html
- * Text Domain: sppopups
+ * Text Domain: synced-pattern-popups
  * Requires at least: 5.8
  * Requires PHP: 7.4
  */

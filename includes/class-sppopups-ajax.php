@@ -176,14 +176,14 @@ class SPPopups_Ajax {
 			);
 			file_put_contents( rtrim( ABSPATH, '/\\' ) . '/.cursor/debug.log', wp_json_encode( $log_data ) . "\n", FILE_APPEND );
 			// #endregion
-			wp_send_json_error( array( 'message' => __( 'Too many requests. Please try again later.', 'sppopups' ) ) );
+			wp_send_json_error( array( 'message' => __( 'Too many requests. Please try again later.', 'synced-pattern-popups' ) ) );
 			return;
 		}
 
 		// Verify nonce
 		$nonce = isset( $_POST['nonce'] ) ? sanitize_text_field( wp_unslash( $_POST['nonce'] ) ) : '';
 		if ( ! wp_verify_nonce( $nonce, 'sppopups_ajax' ) ) {
-			wp_send_json_error( array( 'message' => __( 'Invalid security token. Please refresh the page and try again.', 'sppopups' ) ) );
+			wp_send_json_error( array( 'message' => __( 'Invalid security token. Please refresh the page and try again.', 'synced-pattern-popups' ) ) );
 			return;
 		}
 
@@ -191,13 +191,13 @@ class SPPopups_Ajax {
 		$pattern_id = isset( $_POST['block_id'] ) ? sanitize_text_field( wp_unslash( $_POST['block_id'] ) ) : '';
 
 		if ( empty( $pattern_id ) ) {
-			wp_send_json_error( array( 'message' => __( 'Invalid request.', 'sppopups' ) ) );
+			wp_send_json_error( array( 'message' => __( 'Invalid request.', 'synced-pattern-popups' ) ) );
 			return;
 		}
 
 		// Validate numeric ID only
 		if ( ! is_numeric( $pattern_id ) || $pattern_id <= 0 ) {
-			wp_send_json_error( array( 'message' => __( 'Invalid request.', 'sppopups' ) ) );
+			wp_send_json_error( array( 'message' => __( 'Invalid request.', 'synced-pattern-popups' ) ) );
 			return;
 		}
 
@@ -207,20 +207,20 @@ class SPPopups_Ajax {
 		// WordPress post IDs are typically well below this, but set a reasonable upper bound
 		$max_pattern_id = apply_filters( 'sppopups_max_pattern_id', 2147483647 ); // Max 32-bit integer
 		if ( $pattern_id > $max_pattern_id ) {
-			wp_send_json_error( array( 'message' => __( 'Invalid request.', 'sppopups' ) ) );
+			wp_send_json_error( array( 'message' => __( 'Invalid request.', 'synced-pattern-popups' ) ) );
 			return;
 		}
 
 		// Verify pattern is synced
 		if ( ! $this->pattern_service->is_synced_pattern( $pattern_id ) ) {
-			wp_send_json_error( array( 'message' => __( 'Invalid request.', 'sppopups' ) ) );
+			wp_send_json_error( array( 'message' => __( 'Invalid request.', 'synced-pattern-popups' ) ) );
 			return;
 		}
 
 		// Get pattern title for accessibility
 		$pattern_title = get_the_title( $pattern_id );
 		if ( empty( $pattern_title ) ) {
-			$pattern_title = __( 'Popup', 'sppopups' );
+			$pattern_title = __( 'Popup', 'synced-pattern-popups' );
 		}
 
 		// Check cache first
@@ -254,7 +254,7 @@ class SPPopups_Ajax {
 		$rendered_data = $this->pattern_service->get_rendered_content( $pattern_id, $style_collector );
 
 		if ( $rendered_data === false ) {
-			wp_send_json_error( array( 'message' => __( 'Content not available.', 'sppopups' ) ) );
+			wp_send_json_error( array( 'message' => __( 'Content not available.', 'synced-pattern-popups' ) ) );
 			return;
 		}
 
@@ -262,7 +262,7 @@ class SPPopups_Ajax {
 		$extracted = $this->extract_rendered_data( $rendered_data );
 
 		if ( empty( $extracted['html'] ) ) {
-			wp_send_json_error( array( 'message' => __( 'Content not available.', 'sppopups' ) ) );
+			wp_send_json_error( array( 'message' => __( 'Content not available.', 'synced-pattern-popups' ) ) );
 			return;
 		}
 
@@ -295,14 +295,14 @@ class SPPopups_Ajax {
 	public function handle_tldr_request() {
 		// Check rate limit first
 		if ( ! $this->check_rate_limit() ) {
-			wp_send_json_error( array( 'message' => __( 'Too many requests. Please try again later.', 'sppopups' ) ) );
+			wp_send_json_error( array( 'message' => __( 'Too many requests. Please try again later.', 'synced-pattern-popups' ) ) );
 			return;
 		}
 
 		// Verify nonce
 		$nonce = isset( $_POST['nonce'] ) ? sanitize_text_field( wp_unslash( $_POST['nonce'] ) ) : '';
 		if ( ! wp_verify_nonce( $nonce, 'sppopups_ajax' ) ) {
-			wp_send_json_error( array( 'message' => __( 'Invalid security token. Please refresh the page and try again.', 'sppopups' ) ) );
+			wp_send_json_error( array( 'message' => __( 'Invalid security token. Please refresh the page and try again.', 'synced-pattern-popups' ) ) );
 			return;
 		}
 
@@ -319,7 +319,7 @@ class SPPopups_Ajax {
 
 		// Validate post_id
 		if ( empty( $post_id ) || ! is_numeric( $post_id ) ) {
-			wp_send_json_error( array( 'message' => __( 'Invalid request. Post ID required.', 'sppopups' ) ) );
+			wp_send_json_error( array( 'message' => __( 'Invalid request. Post ID required.', 'synced-pattern-popups' ) ) );
 			return;
 		}
 
@@ -328,12 +328,12 @@ class SPPopups_Ajax {
 		// Validate post exists and is published
 		$post = get_post( $post_id );
 		if ( ! $post ) {
-			wp_send_json_error( array( 'message' => __( 'Post not found.', 'sppopups' ) ) );
+			wp_send_json_error( array( 'message' => __( 'Post not found.', 'synced-pattern-popups' ) ) );
 			return;
 		}
 
 		if ( 'publish' !== $post->post_status ) {
-			wp_send_json_error( array( 'message' => __( 'Post is not published.', 'sppopups' ) ) );
+			wp_send_json_error( array( 'message' => __( 'Post is not published.', 'synced-pattern-popups' ) ) );
 			return;
 		}
 
@@ -342,13 +342,13 @@ class SPPopups_Ajax {
 			// Check if post is publicly viewable (WordPress 5.7+)
 			if ( function_exists( 'is_post_publicly_viewable' ) ) {
 				if ( ! is_post_publicly_viewable( $post_id ) ) {
-					wp_send_json_error( array( 'message' => __( 'You do not have permission to view this content.', 'sppopups' ) ) );
+					wp_send_json_error( array( 'message' => __( 'You do not have permission to view this content.', 'synced-pattern-popups' ) ) );
 					return;
 				}
 			} else {
 				// Fallback for older WordPress versions: check if post is published
 				if ( 'publish' !== $post->post_status ) {
-					wp_send_json_error( array( 'message' => __( 'You do not have permission to view this content.', 'sppopups' ) ) );
+					wp_send_json_error( array( 'message' => __( 'You do not have permission to view this content.', 'synced-pattern-popups' ) ) );
 					return;
 				}
 			}
@@ -371,7 +371,7 @@ class SPPopups_Ajax {
 		// Return success
 		wp_send_json_success( array(
 			'html'   => '<div class="sppopups-tldr-content">' . wp_kses_post( $tldr ) . '</div>',
-			'title'  => __( 'TLDR', 'sppopups' ),
+			'title'  => __( 'TLDR', 'synced-pattern-popups' ),
 			'cached' => $was_cached,
 		) );
 	}

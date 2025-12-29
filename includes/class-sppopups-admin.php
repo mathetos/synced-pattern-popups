@@ -57,8 +57,8 @@ class SPPopups_Admin {
 	 */
 	public function add_admin_menu() {
 		add_theme_page(
-			__( 'Synced Patterns', 'sppopups' ),
-			__( 'Synced Patterns', 'sppopups' ),
+			__( 'Synced Patterns', 'synced-pattern-popups' ),
+			__( 'Synced Patterns', 'synced-pattern-popups' ),
 			'edit_posts',
 			'simplest-popup-patterns',
 			array( $this, 'render_admin_page' )
@@ -95,8 +95,8 @@ class SPPopups_Admin {
 			'sppopupsAdmin',
 			array(
 				'strings' => array(
-					'copied' => __( 'Copied!', 'sppopups' ),
-					'copyFailed' => __( 'Failed to copy', 'sppopups' ),
+					'copied' => __( 'Copied!', 'synced-pattern-popups' ),
+					'copyFailed' => __( 'Failed to copy', 'synced-pattern-popups' ),
 				),
 			)
 		);
@@ -136,7 +136,7 @@ class SPPopups_Admin {
 		// Handle TLDR settings save
 		if ( isset( $_POST['save_tldr_settings'] ) && isset( $_POST['sppopups_tldr_settings_nonce'] ) ) {
 			if ( ! wp_verify_nonce( sanitize_text_field( wp_unslash( $_POST['sppopups_tldr_settings_nonce'] ) ), 'sppopups_save_tldr_settings' ) ) {
-				wp_die( esc_html__( 'Security check failed.', 'sppopups' ) );
+				wp_die( esc_html__( 'Security check failed.', 'synced-pattern-popups' ) );
 			}
 
 			if ( current_user_can( 'manage_options' ) ) {
@@ -192,7 +192,7 @@ class SPPopups_Admin {
 		// phpcs:enable WordPress.Security.NonceVerification.Recommended
 		
 		if ( '1' === $deleted ) {
-			echo '<div class="notice notice-success is-dismissible"><p>' . esc_html__( 'Pattern deleted successfully.', 'sppopups' ) . '</p></div>';
+			echo '<div class="notice notice-success is-dismissible"><p>' . esc_html__( 'Pattern deleted successfully.', 'synced-pattern-popups' ) . '</p></div>';
 		}
 
 		if ( '1' === $cache_cleared ) {
@@ -202,7 +202,7 @@ class SPPopups_Admin {
 					'Cache cleared successfully. %d entry deleted.',
 					'Cache cleared successfully. %d entries deleted.',
 					$deleted_count,
-					'sppopups'
+					'synced-pattern-popups'
 				),
 				$deleted_count
 			);
@@ -210,16 +210,16 @@ class SPPopups_Admin {
 		}
 
 		if ( '1' === $tldr_settings_saved ) {
-			echo '<div class="notice notice-success is-dismissible"><p>' . esc_html__( 'TLDR settings saved successfully.', 'sppopups' ) . '</p></div>';
+			echo '<div class="notice notice-success is-dismissible"><p>' . esc_html__( 'TLDR settings saved successfully.', 'synced-pattern-popups' ) . '</p></div>';
 		}
 
 		?>
 		<div class="wrap">
 			<h1 class="wp-heading-inline">
-				<?php esc_html_e( 'Synced Patterns', 'sppopups' ); ?>
+				<?php esc_html_e( 'Synced Patterns', 'synced-pattern-popups' ); ?>
 			</h1>
 			<a href="<?php echo esc_url( admin_url( 'post-new.php?post_type=wp_block' ) ); ?>" class="page-title-action">
-				<?php esc_html_e( 'Add New', 'sppopups' ); ?>
+				<?php esc_html_e( 'Add New', 'synced-pattern-popups' ); ?>
 			</a>
 			<?php
 			$clear_cache_url = wp_nonce_url(
@@ -228,20 +228,20 @@ class SPPopups_Admin {
 			);
 			?>
 			<a href="<?php echo esc_url( $clear_cache_url ); ?>" class="page-title-action" style="margin-left: 8px;">
-				<?php esc_html_e( 'Clear Transient Cache', 'sppopups' ); ?>
+				<?php esc_html_e( 'Clear Transient Cache', 'synced-pattern-popups' ); ?>
 			</a>
 			<hr class="wp-header-end">
 
 			<p class="description">
-				<?php esc_html_e( 'Manage synced patterns that can be used as popups. Only synced patterns are available for popup triggers.', 'sppopups' ); ?>
+				<?php esc_html_e( 'Manage synced patterns that can be used as popups. Only synced patterns are available for popup triggers.', 'synced-pattern-popups' ); ?>
 			</p>
 
 			<?php if ( empty( $patterns ) ) : ?>
 				<div class="notice notice-info">
 					<p>
-						<?php esc_html_e( 'No synced patterns found.', 'sppopups' ); ?>
+						<?php esc_html_e( 'No synced patterns found.', 'synced-pattern-popups' ); ?>
 						<a href="<?php echo esc_url( admin_url( 'post-new.php?post_type=wp_block' ) ); ?>">
-							<?php esc_html_e( 'Create your first synced pattern', 'sppopups' ); ?>
+							<?php esc_html_e( 'Create your first synced pattern', 'synced-pattern-popups' ); ?>
 						</a>
 					</p>
 				</div>
@@ -250,12 +250,12 @@ class SPPopups_Admin {
 					<table class="wp-list-table widefat fixed striped sppopups-patterns-table">
 					<thead>
 						<tr>
-							<th class="column-id"><?php esc_html_e( 'ID', 'sppopups' ); ?></th>
-							<th class="column-title"><?php esc_html_e( 'Title', 'sppopups' ); ?></th>
-							<th class="column-status"><?php esc_html_e( 'Status', 'sppopups' ); ?></th>
-							<th class="column-sync-status"><?php esc_html_e( 'Sync Status', 'sppopups' ); ?></th>
-							<th class="column-trigger"><?php esc_html_e( 'Trigger Code', 'sppopups' ); ?></th>
-							<th class="column-actions"><?php esc_html_e( 'Actions', 'sppopups' ); ?></th>
+							<th class="column-id"><?php esc_html_e( 'ID', 'synced-pattern-popups' ); ?></th>
+							<th class="column-title"><?php esc_html_e( 'Title', 'synced-pattern-popups' ); ?></th>
+							<th class="column-status"><?php esc_html_e( 'Status', 'synced-pattern-popups' ); ?></th>
+							<th class="column-sync-status"><?php esc_html_e( 'Sync Status', 'synced-pattern-popups' ); ?></th>
+							<th class="column-trigger"><?php esc_html_e( 'Trigger Code', 'synced-pattern-popups' ); ?></th>
+							<th class="column-actions"><?php esc_html_e( 'Actions', 'synced-pattern-popups' ); ?></th>
 						</tr>
 					</thead>
 					<tbody>
@@ -295,7 +295,7 @@ class SPPopups_Admin {
 								<td class="column-title">
 									<strong>
 										<?php
-										$pattern_title = isset( $pattern->post_title ) && ! empty( $pattern->post_title ) ? $pattern->post_title : __( '(no title)', 'sppopups' );
+										$pattern_title = isset( $pattern->post_title ) && ! empty( $pattern->post_title ) ? $pattern->post_title : __( '(no title)', 'synced-pattern-popups' );
 										if ( $edit_url ) :
 											?>
 											<a href="<?php echo esc_url( $edit_url ); ?>">
@@ -320,9 +320,9 @@ class SPPopups_Admin {
 								</td>
 								<td class="column-sync-status">
 									<?php if ( $is_synced ) : ?>
-										<span class="status-badge status-synced"><?php esc_html_e( 'Synced', 'sppopups' ); ?></span>
+										<span class="status-badge status-synced"><?php esc_html_e( 'Synced', 'synced-pattern-popups' ); ?></span>
 										<?php else : ?>
-										<span class="status-badge status-unsynced"><?php esc_html_e( 'Unsynced', 'sppopups' ); ?></span>
+										<span class="status-badge status-unsynced"><?php esc_html_e( 'Unsynced', 'synced-pattern-popups' ); ?></span>
 									<?php endif; ?>
 								</td>
 								<td class="column-trigger">
@@ -331,16 +331,16 @@ class SPPopups_Admin {
 								<td class="column-actions">
 									<?php if ( $edit_url ) : ?>
 										<a href="<?php echo esc_url( $edit_url ); ?>" class="button button-small">
-											<?php esc_html_e( 'Edit', 'sppopups' ); ?>
+											<?php esc_html_e( 'Edit', 'synced-pattern-popups' ); ?>
 										</a>
 									<?php endif; ?>
 									<?php if ( current_user_can( 'delete_post', $pattern_id ) ) : ?>
 										<a 
 											href="<?php echo esc_url( $delete_url ); ?>" 
 											class="button button-small delete-pattern"
-											onclick="return confirm('<?php echo esc_js( __( 'Are you sure you want to delete this pattern?', 'sppopups' ) ); ?>');"
+											onclick="return confirm('<?php echo esc_js( __( 'Are you sure you want to delete this pattern?', 'synced-pattern-popups' ) ); ?>');"
 										>
-											<?php esc_html_e( 'Delete', 'sppopups' ); ?>
+											<?php esc_html_e( 'Delete', 'synced-pattern-popups' ); ?>
 										</a>
 									<?php endif; ?>
 									<button 
@@ -348,7 +348,7 @@ class SPPopups_Admin {
 										class="button button-small copy-trigger" 
 										data-copy="<?php echo esc_attr( $trigger_code ); ?>"
 									>
-										<?php esc_html_e( 'Copy Trigger', 'sppopups' ); ?>
+										<?php esc_html_e( 'Copy Trigger', 'synced-pattern-popups' ); ?>
 									</button>
 								</td>
 							</tr>
@@ -358,13 +358,13 @@ class SPPopups_Admin {
 				</div>
 
 				<div class="sppopups-usage-instructions">
-					<strong><?php esc_html_e( 'How to use:', 'sppopups' ); ?></strong>
+					<strong><?php esc_html_e( 'How to use:', 'synced-pattern-popups' ); ?></strong>
 					<div>
-						<?php esc_html_e( 'Method 1 - Class name:', 'sppopups' ); ?>
+						<?php esc_html_e( 'Method 1 - Class name:', 'synced-pattern-popups' ); ?>
 						<code>&lt;a href="#" class="spp-trigger-123"&gt;Open Popup&lt;/a&gt;</code>
 					</div>
 					<div>
-						<?php esc_html_e( 'Method 2 - Href attribute (for Block Editor):', 'sppopups' ); ?>
+						<?php esc_html_e( 'Method 2 - Href attribute (for Block Editor):', 'synced-pattern-popups' ); ?>
 						<code>&lt;a href="#spp-trigger-123"&gt;Open Popup&lt;/a&gt;</code>
 					</div>
 				</div>
@@ -393,7 +393,7 @@ class SPPopups_Admin {
 
 			add_meta_box(
 				'simplest-popup-support',
-				__( 'Synced Pattern Popup Support', 'sppopups' ),
+				__( 'Synced Pattern Popup Support', 'synced-pattern-popups' ),
 				array( $this, 'render_popup_support_metabox' ),
 				$post_type,
 				'side',
@@ -421,16 +421,16 @@ class SPPopups_Admin {
 			<fieldset>
 				<label>
 					<input type="radio" name="sppopups_support" value="default" <?php checked( $current_value, 'default' ); ?> />
-					<strong><?php esc_html_e( 'Default', 'sppopups' ); ?></strong>
+					<strong><?php esc_html_e( 'Default', 'synced-pattern-popups' ); ?></strong>
 				</label>
 				<br>
 				<label>
 					<input type="radio" name="sppopups_support" value="forced" <?php checked( $current_value, 'forced' ); ?> />
-					<strong><?php esc_html_e( 'Forced On', 'sppopups' ); ?></strong>
+					<strong><?php esc_html_e( 'Forced On', 'synced-pattern-popups' ); ?></strong>
 				</label>
 			</fieldset>
 			<p class="description" style="margin-top: 12px; margin-bottom: 0;">
-				<?php esc_html_e( 'In most cases you can leave this on Default. Use Forced On if your trigger link/class is injected dynamically (e.g., forms, AJAX, page builders) and the popup assets aren\'t loading.', 'sppopups' ); ?>
+				<?php esc_html_e( 'In most cases you can leave this on Default. Use Forced On if your trigger link/class is injected dynamically (e.g., forms, AJAX, page builders) and the popup assets aren\'t loading.', 'synced-pattern-popups' ); ?>
 			</p>
 		</div>
 		<?php
