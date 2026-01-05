@@ -254,13 +254,13 @@
 			// WordPress core styles: wp-block-{name} -> /wp-includes/css/dist/block-library/{name}.css
 			// Plugin styles: plugin-{name} -> /wp-content/plugins/{plugin}/assets/{name}.css
 			// This won't work for all cases, but it's a fallback
-			console.warn('Simplest Popup: Style URL not found for handle "' + handle + '". Style may not load correctly.');
+			console.warn('Synced Pattern Popups: Style URL not found for handle "' + handle + '". Style may not load correctly.');
 			return Promise.resolve(); // Don't break modal if style URL is unknown
 		}
 
 		// Validate URL before injection (security check)
 		if (!isValidUrl(styleUrl)) {
-			console.warn('Simplest Popup: Invalid or unsafe style URL for handle "' + handle + '". Style will not be loaded.');
+			console.warn('Synced Pattern Popups: Invalid or unsafe style URL for handle "' + handle + '". Style will not be loaded.');
 			return Promise.resolve(); // Don't break modal, just skip unsafe style
 		}
 		
@@ -279,7 +279,7 @@
 			};
 			
 			link.onerror = function() {
-				console.warn('Simplest Popup: Failed to load style "' + handle + '" from ' + styleUrl);
+				console.warn('Synced Pattern Popups: Failed to load style "' + handle + '" from ' + styleUrl);
 				// Don't reject - modal should still work
 				resolve();
 			};
@@ -350,13 +350,13 @@
 		} else {
 			// Fallback: try to construct URL from handle
 			// This is a best-effort approach
-			console.warn('Simplest Popup: Script URL not found for handle "' + handle + '". Script may not load correctly.');
+			console.warn('Synced Pattern Popups: Script URL not found for handle "' + handle + '". Script may not load correctly.');
 			return Promise.resolve(); // Don't break modal if script URL is unknown
 		}
 
 		// Validate URL before injection (security check)
 		if (scriptUrl && !isValidUrl(scriptUrl)) {
-			console.warn('Simplest Popup: Invalid or unsafe script URL for handle "' + handle + '". Script will not be loaded.');
+			console.warn('Synced Pattern Popups: Invalid or unsafe script URL for handle "' + handle + '". Script will not be loaded.');
 			return Promise.resolve(); // Don't break modal, just skip unsafe script
 		}
 
@@ -389,7 +389,7 @@
 				};
 				
 				script.onerror = function() {
-					console.warn('Simplest Popup: Failed to load script "' + handle + '" from ' + scriptUrl);
+					console.warn('Synced Pattern Popups: Failed to load script "' + handle + '" from ' + scriptUrl);
 					// Don't reject - modal should still work
 					resolve();
 				};
@@ -534,7 +534,7 @@
 	 */
 	function openModal(patternId, maxWidth) {
 		if (!patternId || !Number.isInteger(Number(patternId)) || patternId <= 0) {
-			console.error('Simplest Popup: Invalid pattern ID');
+			console.error('Synced Pattern Popups: Invalid pattern ID');
 			return;
 		}
 
@@ -645,7 +645,7 @@
 						if (styleAsset.src && typeof styleAsset.src === 'string' && styleAsset.src.trim().length > 0) {
 							// Validate URL before injection (security check)
 							if (!isValidUrl(styleAsset.src)) {
-								console.warn('Simplest Popup: Invalid or unsafe style URL for handle "' + styleAsset.handle + '". Style will not be loaded.');
+								console.warn('Synced Pattern Popups: Invalid or unsafe style URL for handle "' + styleAsset.handle + '". Style will not be loaded.');
 								return; // Skip unsafe style
 							}
 
@@ -663,7 +663,7 @@
 										resolve();
 									};
 									link.onerror = function() {
-										console.warn('Simplest Popup: Failed to load style "' + styleAsset.handle + '" from ' + styleAsset.src);
+										console.warn('Synced Pattern Popups: Failed to load style "' + styleAsset.handle + '" from ' + styleAsset.src);
 										resolve(); // Don't break modal
 									};
 								});

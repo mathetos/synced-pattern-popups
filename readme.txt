@@ -3,7 +3,7 @@ Contributors: webdevmattcrom
 Tags: popup, modal, synced-patterns, ai, tldr
 Requires at least: 5.8
 Tested up to: 6.9
-Stable tag: 1.0.0
+Stable tag: 1.0.1
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -162,6 +162,12 @@ PHP 7.4 or higher.
 
 == Changelog ==
 
+= 1.0.1 =
+* Hotfix: Updated text domain to match plugin slug (synced-pattern-popups) for WordPress.org compliance
+* Fixed: Removed debug logging code that used ABSPATH directly
+* Fixed: Updated all file path references to use WordPress standard functions
+* Updated: Console messages now use consistent "Synced Pattern Popups" branding
+
 = 1.0.0 =
 * Initial release
 * Synced Pattern popup system with class and href triggers
@@ -177,6 +183,9 @@ PHP 7.4 or higher.
 * Full translation support
 
 == Upgrade Notice ==
+
+= 1.0.1 =
+Hotfix release addressing WordPress.org Plugin Directory submission requirements. No user-facing changes.
 
 = 1.0.0 =
 Initial release of Synced Pattern Popups. Activate and start creating popups immediately - no configuration required.

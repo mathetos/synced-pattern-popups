@@ -1,5 +1,5 @@
 /**
- * Simplest Popup Admin JavaScript
+ * Synced Pattern Popups Admin JavaScript
  * Handles copy-to-clipboard functionality
  */
 (function() {
