@@ -164,18 +164,6 @@ class SPPopups_Ajax {
 	public function handle_request() {
 		// Check rate limit first (before any processing)
 		if ( ! $this->check_rate_limit() ) {
-			// #region agent log
-			$log_data = array(
-				'sessionId' => 'debug-session',
-				'runId' => 'run1',
-				'hypothesisId' => 'B',
-				'location' => 'class-simplest-popup-ajax.php:175',
-				'message' => 'Rate limit exceeded',
-				'data' => array(),
-				'timestamp' => time() * 1000,
-			);
-			file_put_contents( rtrim( ABSPATH, '/\\' ) . '/.cursor/debug.log', wp_json_encode( $log_data ) . "\n", FILE_APPEND );
-			// #endregion
 			wp_send_json_error( array( 'message' => __( 'Too many requests. Please try again later.', 'synced-pattern-popups' ) ) );
 			return;
 		}
