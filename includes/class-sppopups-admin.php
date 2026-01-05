@@ -133,6 +133,23 @@ class SPPopups_Admin {
 			}
 		}
 
+		// Handle delete transient for single pattern
+		if ( isset( $_GET['action'] ) && 'delete_transient' === $_GET['action'] && isset( $_GET['pattern_id'] ) ) {
+			check_admin_referer( 'delete_transient_' . absint( $_GET['pattern_id'] ) );
+
+			if ( current_user_can( 'manage_options' ) ) {
+				$pattern_id = absint( $_GET['pattern_id'] );
+				$deleted = $this->cache_service->delete( $pattern_id );
+				
+				// Also clear pattern object cache
+				$pattern_cache_key = 'sppopups_pattern_' . $pattern_id;
+				wp_cache_delete( $pattern_cache_key, 'sppopups_patterns' );
+				
+				wp_safe_redirect( admin_url( 'themes.php?page=simplest-popup-patterns&transient_deleted=1&pattern_id=' . $pattern_id ) );
+				exit;
+			}
+		}
+
 		// Handle TLDR settings save
 		if ( isset( $_POST['save_tldr_settings'] ) && isset( $_POST['sppopups_tldr_settings_nonce'] ) ) {
 			if ( ! wp_verify_nonce( sanitize_text_field( wp_unslash( $_POST['sppopups_tldr_settings_nonce'] ) ), 'sppopups_save_tldr_settings' ) ) {
@@ -189,6 +206,8 @@ class SPPopups_Admin {
 		$cache_cleared = isset( $_GET['cache_cleared'] ) ? sanitize_text_field( wp_unslash( $_GET['cache_cleared'] ) ) : '';
 		$deleted_count = isset( $_GET['deleted'] ) ? absint( $_GET['deleted'] ) : 0;
 		$tldr_settings_saved = isset( $_GET['tldr_settings_saved'] ) ? sanitize_text_field( wp_unslash( $_GET['tldr_settings_saved'] ) ) : '';
+		$transient_deleted = isset( $_GET['transient_deleted'] ) ? sanitize_text_field( wp_unslash( $_GET['transient_deleted'] ) ) : '';
+		$transient_pattern_id = isset( $_GET['pattern_id'] ) ? absint( $_GET['pattern_id'] ) : 0;
 		// phpcs:enable WordPress.Security.NonceVerification.Recommended
 		
 		if ( '1' === $deleted ) {
@@ -209,172 +228,258 @@ class SPPopups_Admin {
 			echo '<div class="notice notice-success is-dismissible"><p>' . esc_html( $message ) . '</p></div>';
 		}
 
+		if ( '1' === $transient_deleted && $transient_pattern_id > 0 ) {
+			$message = sprintf(
+				/* translators: %d: Pattern ID */
+				__( 'Transient cache deleted successfully for pattern #%d.', 'synced-pattern-popups' ),
+				$transient_pattern_id
+			);
+			echo '<div class="notice notice-success is-dismissible"><p>' . esc_html( $message ) . '</p></div>';
+		}
+
 		if ( '1' === $tldr_settings_saved ) {
 			echo '<div class="notice notice-success is-dismissible"><p>' . esc_html__( 'TLDR settings saved successfully.', 'synced-pattern-popups' ) . '</p></div>';
 		}
 
 		?>
 		<div class="wrap">
-			<h1 class="wp-heading-inline">
-				<?php esc_html_e( 'Synced Patterns', 'synced-pattern-popups' ); ?>
-			</h1>
-			<a href="<?php echo esc_url( admin_url( 'post-new.php?post_type=wp_block' ) ); ?>" class="page-title-action">
-				<?php esc_html_e( 'Add New', 'synced-pattern-popups' ); ?>
-			</a>
-			<?php
-			$clear_cache_url = wp_nonce_url(
-				admin_url( 'themes.php?page=simplest-popup-patterns&action=clear_cache' ),
-				'clear_popup_cache'
-			);
-			?>
-			<a href="<?php echo esc_url( $clear_cache_url ); ?>" class="page-title-action" style="margin-left: 8px;">
-				<?php esc_html_e( 'Clear Transient Cache', 'synced-pattern-popups' ); ?>
-			</a>
+			<div class="sppopups-admin-header">
+				<h1 class="wp-heading-inline">
+					<?php esc_html_e( 'Synced Patterns', 'synced-pattern-popups' ); ?>
+				</h1>
+				<div class="sppopups-header-actions">
+					<a href="#how-to-use" class="sppopups-learn-more-link">
+						<span class="dashicons dashicons-editor-help"></span>
+						<?php esc_html_e( 'Learn more about Synced Pattern Popups', 'synced-pattern-popups' ); ?>
+					</a>
+				</div>
+			</div>
 			<hr class="wp-header-end">
 
-			<p class="description">
-				<?php esc_html_e( 'Manage synced patterns that can be used as popups. Only synced patterns are available for popup triggers.', 'synced-pattern-popups' ); ?>
-			</p>
+			<nav class="sppopups-tab-nav" role="tablist">
+				<a href="#patterns" class="sppopups-tab-nav-link active" role="tab" aria-selected="true" aria-controls="sppopups-tab-patterns">
+					<?php esc_html_e( 'Patterns', 'synced-pattern-popups' ); ?>
+				</a>
+				<a href="#tldr" class="sppopups-tab-nav-link" role="tab" aria-selected="false" aria-controls="sppopups-tab-tldr">
+					<?php esc_html_e( 'TLDR', 'synced-pattern-popups' ); ?>
+				</a>
+				<a href="#how-to-use" class="sppopups-tab-nav-link" role="tab" aria-selected="false" aria-controls="sppopups-tab-how-to-use">
+					<?php esc_html_e( 'How to Use', 'synced-pattern-popups' ); ?>
+				</a>
+			</nav>
 
-			<?php if ( empty( $patterns ) ) : ?>
-				<div class="notice notice-info">
-					<p>
-						<?php esc_html_e( 'No synced patterns found.', 'synced-pattern-popups' ); ?>
-						<a href="<?php echo esc_url( admin_url( 'post-new.php?post_type=wp_block' ) ); ?>">
-							<?php esc_html_e( 'Create your first synced pattern', 'synced-pattern-popups' ); ?>
+			<div class="sppopups-tab-content-wrapper">
+				<!-- Patterns Tab -->
+				<div id="sppopups-tab-patterns" class="sppopups-tab-content active" role="tabpanel" aria-labelledby="patterns">
+					<div class="sppopups-tab-actions">
+						<a href="<?php echo esc_url( admin_url( 'post-new.php?post_type=wp_block' ) ); ?>" class="page-title-action">
+							<?php esc_html_e( 'Add New', 'synced-pattern-popups' ); ?>
 						</a>
-					</p>
-				</div>
-			<?php else : ?>
-				<div class="sppopups-table-wrapper">
-					<table class="wp-list-table widefat fixed striped sppopups-patterns-table">
-					<thead>
-						<tr>
-							<th class="column-id"><?php esc_html_e( 'ID', 'synced-pattern-popups' ); ?></th>
-							<th class="column-title"><?php esc_html_e( 'Title', 'synced-pattern-popups' ); ?></th>
-							<th class="column-status"><?php esc_html_e( 'Status', 'synced-pattern-popups' ); ?></th>
-							<th class="column-sync-status"><?php esc_html_e( 'Sync Status', 'synced-pattern-popups' ); ?></th>
-							<th class="column-trigger"><?php esc_html_e( 'Trigger Code', 'synced-pattern-popups' ); ?></th>
-							<th class="column-actions"><?php esc_html_e( 'Actions', 'synced-pattern-popups' ); ?></th>
-						</tr>
-					</thead>
-					<tbody>
 						<?php
-						// Cache post status objects to avoid repeated lookups
-						$status_cache = array();
-						foreach ( $patterns as $pattern ) :
-							// Skip if pattern is not a valid object
-							if ( ! is_object( $pattern ) || ! isset( $pattern->ID ) ) {
-								continue;
-							}
+						$clear_cache_url = wp_nonce_url(
+							admin_url( 'themes.php?page=simplest-popup-patterns&action=clear_cache' ),
+							'clear_popup_cache'
+						);
+						?>
+						<a href="<?php echo esc_url( $clear_cache_url ); ?>" class="page-title-action" style="margin-left: 8px;">
+							<?php esc_html_e( 'Clear Transient Cache', 'synced-pattern-popups' ); ?>
+						</a>
+					</div>
 
-							$pattern_id = (int) $pattern->ID;
-							$post_status = isset( $pattern->post_status ) ? $pattern->post_status : 'publish';
+					<p class="description">
+						<?php esc_html_e( 'Manage synced patterns that can be used as popups. Only synced patterns are available for popup triggers.', 'synced-pattern-popups' ); ?>
+					</p>
 
-							// Meta is already cached from update_post_meta_cache, so this is fast
-							$sync_status = get_post_meta( $pattern_id, 'wp_pattern_sync_status', true );
-							$is_synced = ( 'unsynced' !== $sync_status );
-							$trigger_code = 'spp-trigger-' . $pattern_id;
-							$edit_url = get_edit_post_link( $pattern_id );
-							$delete_url = wp_nonce_url(
-								admin_url( 'themes.php?page=simplest-popup-patterns&action=delete&pattern_id=' . $pattern_id ),
-								'delete_pattern_' . $pattern_id
-							);
-
-							// Cache post status object
-							if ( ! isset( $status_cache[ $post_status ] ) ) {
-								$status_obj = get_post_status_object( $post_status );
-								$status_cache[ $post_status ] = $status_obj ? $status_obj : null;
-							}
-							$status = isset( $status_cache[ $post_status ] ) && $status_cache[ $post_status ] !== null ? $status_cache[ $post_status ] : null;
-							?>
-							<tr>
-								<td class="column-id">
-									<strong class="pattern-id"><?php echo esc_html( $pattern_id ); ?></strong>
-								</td>
-								<td class="column-title">
-									<strong>
-										<?php
-										$pattern_title = isset( $pattern->post_title ) && ! empty( $pattern->post_title ) ? $pattern->post_title : __( '(no title)', 'synced-pattern-popups' );
-										if ( $edit_url ) :
-											?>
-											<a href="<?php echo esc_url( $edit_url ); ?>">
-												<?php echo esc_html( $pattern_title ); ?>
-											</a>
-										<?php else : ?>
-											<?php echo esc_html( $pattern_title ); ?>
-										<?php endif; ?>
-									</strong>
-								</td>
-								<td class="column-status">
-									<?php
-									if ( $status && isset( $status->label ) ) {
-										$status_class = 'publish' === $post_status ? 'status-publish' : 'status-' . esc_attr( $post_status );
-										echo '<span class="status-badge ' . esc_attr( $status_class ) . '">' . esc_html( $status->label ) . '</span>';
-									} elseif ( $post_status ) {
-										// Fallback if status object not available
-										$status_class = 'publish' === $post_status ? 'status-publish' : 'status-' . esc_attr( $post_status );
-										echo '<span class="status-badge ' . esc_attr( $status_class ) . '">' . esc_html( ucfirst( $post_status ) ) . '</span>';
+					<?php if ( empty( $patterns ) ) : ?>
+						<div class="notice notice-info">
+							<p>
+								<?php esc_html_e( 'No synced patterns found.', 'synced-pattern-popups' ); ?>
+								<a href="<?php echo esc_url( admin_url( 'post-new.php?post_type=wp_block' ) ); ?>">
+									<?php esc_html_e( 'Create your first synced pattern', 'synced-pattern-popups' ); ?>
+								</a>
+							</p>
+						</div>
+					<?php else : ?>
+						<div class="sppopups-table-wrapper">
+							<table class="wp-list-table widefat fixed striped sppopups-patterns-table">
+							<thead>
+								<tr>
+									<th class="column-id"><?php esc_html_e( 'ID', 'synced-pattern-popups' ); ?></th>
+									<th class="column-title"><?php esc_html_e( 'Title', 'synced-pattern-popups' ); ?></th>
+									<th class="column-status"><?php esc_html_e( 'Status', 'synced-pattern-popups' ); ?></th>
+									<th class="column-sync-status"><?php esc_html_e( 'Sync Status', 'synced-pattern-popups' ); ?></th>
+									<th class="column-trigger"><?php esc_html_e( 'Trigger Code', 'synced-pattern-popups' ); ?></th>
+									<th class="column-actions"><?php esc_html_e( 'Actions', 'synced-pattern-popups' ); ?></th>
+								</tr>
+							</thead>
+							<tbody>
+								<?php
+								// Cache post status objects to avoid repeated lookups
+								$status_cache = array();
+								foreach ( $patterns as $pattern ) :
+									// Skip if pattern is not a valid object
+									if ( ! is_object( $pattern ) || ! isset( $pattern->ID ) ) {
+										continue;
 									}
+
+									$pattern_id = (int) $pattern->ID;
+									$post_status = isset( $pattern->post_status ) ? $pattern->post_status : 'publish';
+
+									// Meta is already cached from update_post_meta_cache, so this is fast
+									$sync_status = get_post_meta( $pattern_id, 'wp_pattern_sync_status', true );
+									$is_synced = ( 'unsynced' !== $sync_status );
+									$trigger_code = 'spp-trigger-' . $pattern_id;
+									$edit_url = get_edit_post_link( $pattern_id );
+									$delete_url = wp_nonce_url(
+										admin_url( 'themes.php?page=simplest-popup-patterns&action=delete&pattern_id=' . $pattern_id ),
+										'delete_pattern_' . $pattern_id
+									);
+
+									// Cache post status object
+									if ( ! isset( $status_cache[ $post_status ] ) ) {
+										$status_obj = get_post_status_object( $post_status );
+										$status_cache[ $post_status ] = $status_obj ? $status_obj : null;
+									}
+									$status = isset( $status_cache[ $post_status ] ) && $status_cache[ $post_status ] !== null ? $status_cache[ $post_status ] : null;
 									?>
-								</td>
-								<td class="column-sync-status">
-									<?php if ( $is_synced ) : ?>
-										<span class="status-badge status-synced"><?php esc_html_e( 'Synced', 'synced-pattern-popups' ); ?></span>
-										<?php else : ?>
-										<span class="status-badge status-unsynced"><?php esc_html_e( 'Unsynced', 'synced-pattern-popups' ); ?></span>
-									<?php endif; ?>
-								</td>
-								<td class="column-trigger">
-									<input type="text" readonly value="<?php echo esc_attr( $trigger_code ); ?>" class="trigger-code-input" />
-								</td>
-								<td class="column-actions">
-									<?php if ( $edit_url ) : ?>
-										<a href="<?php echo esc_url( $edit_url ); ?>" class="button button-small">
-											<?php esc_html_e( 'Edit', 'synced-pattern-popups' ); ?>
-										</a>
-									<?php endif; ?>
-									<?php if ( current_user_can( 'delete_post', $pattern_id ) ) : ?>
-										<a 
-											href="<?php echo esc_url( $delete_url ); ?>" 
-											class="button button-small delete-pattern"
-											onclick="return confirm('<?php echo esc_js( __( 'Are you sure you want to delete this pattern?', 'synced-pattern-popups' ) ); ?>');"
-										>
-											<?php esc_html_e( 'Delete', 'synced-pattern-popups' ); ?>
-										</a>
-									<?php endif; ?>
-									<button 
-										type="button" 
-										class="button button-small copy-trigger" 
-										data-copy="<?php echo esc_attr( $trigger_code ); ?>"
-									>
-										<?php esc_html_e( 'Copy Trigger', 'synced-pattern-popups' ); ?>
-									</button>
-								</td>
-							</tr>
-						<?php endforeach; ?>
-					</tbody>
-				</table>
+									<tr>
+										<td class="column-id">
+											<strong class="pattern-id"><?php echo esc_html( $pattern_id ); ?></strong>
+										</td>
+										<td class="column-title">
+											<strong>
+												<?php
+												$pattern_title = isset( $pattern->post_title ) && ! empty( $pattern->post_title ) ? $pattern->post_title : __( '(no title)', 'synced-pattern-popups' );
+												if ( $edit_url ) :
+													?>
+													<a href="<?php echo esc_url( $edit_url ); ?>">
+														<?php echo esc_html( $pattern_title ); ?>
+													</a>
+												<?php else : ?>
+													<?php echo esc_html( $pattern_title ); ?>
+												<?php endif; ?>
+											</strong>
+										</td>
+										<td class="column-status">
+											<?php
+											if ( $status && isset( $status->label ) ) {
+												$status_class = 'publish' === $post_status ? 'status-publish' : 'status-' . esc_attr( $post_status );
+												echo '<span class="status-badge ' . esc_attr( $status_class ) . '">' . esc_html( $status->label ) . '</span>';
+											} elseif ( $post_status ) {
+												// Fallback if status object not available
+												$status_class = 'publish' === $post_status ? 'status-publish' : 'status-' . esc_attr( $post_status );
+												echo '<span class="status-badge ' . esc_attr( $status_class ) . '">' . esc_html( ucfirst( $post_status ) ) . '</span>';
+											}
+											?>
+										</td>
+										<td class="column-sync-status">
+											<?php if ( $is_synced ) : ?>
+												<span class="status-badge status-synced"><?php esc_html_e( 'Synced', 'synced-pattern-popups' ); ?></span>
+												<?php else : ?>
+												<span class="status-badge status-unsynced"><?php esc_html_e( 'Unsynced', 'synced-pattern-popups' ); ?></span>
+											<?php endif; ?>
+										</td>
+										<td class="column-trigger">
+											<div class="sppopups-trigger-code-wrapper">
+												<span class="sppopups-trigger-code-text"><?php echo esc_html( $trigger_code ); ?></span>
+												<button 
+													type="button" 
+													class="button button-small sppopups-copy-trigger-icon" 
+													data-copy="<?php echo esc_attr( $trigger_code ); ?>"
+													title="<?php esc_attr_e( 'Copy to Clipboard', 'synced-pattern-popups' ); ?>"
+													aria-label="<?php esc_attr_e( 'Copy to Clipboard', 'synced-pattern-popups' ); ?>"
+												>
+													<span class="dashicons dashicons-clipboard"></span>
+													<span class="screen-reader-text"><?php echo esc_html( $trigger_code ); ?></span>
+												</button>
+											</div>
+										</td>
+										<td class="column-actions">
+											<?php if ( $edit_url ) : ?>
+												<a href="<?php echo esc_url( $edit_url ); ?>" class="button button-small">
+													<?php esc_html_e( 'Edit', 'synced-pattern-popups' ); ?>
+												</a>
+											<?php endif; ?>
+											<?php if ( current_user_can( 'delete_post', $pattern_id ) ) : ?>
+												<a 
+													href="<?php echo esc_url( $delete_url ); ?>" 
+													class="button button-small delete-pattern"
+													onclick="return confirm('<?php echo esc_js( __( 'Are you sure you want to delete this pattern?', 'synced-pattern-popups' ) ); ?>');"
+												>
+													<?php esc_html_e( 'Delete', 'synced-pattern-popups' ); ?>
+												</a>
+											<?php endif; ?>
+											<?php
+											$delete_transient_url = wp_nonce_url(
+												admin_url( 'themes.php?page=simplest-popup-patterns&action=delete_transient&pattern_id=' . $pattern_id ),
+												'delete_transient_' . $pattern_id
+											);
+											?>
+											<a 
+												href="<?php echo esc_url( $delete_transient_url ); ?>" 
+												class="button button-small delete-transient"
+												onclick="return confirm('<?php echo esc_js( sprintf( __( 'Are you sure you want to delete the transient cache for pattern #%d?', 'synced-pattern-popups' ), $pattern_id ) ); ?>');"
+											>
+												<?php
+												/* translators: %d: Pattern ID */
+												echo esc_html( sprintf( __( 'Delete Transient #%d', 'synced-pattern-popups' ), $pattern_id ) );
+												?>
+											</a>
+										</td>
+									</tr>
+								<?php endforeach; ?>
+							</tbody>
+						</table>
+						</div>
+					<?php endif; ?>
 				</div>
 
-				<div class="sppopups-usage-instructions">
-					<strong><?php esc_html_e( 'How to use:', 'synced-pattern-popups' ); ?></strong>
-					<div>
-						<?php esc_html_e( 'Method 1 - Class name:', 'synced-pattern-popups' ); ?>
-						<code>&lt;a href="#" class="spp-trigger-123"&gt;Open Popup&lt;/a&gt;</code>
-					</div>
-					<div>
-						<?php esc_html_e( 'Method 2 - Href attribute (for Block Editor):', 'synced-pattern-popups' ); ?>
-						<code>&lt;a href="#spp-trigger-123"&gt;Open Popup&lt;/a&gt;</code>
+				<!-- TLDR Tab -->
+				<div id="sppopups-tab-tldr" class="sppopups-tab-content" role="tabpanel" aria-labelledby="tldr">
+					<?php
+					// Render TLDR settings section (without the box wrapper)
+					$settings = new SPPopups_Settings();
+					$settings->render_settings_section_for_tab();
+					?>
+				</div>
+
+				<!-- How to Use Tab -->
+				<div id="sppopups-tab-how-to-use" class="sppopups-tab-content" role="tabpanel" aria-labelledby="how-to-use">
+					<div class="sppopups-tab-content-inner">
+						<h2><?php esc_html_e( 'How to Use Synced Pattern Popups', 'synced-pattern-popups' ); ?></h2>
+						<p class="description">
+							<?php esc_html_e( 'There are two ways to trigger a popup on your site:', 'synced-pattern-popups' ); ?>
+						</p>
+
+						<div class="sppopups-usage-method">
+							<h3><?php esc_html_e( 'Method 1: Class Name', 'synced-pattern-popups' ); ?></h3>
+							<p><?php esc_html_e( 'Add the class', 'synced-pattern-popups' ); ?> <code>spp-trigger-{id}</code> <?php esc_html_e( 'to any clickable element, where', 'synced-pattern-popups' ); ?> <code>{id}</code> <?php esc_html_e( 'is the numeric ID of your Synced Pattern.', 'synced-pattern-popups' ); ?></p>
+							<p><strong><?php esc_html_e( 'Examples:', 'synced-pattern-popups' ); ?></strong></p>
+							<pre><code>&lt;a href="#" class="spp-trigger-123"&gt;<?php esc_html_e( 'Open Popup', 'synced-pattern-popups' ); ?>&lt;/a&gt;
+&lt;button class="spp-trigger-123"&gt;<?php esc_html_e( 'Click Me', 'synced-pattern-popups' ); ?>&lt;/button&gt;</code></pre>
+						</div>
+
+						<div class="sppopups-usage-method">
+							<h3><?php esc_html_e( 'Method 2: Href Attribute', 'synced-pattern-popups' ); ?></h3>
+							<p><?php esc_html_e( 'Set the', 'synced-pattern-popups' ); ?> <code>href</code> <?php esc_html_e( 'attribute to', 'synced-pattern-popups' ); ?> <code>#spp-trigger-{id}</code> <?php esc_html_e( 'on any link element. This is especially useful in the WordPress Block Editor where you can\'t easily add custom classes.', 'synced-pattern-popups' ); ?></p>
+							<p><strong><?php esc_html_e( 'Example:', 'synced-pattern-popups' ); ?></strong></p>
+							<pre><code>&lt;a href="#spp-trigger-123"&gt;<?php esc_html_e( 'Open Popup', 'synced-pattern-popups' ); ?>&lt;/a&gt;</code></pre>
+						</div>
+
+						<div class="sppopups-usage-method">
+							<h3><?php esc_html_e( 'Custom Width', 'synced-pattern-popups' ); ?></h3>
+							<p><?php esc_html_e( 'You can specify a custom modal width by adding a width suffix:', 'synced-pattern-popups' ); ?> <code>spp-trigger-{id}-{width}</code> <?php esc_html_e( 'where width is in pixels (100-5000px).', 'synced-pattern-popups' ); ?></p>
+							<p><strong><?php esc_html_e( 'Example:', 'synced-pattern-popups' ); ?></strong></p>
+							<pre><code>&lt;a href="#" class="spp-trigger-123-800"&gt;<?php esc_html_e( 'Open 800px Modal', 'synced-pattern-popups' ); ?>&lt;/a&gt;</code></pre>
+						</div>
+
+						<div class="sppopups-usage-method">
+							<h3><?php esc_html_e( 'Finding Pattern IDs', 'synced-pattern-popups' ); ?></h3>
+							<p><?php esc_html_e( 'Go to WordPress Admin → Appearance → Synced Patterns. The ID column shows the pattern ID prominently. You can also click the "Copy Trigger" button in the Actions column to copy the complete trigger code.', 'synced-pattern-popups' ); ?></p>
+						</div>
 					</div>
 				</div>
-			<?php endif; ?>
-
-			<?php
-			// Render TLDR settings section
-			$settings = new SPPopups_Settings();
-			$settings->render_settings_section();
-			?>
+			</div>
 		</div>
 		<?php
 	}

@@ -98,14 +98,115 @@
 		init();
 	}
 
+	/**
+	 * Tab Navigation Handler
+	 */
+	function initTabs() {
+		var tabNavLinks = document.querySelectorAll('.sppopups-tab-nav-link');
+		var tabContents = document.querySelectorAll('.sppopups-tab-content');
+
+		// Function to switch tabs
+		function switchTab(tabId) {
+			// Remove active class from all tabs and links
+			tabNavLinks.forEach(function(link) {
+				link.classList.remove('active');
+				link.setAttribute('aria-selected', 'false');
+			});
+
+			tabContents.forEach(function(content) {
+				content.classList.remove('active');
+			});
+
+			// Add active class to selected tab
+			var selectedLink = document.querySelector('.sppopups-tab-nav-link[href="#' + tabId + '"]');
+			var selectedContent = document.getElementById('sppopups-tab-' + tabId);
+
+			if (selectedLink) {
+				selectedLink.classList.add('active');
+				selectedLink.setAttribute('aria-selected', 'true');
+			}
+
+			if (selectedContent) {
+				selectedContent.classList.add('active');
+			}
+
+			// Update URL hash without triggering scroll
+			if (history.pushState) {
+				history.pushState(null, null, '#' + tabId);
+			} else {
+				window.location.hash = '#' + tabId;
+			}
+		}
+
+		// Handle tab link clicks
+		tabNavLinks.forEach(function(link) {
+			link.addEventListener('click', function(e) {
+				e.preventDefault();
+				var href = link.getAttribute('href');
+				if (href && href.startsWith('#')) {
+					var tabId = href.substring(1);
+					switchTab(tabId);
+				}
+			});
+		});
+
+		// Handle initial hash or default to 'patterns'
+		function handleInitialTab() {
+			var hash = window.location.hash.substring(1);
+			var validTabs = ['patterns', 'tldr', 'how-to-use'];
+			
+			if (hash && validTabs.indexOf(hash) !== -1) {
+				switchTab(hash);
+			} else {
+				// Default to patterns tab
+				switchTab('patterns');
+			}
+		}
+
+		// Handle hash changes (back/forward buttons and direct hash links)
+		function handleHashChange() {
+			var hash = window.location.hash.substring(1);
+			var validTabs = ['patterns', 'tldr', 'how-to-use'];
+			
+			if (hash && validTabs.indexOf(hash) !== -1) {
+				switchTab(hash);
+			}
+		}
+
+		window.addEventListener('hashchange', handleHashChange);
+
+		// Handle clicks on any link with a hash that matches a tab
+		document.addEventListener('click', function(e) {
+			var target = e.target.closest('a');
+			if (target && target.getAttribute('href') && target.getAttribute('href').startsWith('#')) {
+				var hash = target.getAttribute('href').substring(1);
+				var validTabs = ['patterns', 'tldr', 'how-to-use'];
+				
+				if (validTabs.indexOf(hash) !== -1) {
+					// Only prevent default if it's not already a tab nav link (those are handled separately)
+					if (!target.classList.contains('sppopups-tab-nav-link')) {
+						e.preventDefault();
+						switchTab(hash);
+					}
+				}
+			}
+		});
+
+		// Initialize tab on page load
+		handleInitialTab();
+	}
+
 	function init() {
-		// Find all copy trigger buttons
-		var copyButtons = document.querySelectorAll('.copy-trigger');
+		// Find all copy trigger buttons (both old .copy-trigger and new .sppopups-copy-trigger-icon)
+		var copyButtons = document.querySelectorAll('.copy-trigger, .sppopups-copy-trigger-icon');
 
 		// Add click handlers
 		copyButtons.forEach(function(button) {
 			button.addEventListener('click', handleCopyClick);
 		});
+
+		// Initialize tabs
+		initTabs();
 	}
 })();
 
