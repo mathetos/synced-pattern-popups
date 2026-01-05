@@ -3,7 +3,7 @@ Contributors: webdevmattcrom
 Tags: popup, modal, synced-patterns, ai, tldr
 Requires at least: 5.8
 Tested up to: 6.9
-Stable tag: 1.0.1
+Stable tag: 1.1.0
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -162,6 +162,16 @@ PHP 7.4 or higher.
 
 == Changelog ==
 
+= 1.1.0 =
+* New: Tabbed admin interface with Patterns, TLDR, and How to Use tabs
+* New: URL hash navigation for direct linking to specific admin tabs
+* New: Clipboard icon button in trigger code column for quick copying
+* New: Individual pattern transient deletion ("Delete Transient #{id}" button)
+* New: "Learn more" link in admin header for quick access to documentation
+* Improved: Admin UI styling with modern tabbed interface matching WordPress design patterns
+* Improved: Better accessibility with ARIA attributes and keyboard navigation for tabs
+* Improved: Consistent styling across all admin tabs with proper max-width and spacing
+
 = 1.0.1 =
 * Hotfix: Updated text domain to match plugin slug (synced-pattern-popups) for WordPress.org compliance
 * Fixed: Removed debug logging code that used ABSPATH directly
@@ -183,6 +193,9 @@ PHP 7.4 or higher.
 * Full translation support
 
 == Upgrade Notice ==
+
+= 1.1.0 =
+Major admin interface update with tabbed navigation, improved usability, and individual pattern cache management. The admin interface now features a modern tabbed design with direct links to Patterns, TLDR settings, and usage instructions.
 
 = 1.0.1 =
 Hotfix release addressing WordPress.org Plugin Directory submission requirements. No user-facing changes.
