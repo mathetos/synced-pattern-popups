@@ -1,0 +1,21 @@
+---
+alwaysApply: true
+description: "Plugin Check: General category standards and common pitfalls."
+---
+
+General category expectations:
+
+- Ensure the plugin has a valid main plugin file header and consistent slug usage.
+- Avoid PHP notices/warnings: initialize variables, guard array keys, avoid undefined indexes.
+- Do not use deprecated WordPress functions/APIs; prefer current equivalents.
+- Avoid doing heavy work on every request: gate with hooks, cache where appropriate.
+- Keep admin-only code behind is_admin() and capability checks where relevant.
+- Use WP Cron and WP HTTP APIs rather than custom curl/file_get_contents patterns when applicable.
+
+If you introduce new files:
+- Add ABSPATH guard to PHP files that can be accessed directly.
+- Keep includes deterministic and avoid dynamic includes based on request input.
+
+If you change readme:
+- Keep readme.txt in WordPress.org format and consistent with plugin metadata.
+

@@ -1,0 +1,32 @@
+---
+alwaysApply: true
+description: "Plugin Check: Security category. Apply strict WP security patterns."
+---
+
+Security category rules (non-negotiable):
+
+Input and output:
+- Sanitize all external input early (REST params, $_GET/$_POST/$_REQUEST, options).
+- Escape all output late with context-specific escaping (HTML, attributes, URLs, JS, etc).
+- Never echo raw request data.
+
+Authorization:
+- For privileged actions: require capability checks.
+- For state-changing requests: require nonce verification (admin-post, AJAX, admin forms).
+- REST routes must include permission_callback and strict arg validation.
+
+Database:
+- Any dynamic SQL must use $wpdb->prepare, or higher-level WP APIs (WP_Query, meta APIs, options APIs).
+- Never interpolate untrusted data into SQL.
+
+File and redirects:
+- Use wp_safe_redirect when appropriate.
+- Do not allow arbitrary file paths, includes, or file writes based on request input.
+
+Blocks:
+- If using render_callback, treat render attributes as untrusted input: validate and sanitize attributes and escape output.
+
+Security vs. verbosity:
+- Prefer the safest reasonable approach, even if more verbose.
+- Avoid excessive verbosity that obscures intent or introduces redundant checks.
+- When multiple secure options exist, choose the one that is clearest, idiomatic for WordPress, and easiest to review.

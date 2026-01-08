@@ -1,0 +1,33 @@
+---
+alwaysApply: true
+description: "Plugin Check: Plugin Repo category (WordPress.org expectations)."
+---
+
+Treat Plugin Repo category findings as **must-fix by default**.
+
+Waivers are acceptable **only** when:
+- The behavior is intentional, documented, and user-controlled.
+- The finding relates to a known and acceptable WordPress.org guideline allowance.
+- The user explicitly confirms acceptance of the risk or tradeoff.
+
+External communication and “phone home” behavior:
+- Automatic or silent “phone home” behavior is disallowed by default.
+- External requests may be acceptable **only** when they are:
+  - Explicitly user-initiated, or clearly tied to a user action.
+  - Fully disclosed in documentation or UI.
+  - Required for core plugin functionality.
+  - Configurable or opt-in where appropriate.
+- Use the WordPress HTTP API and handle failures gracefully.
+
+Common acceptable waiver scenarios (examples, not automatic approvals):
+- Intentional external API usage that is clearly disclosed, documented, and user-controlled.
+- Use of external services required for core plugin functionality and compliant with WordPress.org guidelines.
+- Known false positives confirmed against WordPress.org documentation or Plugin Check behavior.
+
+When a waiver is proposed:
+- Clearly explain why the finding exists.
+- Cite the relevant guideline or rationale when possible.
+- Propose the smallest compliant alternative, even if the waiver is chosen.
+
+If no explicit waiver is given by the user:
+- Proceed as must-fix.

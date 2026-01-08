@@ -1,0 +1,30 @@
+---
+alwaysApply: true
+description: "Block support conventions for this plugin (to reduce Plugin Check churn)."
+---
+
+Block conventions for this repo:
+
+- Prefer register_block_type with block.json.
+- Scripts and styles:
+  - Use stable, prefixed handles.
+  - Declare dependencies explicitly.
+  - Avoid hardcoded URLs; use plugins_url / plugin_dir_url and build-time paths appropriately.
+
+- i18n:
+  - All user-facing strings must be translatable.
+  - Avoid concatenated strings; use sprintf with placeholders.
+
+- Server-side rendering:
+  - Only use render_callback when required.
+  - Validate and sanitize attributes and escape output.
+
+Build artifacts and packaging:
+- Ensure any generated JS/CSS files required at runtime are included in the distributed plugin package.
+- Generated files should be either:
+  - Committed to version control, or
+  - Explicitly produced as part of a documented release or build step.
+- Do not rely on end users or reviewers to run a build process to make the plugin functional.
+
+If build artifacts are required:
+- Ensure file paths, handles, and references are stable and match block.json and enqueue logic.

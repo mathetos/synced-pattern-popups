@@ -1,0 +1,46 @@
+---
+alwaysApply: true
+description: "Plugin Check workflow gate for this repo."
+---
+
+Relationship to Custom User Rules
+
+- Custom User Rules define baseline WordPress coding behavior and best practices.
+- Plugin Check enforcement in this project is intended to **align with and validate** those User Rules.
+- Project rules add tooling-specific expectations and review gates; they do not replace baseline User Rules.
+
+Definition: Meaningful code change
+
+A "meaningful code change" includes any change that could affect plugin behavior, compatibility, security, accessibility, or review outcomes. Examples include:
+
+Included (meaningful):
+- PHP logic changes, refactors, or new functions/classes.
+- Changes to hooks, filters, REST routes, AJAX handlers, or render callbacks.
+- Modifications to block.json, block registration, or block rendering.
+- Changes to JavaScript or CSS that affect behavior, UI, or accessibility.
+- Updates to build configuration or generated assets.
+- Changes to readme.txt that affect functionality, requirements, or user-facing behavior.
+
+Excluded (not meaningful by default):
+- Pure typo fixes in comments or documentation with no functional impact.
+- Whitespace-only changes.
+- Formatting changes that do not alter logic or output.
+
+For any meaningful code change:
+- Require a Plugin Check run after changes.
+- Ask the user to paste the Plugin Check output (copy/paste text).
+- Do not claim “passes Plugin Check” unless the user provides output and you confirm.
+
+When output is provided:
+- Fix Errors first, then Warnings.
+- Re-run the fix-and-check loop as needed, up to a reasonable number of iterations.
+- If issues persist after multiple iterations, pause and:
+  - Summarize remaining findings.
+  - Explain tradeoffs or risks.
+  - Ask the user whether to proceed with a waiver or alternative approach.
+- If a finding is potentially a false positive, explain why and propose the smallest safe change.
+
+When recommending how to run:
+- Suggest Plugin Check in WP Admin or via WP-CLI if available.
+- If multiple categories can be selected, request results for:
+  General, Plugin Repo, Security, Accessibility.

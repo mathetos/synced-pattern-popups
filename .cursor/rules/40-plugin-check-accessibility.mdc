@@ -1,0 +1,26 @@
+---
+alwaysApply: true
+description: "Plugin Check: Accessibility category. Admin UI and block output must be accessible."
+---
+
+Accessibility category rules:
+
+Admin UI:
+- Every input has a label (or aria-labelledby) and clear help text where needed.
+- Ensure keyboard navigation works for all controls.
+- Use semantic elements: button for actions, a for navigation.
+- Provide accessible names for icon-only buttons (aria-label).
+- Errors must be perceivable and associated with fields (aria-describedby when needed).
+
+Front-end and block output:
+- Ensure rendered markup is semantic and valid.
+- Avoid div soup for interactive elements.
+- Maintain focus order and avoid removing outlines without replacements.
+
+ARIA:
+- Use ARIA only when necessary; do not add redundant or incorrect roles/attributes.
+
+When fixing findings:
+- Implement the smallest semantic HTML improvement first (labels, buttons, headings).
+- Only add ARIA when semantic HTML cannot solve it.
+
