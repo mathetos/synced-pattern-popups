@@ -110,15 +110,26 @@ class SPPopups_Asset_Collector {
 			foreach ( $block_type->style_handles as $handle ) {
 				if ( ! empty( $handle ) && is_string( $handle ) ) {
 					$this->collected_styles[] = $handle;
+					// CRITICAL: Actually enqueue the style during rendering
+					// Some blocks expect their styles to be enqueued, not just registered
+					// This ensures styles are properly loaded and dependencies are resolved
+					if ( function_exists( 'wp_enqueue_style' ) ) {
+						wp_enqueue_style( $handle );
+					}
 				}
 			}
 		}
 
-		// Collect view style handles
+		// Collect view style handles (frontend styles)
 		if ( ! empty( $block_type->view_style_handles ) && is_array( $block_type->view_style_handles ) ) {
 			foreach ( $block_type->view_style_handles as $handle ) {
 				if ( ! empty( $handle ) && is_string( $handle ) ) {
 					$this->collected_styles[] = $handle;
+					// CRITICAL: Actually enqueue the style during rendering
+					// View style handles are frontend styles that MUST be enqueued
+					if ( function_exists( 'wp_enqueue_style' ) ) {
+						wp_enqueue_style( $handle );
+					}
 				}
 			}
 		}
@@ -182,6 +193,50 @@ class SPPopups_Asset_Collector {
 			}
 		}
 
+		// CRITICAL: Check for style-blocks-*.css files for Kadence blocks
+		// WordPress may generate handles like "kadence-column-style" but Kadence also has
+		// separate "style-blocks-*.css" files that need to be loaded on the frontend.
+		// These are different from "blocks-*.css" files and are loaded when patterns are embedded.
+		if ( strpos( $block_name, 'kadence/' ) === 0 ) {
+			$block_slug = str_replace( 'kadence/', '', $block_name );
+			// Try to find style-blocks-{block_slug} handle or file
+			$style_blocks_handles = array(
+				'style-blocks-' . $block_slug,
+				'kadence-style-blocks-' . $block_slug,
+				'kadence-blocks-style-' . $block_slug,
+			);
+			
+			// Also check for generated handle from block.json style field
+			// WordPress generates: {block_name}-{field_name} = kadence-column-style
+			$generated_handle = str_replace( '/', '-', $block_name ) . '-style';
+			$style_blocks_handles[] = $generated_handle;
+			
+			foreach ( $style_blocks_handles as $style_blocks_handle ) {
+				if ( $wp_styles && isset( $wp_styles->registered[ $style_blocks_handle ] ) ) {
+					if ( ! in_array( $style_blocks_handle, $this->collected_styles, true ) ) {
+						$this->collected_styles[] = $style_blocks_handle;
+						wp_enqueue_style( $style_blocks_handle );
+					}
+				} else {
+					// If handle not registered, try to register and enqueue style-blocks-*.css file directly
+					$style_blocks_file = 'style-blocks-' . $block_slug . '.css';
+					$kadence_blocks_path = WP_PLUGIN_DIR . '/kadence-blocks/dist/' . $style_blocks_file;
+					if ( file_exists( $kadence_blocks_path ) ) {
+						$style_blocks_url = plugins_url( 'dist/' . $style_blocks_file, WP_PLUGIN_DIR . '/kadence-blocks/kadence-blocks.php' );
+						$style_blocks_handle_registered = 'kadence-style-blocks-' . $block_slug;
+						$kadence_version = defined( 'KADENCE_BLOCKS_VERSION' ) ? KADENCE_BLOCKS_VERSION : ( file_exists( $kadence_blocks_path ) ? filemtime( $kadence_blocks_path ) : '1.0.0' );
+						if ( ! wp_style_is( $style_blocks_handle_registered, 'registered' ) ) {
+							wp_register_style( $style_blocks_handle_registered, $style_blocks_url, array(), $kadence_version );
+						}
+						if ( ! in_array( $style_blocks_handle_registered, $this->collected_styles, true ) ) {
+							$this->collected_styles[] = $style_blocks_handle_registered;
+							wp_enqueue_style( $style_blocks_handle_registered );
+						}
+					}
+				}
+			}
+		}
+
 		// Track scripts enqueued during rendering
 		global $wp_scripts;
 		if ( $wp_scripts && isset( $wp_scripts->queue ) ) {
@@ -211,6 +266,21 @@ class SPPopups_Asset_Collector {
 
 		$this->is_collecting = false;
 
+		// In AJAX context, ensure wp-block-library is included
+		// Core blocks (core/*) don't have style_handles and rely on wp-block-library
+		// In AJAX requests, wp-block-library is not automatically enqueued, so we need to include it
+		if ( defined( 'DOING_AJAX' ) && DOING_AJAX ) {
+			global $wp_styles;
+			// If wp-block-library is registered but not already collected, add it
+			// This ensures core blocks have their styles in AJAX context
+			if ( $wp_styles && isset( $wp_styles->registered['wp-block-library'] ) ) {
+				$wp_block_library_collected = in_array( 'wp-block-library', $this->collected_styles, true );
+				if ( ! $wp_block_library_collected ) {
+					$this->collected_styles[] = 'wp-block-library';
+				}
+			}
+		}
+
 		// Get unique style handles
 		$styles = $this->get_style_handles();
 
@@ -234,10 +304,27 @@ class SPPopups_Asset_Collector {
 		$styles = array_filter( array_unique( $this->collected_styles ), 'is_string' );
 
 		// Filter out common WordPress styles that are always loaded
+		// BUT: In AJAX context, wp-block-library may not be loaded, so we need to include it
 		$always_loaded = array(
-			'wp-block-library',
 			'global-styles',
 		);
+
+		// Only filter out wp-block-library if it's actually loaded in the current context
+		global $wp_styles;
+		$wp_block_library_loaded = ( $wp_styles && isset( $wp_styles->registered['wp-block-library'] ) && in_array( 'wp-block-library', $wp_styles->queue, true ) );
+
+		// If wp-block-library is actually loaded, filter it out; otherwise keep it so it gets included
+		if ( $wp_block_library_loaded ) {
+			$styles = array_diff( $styles, array( 'wp-block-library' ) );
+		} else {
+			// In AJAX context, wp-block-library is not loaded, so we need to include it
+			// Check if any core blocks are present (they need wp-block-library)
+			// We'll add it to the collected styles if it's registered but not queued
+			if ( $wp_styles && isset( $wp_styles->registered['wp-block-library'] ) && ! in_array( 'wp-block-library', $styles, true ) ) {
+				// Don't add it here - let it be handled by the asset data collection
+				// But don't filter it out either
+			}
+		}
 
 		$styles = array_diff( $styles, $always_loaded );
 
@@ -353,8 +440,111 @@ class SPPopups_Asset_Collector {
 			'scripts' => array(),
 		);
 
+		// In AJAX context, ensure wp-block-library is included before processing
+		// Core blocks (core/*) don't have style_handles and rely on wp-block-library
+		// This needs to happen BEFORE get_style_handles() is called
+		if ( defined( 'DOING_AJAX' ) && DOING_AJAX ) {
+			if ( $wp_styles && isset( $wp_styles->registered['wp-block-library'] ) ) {
+				$wp_block_library_collected = in_array( 'wp-block-library', $this->collected_styles, true );
+				if ( ! $wp_block_library_collected ) {
+					$this->collected_styles[] = 'wp-block-library';
+				}
+			}
+		}
+
 		// Get unique style handles (only those newly enqueued during rendering)
 		$style_handles = $this->get_style_handles();
+
+		// Collect all style dependencies recursively
+		// Third-party blocks often have dependencies that need to be loaded first
+		$all_style_handles = array_values( $style_handles );
+		$processed_handles = array();
+		
+		// Get list of editor styles to filter out (same as in get_style_handles)
+		$editor_styles = array(
+			'wp-edit-blocks',
+			'wp-block-editor',
+			'wp-editor',
+			'wp-edit-post',
+			'wp-block-editor-content',
+			'wp-editor-classic-layout-styles',
+			'wp-format-library',
+			'wp-components',
+			'wp-commands',
+			'wp-preferences',
+			'wp-nux',
+			'wp-widgets',
+			'wp-edit-widgets',
+			'wp-customize-widgets',
+			'wp-edit-site',
+			'wp-list-reusable-blocks',
+			'wp-reusable-blocks',
+			'wp-patterns',
+			// Third-party editor styles
+			'kadence-editor-global',
+			'kadence-blocks-global-editor-styles',
+		);
+		$editor_styles = apply_filters( 'sppopups_editor_styles', $editor_styles );
+		$editor_prefixes = array( 'wp-edit-', 'wp-block-editor', 'wp-editor', 'kadence-editor', 'kadence-blocks-global-editor' );
+		$editor_prefixes = apply_filters( 'sppopups_editor_style_prefixes', $editor_prefixes );
+
+		// Helper function to check if a style is an editor style
+		$is_editor_style = function( $handle ) use ( $editor_styles, $editor_prefixes ) {
+			if ( in_array( $handle, $editor_styles, true ) ) {
+				return true;
+			}
+			foreach ( $editor_prefixes as $prefix ) {
+				if ( strpos( $handle, $prefix ) === 0 ) {
+					return true;
+				}
+			}
+			return false;
+		};
+
+		// Recursive function to collect dependencies
+		$collect_deps = function( $handle ) use ( &$collect_deps, &$all_style_handles, &$processed_handles, $wp_styles, $is_editor_style ) {
+			if ( in_array( $handle, $processed_handles, true ) ) {
+				return; // Already processed
+			}
+			
+			$processed_handles[] = $handle;
+			
+			if ( ! $wp_styles || ! isset( $wp_styles->registered[ $handle ] ) ) {
+				return;
+			}
+			
+			$style_obj = $wp_styles->registered[ $handle ];
+			if ( ! empty( $style_obj->deps ) && is_array( $style_obj->deps ) ) {
+				foreach ( $style_obj->deps as $dep_handle ) {
+					if ( ! empty( $dep_handle ) && is_string( $dep_handle ) && ! in_array( $dep_handle, $all_style_handles, true ) ) {
+						// Skip editor-only styles - they shouldn't be loaded on frontend
+						if ( $is_editor_style( $dep_handle ) ) {
+							continue;
+						}
+						
+						if ( isset( $wp_styles->registered[ $dep_handle ] ) ) {
+							// Add dependency to beginning so it loads first
+							array_unshift( $all_style_handles, $dep_handle );
+							// Recursively collect dependencies of this dependency
+							$collect_deps( $dep_handle );
+						}
+					}
+				}
+			}
+		};
+		
+		// Collect dependencies for all style handles
+		foreach ( $all_style_handles as $handle ) {
+			$collect_deps( $handle );
+		}
+		
+		// Use the expanded list with dependencies
+		$style_handles = array_values( array_unique( $all_style_handles ) );
+
+		// Filter out editor-only styles from the final list
+		$style_handles = array_filter( $style_handles, function( $handle ) use ( $is_editor_style ) {
+			return ! $is_editor_style( $handle );
+		} );
 
 		// Process each style handle
 		foreach ( $style_handles as $handle ) {
@@ -363,6 +553,7 @@ class SPPopups_Asset_Collector {
 			}
 
 			$style_obj = $wp_styles->registered[ $handle ];
+
 			$asset = array(
 				'handle'       => $handle,
 				'src'          => '',
@@ -386,10 +577,10 @@ class SPPopups_Asset_Collector {
 			$asset['inline_before'] = $inline_assets['inline_before'];
 			$asset['inline_after'] = $inline_assets['inline_after'];
 
-				// Only add if there's at least a src or inline CSS
-				if ( ! empty( $asset['src'] ) || ! empty( $asset['inline_before'] ) || ! empty( $asset['inline_after'] ) ) {
-					$asset_data['styles'][] = $asset;
-				}
+			// Only add if there's at least a src or inline CSS
+			if ( ! empty( $asset['src'] ) || ! empty( $asset['inline_before'] ) || ! empty( $asset['inline_after'] ) ) {
+				$asset_data['styles'][] = $asset;
+			}
 		}
 
 		// Get unique script handles (only those newly enqueued during rendering)

@@ -150,12 +150,19 @@ class SPPopups_Pattern {
 			$style_collector->start_collection( $pattern_id );
 		}
 
-		// Render blocks using custom content filter to avoid conflicts with other plugins
-		// This filter duplicates 'the_content' functionality but only includes core WordPress functions
-		// and block rendering, avoiding unwanted side effects from plugins that hook into 'the_content'
-		// The filter includes do_blocks at priority 9, which properly renders blocks and triggers
-		// all necessary hooks for asset enqueuing (including third-party blocks like Kadence)
-		$html = apply_filters( 'sppopups_the_content', $content );
+		// CRITICAL: Apply the_content filters FIRST, then pass to do_blocks()
+		// This order is essential for proper block asset enqueuing.
+		// Based on successful implementation: do_blocks( apply_filters( 'the_content', $content ) )
+		// This ensures WordPress and plugins can properly enqueue styles during block rendering.
+		$processed_content = apply_filters( 'the_content', $content );
+		
+		// Now render blocks - this will properly trigger asset enqueuing
+		// do_blocks() must be called AFTER the_content filters to ensure proper style enqueuing
+		if ( function_exists( 'do_blocks' ) ) {
+			$html = do_blocks( $processed_content );
+		} else {
+			$html = $processed_content;
+		}
 
 		// Get block support CSS from Style Engine store
 		$block_supports_css = '';
