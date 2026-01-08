@@ -2,7 +2,7 @@
 /**
  * Plugin Name: Synced Pattern Popups
  * Description: A lightweight modal popup system that loads WordPress Synced Pattern content on demand. Trigger with class "spp-trigger-{id}".
- * Version: 1.1.0
+ * Version: 1.1.1
  * Author: Matt Cromwell
  * Author URI: https://www.mattcromwell.com
  * License: GPL v2 or later
@@ -18,7 +18,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 // Define plugin constants
-define( 'SPPOPUPS_VERSION', '1.1.0' );
+define( 'SPPOPUPS_VERSION', '1.1.1' );
 define( 'SPPOPUPS_PLUGIN_DIR', plugin_dir_path( __FILE__ ) );
 define( 'SPPOPUPS_PLUGIN_URL', plugin_dir_url( __FILE__ ) );
 define( 'SPPOPUPS_CACHE_TTL', 12 * HOUR_IN_SECONDS ); // 12 hours default

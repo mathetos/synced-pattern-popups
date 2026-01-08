@@ -3,7 +3,7 @@ Contributors: webdevmattcrom
 Tags: popup, modal, synced-patterns, ai, tldr
 Requires at least: 5.8
 Tested up to: 6.9
-Stable tag: 1.1.0
+Stable tag: 1.1.1
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -162,6 +162,14 @@ PHP 7.4 or higher.
 
 == Changelog ==
 
+= 1.1.1 =
+* Fixed: Block styles now properly load for all block types including core blocks and third-party blocks (Kadence, Genesis Blocks, etc.)
+* Fixed: Improved asset collection to ensure all necessary styles are loaded in modal popups
+* Fixed: Corrected rendering order to apply `the_content` filters before `do_blocks()` for proper block asset enqueuing
+* Fixed: Removed all debugging instrumentation code
+* Improved: Better handling of `style-blocks-*.css` files for third-party block libraries
+* Improved: Enhanced dependency collection for block styles to ensure all required styles are included
+
 = 1.1.0 =
 * New: Tabbed admin interface with Patterns, TLDR, and How to Use tabs
 * New: URL hash navigation for direct linking to specific admin tabs
@@ -193,6 +201,9 @@ PHP 7.4 or higher.
 * Full translation support
 
 == Upgrade Notice ==
+
+= 1.1.1 =
+Bug fix release addressing block style loading issues. All block styles (core and third-party) now properly load in modal popups. Recommended for all users.
 
 = 1.1.0 =
 Major admin interface update with tabbed navigation, improved usability, and individual pattern cache management. The admin interface now features a modern tabbed design with direct links to Patterns, TLDR settings, and usage instructions.
