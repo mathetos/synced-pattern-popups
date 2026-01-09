@@ -196,6 +196,33 @@
 		handleInitialTab();
 	}
 
+	/**
+	 * Handle install button click
+	 * Shows loading state and disables button during installation
+	 *
+	 * @param {Event} event Click event
+	 */
+	function handleInstallClick(event) {
+		var button = event.currentTarget;
+		var buttonText = button.querySelector('.sppopups-button-text');
+		var loadingDots = button.querySelector('.sppopups-loading-dots');
+
+		if (!buttonText || !loadingDots) {
+			return;
+		}
+
+		// Update button state
+		button.classList.add('sppopups-installing');
+		button.setAttribute('disabled', 'disabled');
+		button.style.pointerEvents = 'none';
+		button.style.opacity = '0.7';
+		buttonText.textContent = 'Installing';
+		loadingDots.style.display = 'inline-block';
+
+		// Allow navigation to proceed
+		// The button will remain in loading state until page reloads
+	}
+
 	function init() {
 		// Find all copy trigger buttons (both old .copy-trigger and new .sppopups-copy-trigger-icon)
 		var copyButtons = document.querySelectorAll('.copy-trigger, .sppopups-copy-trigger-icon');
@@ -203,6 +230,12 @@
 		// Add click handlers
 		copyButtons.forEach(function(button) {
 			button.addEventListener('click', handleCopyClick);
+		});
+
+		// Handle install button clicks
+		var installButtons = document.querySelectorAll('.sppopups-install-button');
+		installButtons.forEach(function(button) {
+			button.addEventListener('click', handleInstallClick);
 		});
 
 		// Initialize tabs

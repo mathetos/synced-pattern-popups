@@ -50,6 +50,10 @@ class SPPopups_Admin {
 		// Add meta box for popup support toggle
 		add_action( 'add_meta_boxes', array( $this, 'register_popup_support_metabox' ) );
 		add_action( 'save_post', array( $this, 'save_popup_support_metabox' ) );
+		
+		// Handle redirect after plugin activation
+		add_action( 'activated_plugin', array( $this, 'handle_plugin_activation_redirect' ), 10, 2 );
+		add_action( 'admin_init', array( $this, 'check_activation_redirect' ) );
 	}
 
 	/**
@@ -179,6 +183,11 @@ class SPPopups_Admin {
 				wp_safe_redirect( admin_url( 'themes.php?page=simplest-popup-patterns&tldr_settings_saved=1' ) );
 				exit;
 			}
+		}
+
+		// Handle install AI Experiments action
+		if ( isset( $_GET['action'] ) && 'install_ai_experiments' === $_GET['action'] ) {
+			$this->handle_install_ai_experiments();
 		}
 	}
 
@@ -583,6 +592,143 @@ class SPPopups_Admin {
 
 		// Update post meta
 		update_post_meta( $post_id, '_sppopups_support', $value );
+	}
+
+	/**
+	 * Handle install AI Experiments
+	 * Installs the plugin programmatically and redirects back to TLDR page
+	 */
+	private function handle_install_ai_experiments() {
+		// Verify nonce
+		check_admin_referer( 'install_ai_experiments' );
+
+		// Check user capability
+		if ( ! current_user_can( 'install_plugins' ) ) {
+			wp_die( esc_html__( 'You do not have permission to install plugins.', 'synced-pattern-popups' ) );
+		}
+
+		// Check if plugin is already installed
+		if ( ! function_exists( 'get_plugins' ) ) {
+			require_once ABSPATH . 'wp-admin/includes/plugin.php';
+		}
+
+		$plugins = get_plugins();
+		if ( isset( $plugins['ai/ai.php'] ) ) {
+			// Plugin already installed, just redirect
+			wp_safe_redirect( admin_url( 'themes.php?page=simplest-popup-patterns#tldr' ) );
+			exit;
+		}
+
+		// Required WordPress core files for plugin installation
+		require_once ABSPATH . 'wp-admin/includes/plugin-install.php';
+		require_once ABSPATH . 'wp-admin/includes/class-wp-upgrader.php';
+		require_once ABSPATH . 'wp-admin/includes/class-plugin-upgrader.php';
+		require_once ABSPATH . 'wp-admin/includes/class-automatic-upgrader-skin.php';
+		require_once ABSPATH . 'wp-admin/includes/file.php';
+
+		// Get plugin information from WordPress repository
+		$api = plugins_api(
+			'plugin_information',
+			array(
+				'slug'   => 'ai',
+				'fields' => array(
+					'sections' => false,
+				),
+			)
+		);
+
+		// Check for errors
+		if ( is_wp_error( $api ) ) {
+			wp_die(
+				sprintf(
+					/* translators: %s: Error message */
+					esc_html__( 'Error retrieving plugin information: %s', 'synced-pattern-popups' ),
+					esc_html( $api->get_error_message() )
+				)
+			);
+		}
+
+		// Initialize filesystem
+		$url = wp_nonce_url( admin_url( 'themes.php?page=simplest-popup-patterns' ), 'install_ai_experiments' );
+		$creds = request_filesystem_credentials( $url, '', false, false, null );
+		if ( false === $creds ) {
+			wp_die( esc_html__( 'Filesystem credentials are required to install plugins.', 'synced-pattern-popups' ) );
+		}
+
+		if ( ! WP_Filesystem( $creds ) ) {
+			wp_die( esc_html__( 'Filesystem initialization failed.', 'synced-pattern-popups' ) );
+		}
+
+		// Use Automatic_Upgrader_Skin for silent installation
+		$skin = new Automatic_Upgrader_Skin();
+		$upgrader = new Plugin_Upgrader( $skin );
+
+		// Install the plugin
+		$result = $upgrader->install( $api->download_link );
+
+		// Check for errors
+		if ( is_wp_error( $result ) ) {
+			wp_die(
+				sprintf(
+					/* translators: %s: Error message */
+					esc_html__( 'Plugin installation failed: %s', 'synced-pattern-popups' ),
+					esc_html( $result->get_error_message() )
+				)
+			);
+		}
+
+		if ( false === $result ) {
+			wp_die( esc_html__( 'Plugin installation failed. Please try again.', 'synced-pattern-popups' ) );
+		}
+
+		// Clear plugin cache
+		wp_clean_plugins_cache();
+
+		// Redirect back to TLDR page
+		wp_safe_redirect( admin_url( 'themes.php?page=simplest-popup-patterns#tldr' ) );
+		exit;
+	}
+
+	/**
+	 * Handle redirect after plugin activation
+	 * Sets a transient to track that we should redirect back to TLDR page
+	 *
+	 * @param string $plugin Plugin file path that was activated.
+	 * @param bool   $network_wide Whether the plugin was activated network-wide.
+	 */
+	public function handle_plugin_activation_redirect( $plugin, $network_wide ) {
+		// Only handle redirect for AI Experiments plugin
+		if ( 'ai/ai.php' !== $plugin ) {
+			return;
+		}
+
+		// Check if activation was initiated from our page
+		if ( isset( $_GET['sppopups_redirect'] ) && '1' === $_GET['sppopups_redirect'] ) {
+			// Set a transient to indicate we should redirect
+			set_transient( 'sppopups_redirect_after_activation', true, 30 );
+		}
+	}
+
+	/**
+	 * Check if we should redirect after plugin activation
+	 * Redirects to TLDR settings page if transient is set
+	 */
+	public function check_activation_redirect() {
+		// Only check on plugins page
+		global $pagenow;
+		if ( 'plugins.php' !== $pagenow ) {
+			return;
+		}
+
+		// Check if transient is set
+		if ( get_transient( 'sppopups_redirect_after_activation' ) ) {
+			// Delete the transient
+			delete_transient( 'sppopups_redirect_after_activation' );
+			
+			// Redirect to TLDR settings page
+			wp_safe_redirect( admin_url( 'themes.php?page=simplest-popup-patterns#tldr' ) );
+			exit;
+		}
 	}
 }
 
