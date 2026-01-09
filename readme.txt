@@ -3,7 +3,7 @@ Contributors: webdevmattcrom
 Tags: popup, modal, synced-patterns, ai, tldr
 Requires at least: 5.8
 Tested up to: 6.9
-Stable tag: 1.1.1
+Stable tag: 1.1.2
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -162,6 +162,14 @@ PHP 7.4 or higher.
 
 == Changelog ==
 
+= 1.1.2 =
+* Fixed: Added translators comment for sprintf with placeholders (Plugin Check compliance)
+* Fixed: Added proper nonce verification documentation for GET parameter handling
+* Improved: Added load_plugin_textdomain() for proper internationalization support
+* Improved: Updated German translation file (de_DE) with all current strings
+* Improved: Removed duplicate POT files for cleaner translation management
+* Improved: Enhanced internationalization support across all plugin strings
+
 = 1.1.1 =
 * Fixed: Block styles now properly load for all block types including core blocks and third-party blocks (Kadence, Genesis Blocks, etc.)
 * Fixed: Improved asset collection to ensure all necessary styles are loaded in modal popups
@@ -201,6 +209,9 @@ PHP 7.4 or higher.
 * Full translation support
 
 == Upgrade Notice ==
+
+= 1.1.2 =
+Internationalization and code quality improvements. Enhanced translation support with proper textdomain loading and updated German translations. All Plugin Check compliance issues resolved. Recommended for all users.
 
 = 1.1.1 =
 Bug fix release addressing block style loading issues. All block styles (core and third-party) now properly load in modal popups. Recommended for all users.
