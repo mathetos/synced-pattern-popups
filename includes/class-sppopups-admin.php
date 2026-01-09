@@ -429,7 +429,10 @@ class SPPopups_Admin {
 												<a 
 													href="<?php echo esc_url( $delete_transient_url ); ?>" 
 													class="button button-small delete-transient sppopups-action-transient"
-													onclick="return confirm('<?php echo esc_js( sprintf( __( 'Are you sure you want to delete the transient cache for pattern #%d?', 'synced-pattern-popups' ), $pattern_id ) ); ?>');"
+													onclick="return confirm('<?php
+													/* translators: %d: Pattern ID */
+													echo esc_js( sprintf( __( 'Are you sure you want to delete the transient cache for pattern #%d?', 'synced-pattern-popups' ), $pattern_id ) );
+													?>');"
 												>
 													<?php
 													/* translators: %d: Pattern ID */
@@ -706,6 +709,9 @@ class SPPopups_Admin {
 		}
 
 		// Check if activation was initiated from our page
+		// The activation URL includes a nonce via wp_nonce_url(), but WordPress core's activation redirect
+		// doesn't preserve it. This GET parameter is only used as a flag to set a transient for redirect.
+		// phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Used only as a flag, not for data processing.
 		if ( isset( $_GET['sppopups_redirect'] ) && '1' === $_GET['sppopups_redirect'] ) {
 			// Set a transient to indicate we should redirect
 			set_transient( 'sppopups_redirect_after_activation', true, 30 );

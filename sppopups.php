@@ -42,6 +42,13 @@ add_action( 'plugins_loaded', 'sppopups_init' );
  * Initialize the plugin
  */
 function sppopups_init() {
+	// Load plugin textdomain
+	load_plugin_textdomain(
+		'synced-pattern-popups',
+		false,
+		dirname( plugin_basename( __FILE__ ) ) . '/languages'
+	);
+
 	// Initialize settings
 	$settings = new SPPopups_Settings();
 	$settings->init();
