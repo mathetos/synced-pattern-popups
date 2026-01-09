@@ -141,6 +141,10 @@
 		// Handle tab link clicks
 		tabNavLinks.forEach(function(link) {
 			link.addEventListener('click', function(e) {
+				// Allow external links to open normally
+				if (link.hasAttribute('target') && link.getAttribute('target') === '_blank') {
+					return; // Don't prevent default for external links
+				}
 				e.preventDefault();
 				var href = link.getAttribute('href');
 				if (href && href.startsWith('#')) {

@@ -7,7 +7,7 @@ Stable tag: 1.1.2
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
-A modal popup system that loads WordPress Synced Pattern content on demand. Trigger with class "spp-trigger-{id}".
+Trigger a sleek modal popup from any WordPress Synced Pattern with a class name or "spp-trigger-{id}".
 
 == Description ==
 
@@ -31,14 +31,54 @@ Synced Pattern Popups is a lightweight, developer-friendly WordPress plugin that
 * **AI-Powered TLDR**: Generate AI summaries of your content with a single click (requires AI Experiments plugin)
 * **Developer Friendly**: Clean code, WordPress hooks, and extensible architecture
 
-**How It Works:**
+= What are Synced Patterns? =
+
+Synced Patterns (stored as `wp_block` posts) are reusable block layouts you can create and manage once, then reuse across your site. When you edit a synced pattern, any place it’s used is updated automatically.
+
+This plugin surfaces them with a dedicated admin screen at **Appearance → Synced Patterns**, making it easy to:
+- See each pattern's ID at a glance
+- Copy the trigger code
+- Edit or delete the pattern
+- Clear the cached popup output when needed
+
+= Major Features =
+
+= Modal popups powered by Synced Patterns =
+Create your popup content using the native Block Editor - layouts, images, galleries, buttons, and third-party blocks all work.
+
+= Simple trigger system (class or href) =
+Trigger popups with either:
+- `class="spp-trigger-{id}"`
+- `href="#spp-trigger-{id}"` (handy in the Block Editor)
+
+You can also set a custom modal width with: `spp-trigger-{id}-{width}`.
+
+= On-demand loading (AJAX) =
+Popup content loads only when needed, which keeps initial page loads fast.
+
+= Smart caching with automatic invalidation =
+Rendered popup output is cached using WordPress transients for performance, and automatically cleared when synced patterns change. You can also clear a single pattern’s cache from the admin UI.
+
+= Full block styling support (core + third‑party) =
+The plugin loads the styles required to render the synced pattern correctly inside the modal - including WordPress core block styles and supported third-party block styles.
+
+= Accessibility-first modal behavior =
+Includes keyboard navigation (Escape to close, Tab stays within the popup), focus management, and screen-reader friendly UI.
+
+= AI-powered TLDR (optional) =
+Generate AI summaries of the current page content on demand by adding a `spp-trigger-tldr` trigger. This feature requires the **AI Experiments** plugin and configured credentials (you’ll see guided setup in the TLDR tab).
+
+= Abilities API integration (WordPress 6.9+) =
+On WordPress 6.9+, the plugin registers Abilities to enable programmatic use cases (e.g., rendering popup content via `wp_execute_ability()` in custom workflows). If the Abilities API isn’t available, the plugin simply skips this integration.
+
+= How It Works =
 
 1. Create a Synced Pattern in WordPress (Appearance → Synced Patterns)
 2. Add a trigger to any element: `class="spp-trigger-123"` or `href="#spp-trigger-123"`
 3. When clicked, the popup opens with your pattern content
 4. Content loads via AJAX for optimal performance
 
-**No Configuration Needed:**
+= No Configuration Needed =
 
 The plugin works immediately after activation. Simply create a synced pattern, note its ID, and add a trigger to any element on your site.
 
@@ -103,8 +143,10 @@ Check these common issues:
 2. **Check pattern ID**: Verify the pattern ID exists in Appearance → Synced Patterns
 3. **Pattern status**: Ensure the pattern is published (not draft)
 4. **Sync status**: Only synced patterns work - unsynced patterns are excluded
-5. **Browser console**: Check for JavaScript errors in browser developer tools
-6. **Plugin active**: Verify the plugin is activated in Plugins menu
+5. **Toggle Forced On**: In your post or page, there's a setting called "Synced Pattern Popup Support". Toggle this on if your class or link is output on the page dynamically, like via a form or AJAX.
+6. **Browser console**: Check for JavaScript errors in browser developer tools. 
+
+Try to answer as many of those questions as you can when [submitting a support ticket](https://wordpress.org/support/plugin/synced-pattern-popups/). 
 
 = Why isn't my content loading? =
 
@@ -140,10 +182,6 @@ Yes! The plugin uses minimal CSS. You can override styles in your theme's CSS us
 * `.sppopups-container` - Content container
 * `.sppopups-content` - Content area
 
-= Does this require a build process? =
-
-No! The plugin uses plain JavaScript and CSS - no build process, no npm, no webpack. Just activate and use.
-
 = What WordPress version is required? =
 
 WordPress 5.8 or higher. The plugin is tested up to WordPress 6.9.
@@ -154,11 +192,9 @@ PHP 7.4 or higher.
 
 == Screenshots ==
 
-1. The Synced Patterns menu item appears under Appearance in WordPress Admin
-2. Setting up a popup trigger using the href attribute in the WordPress Block Editor
-3. Example modal displaying an Instagram-style grid layout with images and complex block layouts
-4. Example modal with simple text content, lists, and formatted blocks
-5. The admin interface showing all available synced patterns with their IDs, trigger codes, and management options
+1. An example Synced Pattern Popup using a 3rd party block: KadenceWP Blocks
+2. The Synced Patterns Popup settings screen listing your sites Synced Patterns. From here you can copy the trigger code, edit the pattern, delete the pattern, or clear the pattern transient cache.
+3. The TLDR settings panel, showing it enabled (because AI Experiments is enabled and configured correctly). Here you can customize your prompt and your TLDR cache length.
 
 == Changelog ==
 

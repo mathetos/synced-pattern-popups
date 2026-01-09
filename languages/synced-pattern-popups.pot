@@ -241,6 +241,10 @@ msgstr ""
 msgid "How to Use"
 msgstr ""
 
+#: includes/class-sppopups-admin.php:285
+msgid "Get Support"
+msgstr ""
+
 #: includes/class-sppopups-admin.php:292
 msgid "Add New"
 msgstr ""
