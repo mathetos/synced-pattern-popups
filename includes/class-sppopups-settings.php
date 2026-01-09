@@ -86,7 +86,7 @@ class SPPopups_Settings {
 	 * @return string Default prompt
 	 */
 	private function get_default_prompt() {
-		return "Create a concise TLDR (Too Long; Didn't Read) summary of the following content. Format your response using Markdown syntax (use **bold** for emphasis, * for lists, ## for headings, etc.). The summary should be 2-3 sentences and capture the main points:\n\n{content}";
+		return "Create a concise TLDR (Too Long; Didn't Read) summary of the following content. The summary should be 2-3 sentences and capture the main points.";
 	}
 
 	/**
@@ -136,7 +136,7 @@ class SPPopups_Settings {
 		?>
 		<textarea name="sppopups_tldr_prompt" rows="5" cols="50" class="large-text"><?php echo esc_textarea( $value ); ?></textarea>
 		<p class="description">
-			<?php esc_html_e( 'The prompt template used to generate TLDR summaries. Use {content} as a placeholder for the page content.', 'synced-pattern-popups' ); ?>
+			<?php esc_html_e( 'The prompt template used to generate TLDR summaries. The page content will be automatically appended to your prompt.', 'synced-pattern-popups' ); ?>
 		</p>
 		<?php
 	}
@@ -271,14 +271,31 @@ class SPPopups_Settings {
 						</tr>
 						<tr>
 							<th scope="row">
-								<label for="sppopups_tldr_prompt">
-									<?php esc_html_e( 'TLDR Prompt Template', 'synced-pattern-popups' ); ?>
+								<label for="sppopups_tldr_prompt_type">
+									<?php esc_html_e( 'TLDR Prompt', 'synced-pattern-popups' ); ?>
 								</label>
 							</th>
 							<td>
-								<textarea name="sppopups_tldr_prompt" id="sppopups_tldr_prompt" rows="5" cols="50" class="large-text code" style="font-family: 'Courier New', Courier, monospace; font-size: 13px;"><?php echo esc_textarea( get_option( 'sppopups_tldr_prompt', $this->get_default_prompt() ) ); ?></textarea>
+								<?php
+								$prompt_type = get_option( 'sppopups_tldr_prompt_custom', false ) ? 'custom' : 'default';
+								$custom_prompt = get_option( 'sppopups_tldr_prompt', '' );
+								$default_prompt = $this->get_default_prompt();
+								?>
+								<fieldset>
+									<label style="margin-right: 20px;">
+										<input type="radio" name="sppopups_tldr_prompt_type" value="default" <?php checked( $prompt_type, 'default' ); ?> />
+										<?php esc_html_e( 'Default', 'synced-pattern-popups' ); ?>
+									</label>
+									<label>
+										<input type="radio" name="sppopups_tldr_prompt_type" value="custom" <?php checked( $prompt_type, 'custom' ); ?> />
+										<?php esc_html_e( 'Custom', 'synced-pattern-popups' ); ?>
+									</label>
+								</fieldset>
+								<div id="sppopups-tldr-prompt-custom-wrapper" style="margin-top: 12px; <?php echo ( 'custom' !== $prompt_type ) ? 'display: none;' : ''; ?>">
+									<textarea name="sppopups_tldr_prompt" id="sppopups_tldr_prompt" rows="5" cols="50" class="large-text code" style="font-family: 'Courier New', Courier, monospace; font-size: 13px;"><?php echo esc_textarea( ! empty( $custom_prompt ) ? $custom_prompt : $default_prompt ); ?></textarea>
+								</div>
 								<p class="description" style="margin-top: 8px;">
-									<?php esc_html_e( 'The prompt template used to generate TLDR summaries. Use {content} as a placeholder for the page content.', 'synced-pattern-popups' ); ?>
+									<?php esc_html_e( 'The prompt template used to generate TLDR summaries. The page content will be automatically appended to your prompt.', 'synced-pattern-popups' ); ?>
 								</p>
 							</td>
 						</tr>
@@ -348,14 +365,31 @@ class SPPopups_Settings {
 							</tr>
 							<tr>
 								<th scope="row">
-									<label for="sppopups_tldr_prompt_tab">
-										<?php esc_html_e( 'TLDR Prompt Template', 'synced-pattern-popups' ); ?>
+									<label for="sppopups_tldr_prompt_type_tab">
+										<?php esc_html_e( 'TLDR Prompt', 'synced-pattern-popups' ); ?>
 									</label>
 								</th>
 								<td>
-									<textarea name="sppopups_tldr_prompt" id="sppopups_tldr_prompt_tab" rows="5" cols="50" class="large-text code"><?php echo esc_textarea( get_option( 'sppopups_tldr_prompt', $this->get_default_prompt() ) ); ?></textarea>
+									<?php
+									$prompt_type = get_option( 'sppopups_tldr_prompt_custom', false ) ? 'custom' : 'default';
+									$custom_prompt = get_option( 'sppopups_tldr_prompt', '' );
+									$default_prompt = $this->get_default_prompt();
+									?>
+									<fieldset>
+										<label style="margin-right: 20px;">
+											<input type="radio" name="sppopups_tldr_prompt_type" value="default" id="sppopups_tldr_prompt_type_tab_default" <?php checked( $prompt_type, 'default' ); ?> />
+											<?php esc_html_e( 'Default', 'synced-pattern-popups' ); ?>
+										</label>
+										<label>
+											<input type="radio" name="sppopups_tldr_prompt_type" value="custom" id="sppopups_tldr_prompt_type_tab_custom" <?php checked( $prompt_type, 'custom' ); ?> />
+											<?php esc_html_e( 'Custom', 'synced-pattern-popups' ); ?>
+										</label>
+									</fieldset>
+									<div id="sppopups-tldr-prompt-custom-wrapper-tab" style="margin-top: 12px; <?php echo ( 'custom' !== $prompt_type ) ? 'display: none;' : ''; ?>">
+										<textarea name="sppopups_tldr_prompt" id="sppopups_tldr_prompt_tab" rows="5" cols="50" class="large-text code"><?php echo esc_textarea( ! empty( $custom_prompt ) ? $custom_prompt : $default_prompt ); ?></textarea>
+									</div>
 									<p class="description">
-										<?php esc_html_e( 'The prompt template used to generate TLDR summaries. Use {content} as a placeholder for the page content.', 'synced-pattern-popups' ); ?>
+										<?php esc_html_e( 'The prompt template used to generate TLDR summaries. The page content will be automatically appended to your prompt.', 'synced-pattern-popups' ); ?>
 									</p>
 								</td>
 							</tr>
@@ -496,8 +530,15 @@ class SPPopups_Settings {
 	 * @return string Prompt template
 	 */
 	public static function get_tldr_prompt() {
-		$default = "Create a concise TLDR (Too Long; Didn't Read) summary of the following content. Format your response using Markdown syntax (use **bold** for emphasis, * for lists, ## for headings, etc.). The summary should be 2-3 sentences and capture the main points:\n\n{content}";
-		return get_option( 'sppopups_tldr_prompt', $default );
+		$default = "Create a concise TLDR (Too Long; Didn't Read) summary of the following content. The summary should be 2-3 sentences and capture the main points.";
+		$use_custom = get_option( 'sppopups_tldr_prompt_custom', false );
+		
+		if ( $use_custom ) {
+			$custom_prompt = get_option( 'sppopups_tldr_prompt', '' );
+			return ! empty( $custom_prompt ) ? $custom_prompt : $default;
+		}
+		
+		return $default;
 	}
 
 	/**

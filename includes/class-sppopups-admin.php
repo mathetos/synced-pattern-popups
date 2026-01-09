@@ -168,8 +168,12 @@ class SPPopups_Admin {
 				$tldr_enabled = isset( $_POST['sppopups_tldr_enabled'] ) ? true : false;
 				update_option( 'sppopups_tldr_enabled', $tldr_enabled );
 
-				// Save TLDR prompt
-				if ( isset( $_POST['sppopups_tldr_prompt'] ) ) {
+				// Save TLDR prompt type and custom prompt
+				$prompt_type = isset( $_POST['sppopups_tldr_prompt_type'] ) ? sanitize_text_field( wp_unslash( $_POST['sppopups_tldr_prompt_type'] ) ) : 'default';
+				$use_custom = ( 'custom' === $prompt_type );
+				update_option( 'sppopups_tldr_prompt_custom', $use_custom );
+				
+				if ( $use_custom && isset( $_POST['sppopups_tldr_prompt'] ) ) {
 					$tldr_prompt = sanitize_textarea_field( wp_unslash( $_POST['sppopups_tldr_prompt'] ) );
 					update_option( 'sppopups_tldr_prompt', $tldr_prompt );
 				}

@@ -304,6 +304,40 @@
 
 		// Initialize table scroll indicators
 		initTableScrollIndicators();
+
+		// Initialize TLDR prompt type toggle
+		initTldrPromptToggle();
+	}
+
+	/**
+	 * Initialize TLDR prompt type toggle (Default/Custom)
+	 */
+	function initTldrPromptToggle() {
+		var promptTypeRadios = document.querySelectorAll('input[name="sppopups_tldr_prompt_type"]');
+		var customWrappers = document.querySelectorAll('#sppopups-tldr-prompt-custom-wrapper, #sppopups-tldr-prompt-custom-wrapper-tab');
+
+		function toggleCustomPrompt() {
+			var selectedValue = '';
+			promptTypeRadios.forEach(function(radio) {
+				if (radio.checked) {
+					selectedValue = radio.value;
+				}
+			});
+
+			customWrappers.forEach(function(wrapper) {
+				if (wrapper) {
+					wrapper.style.display = (selectedValue === 'custom') ? 'block' : 'none';
+				}
+			});
+		}
+
+		// Set initial state
+		toggleCustomPrompt();
+
+		// Listen for changes
+		promptTypeRadios.forEach(function(radio) {
+			radio.addEventListener('change', toggleCustomPrompt);
+		});
 	}
 })();
 

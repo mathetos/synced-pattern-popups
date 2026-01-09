@@ -152,12 +152,16 @@ class SPPopups_TLDR {
 		// Get prompt template
 		$prompt_template = SPPopups_Settings::get_tldr_prompt();
 		
-		// Replace {content} placeholder
-		$full_prompt = str_replace( '{content}', $content, $prompt_template );
+		// Always append the content to the prompt, regardless of user's custom prompt
+		$full_prompt = trim( $prompt_template ) . "\n\n" . $content;
+
+		// System instruction to always enforce markdown formatting
+		$system_instruction = __( 'Format your response using Markdown syntax (use **bold** for emphasis, * for lists, ## for headings, etc.).', 'synced-pattern-popups' );
 
 		try {
 			// Use AI_Client to generate TLDR
 			$result = \WordPress\AI_Client\AI_Client::prompt_with_wp_error( $full_prompt )
+				->using_system_instruction( $system_instruction )
 				->using_temperature( 0.7 )
 				->using_model_preference( ...$this->get_preferred_models() )
 				->generate_text();
