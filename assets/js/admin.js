@@ -223,6 +223,67 @@
 		// The button will remain in loading state until page reloads
 	}
 
+	/**
+	 * Update scroll indicators for table wrapper
+	 * Shows/hides visual indicators when table is scrollable
+	 *
+	 * @param {HTMLElement} wrapper Table wrapper element
+	 */
+	function updateScrollIndicators(wrapper) {
+		if (!wrapper) {
+			return;
+		}
+
+		var scrollLeft = wrapper.scrollLeft;
+		var scrollWidth = wrapper.scrollWidth;
+		var clientWidth = wrapper.clientWidth;
+		var maxScroll = scrollWidth - clientWidth;
+
+		// Update classes based on scroll position
+		if (scrollLeft > 0) {
+			wrapper.classList.add('scrollable-left');
+		} else {
+			wrapper.classList.remove('scrollable-left');
+		}
+
+		if (scrollLeft < maxScroll - 1) { // -1 for rounding issues
+			wrapper.classList.add('scrollable-right');
+		} else {
+			wrapper.classList.remove('scrollable-right');
+		}
+	}
+
+	/**
+	 * Initialize scroll indicators for responsive tables
+	 */
+	function initTableScrollIndicators() {
+		var tableWrappers = document.querySelectorAll('.sppopups-table-wrapper');
+
+		tableWrappers.forEach(function(wrapper) {
+			// Initial check
+			updateScrollIndicators(wrapper);
+
+			// Update on scroll
+			wrapper.addEventListener('scroll', function() {
+				updateScrollIndicators(wrapper);
+			});
+
+			// Update on resize
+			var resizeObserver = new ResizeObserver(function() {
+				updateScrollIndicators(wrapper);
+			});
+
+			if (window.ResizeObserver) {
+				resizeObserver.observe(wrapper);
+			} else {
+				// Fallback for browsers without ResizeObserver
+				window.addEventListener('resize', function() {
+					updateScrollIndicators(wrapper);
+				});
+			}
+		});
+	}
+
 	function init() {
 		// Find all copy trigger buttons (both old .copy-trigger and new .sppopups-copy-trigger-icon)
 		var copyButtons = document.querySelectorAll('.copy-trigger, .sppopups-copy-trigger-icon');
@@ -240,6 +301,9 @@
 
 		// Initialize tabs
 		initTabs();
+
+		// Initialize table scroll indicators
+		initTableScrollIndicators();
 	}
 })();
 

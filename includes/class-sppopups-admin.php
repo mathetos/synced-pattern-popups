@@ -54,6 +54,9 @@ class SPPopups_Admin {
 		// Handle redirect after plugin activation
 		add_action( 'activated_plugin', array( $this, 'handle_plugin_activation_redirect' ), 10, 2 );
 		add_action( 'admin_init', array( $this, 'check_activation_redirect' ) );
+		
+		// Add link to Synced Pattern Popups on Patterns list table
+		add_action( 'admin_footer', array( $this, 'add_patterns_list_table_link' ) );
 	}
 
 	/**
@@ -316,7 +319,6 @@ class SPPopups_Admin {
 									<th class="column-id"><?php esc_html_e( 'ID', 'synced-pattern-popups' ); ?></th>
 									<th class="column-title"><?php esc_html_e( 'Title', 'synced-pattern-popups' ); ?></th>
 									<th class="column-status"><?php esc_html_e( 'Status', 'synced-pattern-popups' ); ?></th>
-									<th class="column-sync-status"><?php esc_html_e( 'Sync Status', 'synced-pattern-popups' ); ?></th>
 									<th class="column-trigger"><?php esc_html_e( 'Trigger Code', 'synced-pattern-popups' ); ?></th>
 									<th class="column-actions"><?php esc_html_e( 'Actions', 'synced-pattern-popups' ); ?></th>
 								</tr>
@@ -352,10 +354,10 @@ class SPPopups_Admin {
 									$status = isset( $status_cache[ $post_status ] ) && $status_cache[ $post_status ] !== null ? $status_cache[ $post_status ] : null;
 									?>
 									<tr>
-										<td class="column-id">
+										<td class="column-id" data-colname="<?php esc_attr_e( 'ID', 'synced-pattern-popups' ); ?>">
 											<strong class="pattern-id"><?php echo esc_html( $pattern_id ); ?></strong>
 										</td>
-										<td class="column-title">
+										<td class="column-title" data-colname="<?php esc_attr_e( 'Title', 'synced-pattern-popups' ); ?>">
 											<strong>
 												<?php
 												$pattern_title = isset( $pattern->post_title ) && ! empty( $pattern->post_title ) ? $pattern->post_title : __( '(no title)', 'synced-pattern-popups' );
@@ -369,7 +371,7 @@ class SPPopups_Admin {
 												<?php endif; ?>
 											</strong>
 										</td>
-										<td class="column-status">
+										<td class="column-status" data-colname="<?php esc_attr_e( 'Status', 'synced-pattern-popups' ); ?>">
 											<?php
 											if ( $status && isset( $status->label ) ) {
 												$status_class = 'publish' === $post_status ? 'status-publish' : 'status-' . esc_attr( $post_status );
@@ -381,14 +383,7 @@ class SPPopups_Admin {
 											}
 											?>
 										</td>
-										<td class="column-sync-status">
-											<?php if ( $is_synced ) : ?>
-												<span class="status-badge status-synced"><?php esc_html_e( 'Synced', 'synced-pattern-popups' ); ?></span>
-												<?php else : ?>
-												<span class="status-badge status-unsynced"><?php esc_html_e( 'Unsynced', 'synced-pattern-popups' ); ?></span>
-											<?php endif; ?>
-										</td>
-										<td class="column-trigger">
+										<td class="column-trigger" data-colname="<?php esc_attr_e( 'Trigger Code', 'synced-pattern-popups' ); ?>">
 											<div class="sppopups-trigger-code-wrapper">
 												<span class="sppopups-trigger-code-text"><?php echo esc_html( $trigger_code ); ?></span>
 												<button 
@@ -403,37 +398,41 @@ class SPPopups_Admin {
 												</button>
 											</div>
 										</td>
-										<td class="column-actions">
-											<?php if ( $edit_url ) : ?>
-												<a href="<?php echo esc_url( $edit_url ); ?>" class="button button-small">
-													<?php esc_html_e( 'Edit', 'synced-pattern-popups' ); ?>
-												</a>
-											<?php endif; ?>
-											<?php if ( current_user_can( 'delete_post', $pattern_id ) ) : ?>
-												<a 
-													href="<?php echo esc_url( $delete_url ); ?>" 
-													class="button button-small delete-pattern"
-													onclick="return confirm('<?php echo esc_js( __( 'Are you sure you want to delete this pattern?', 'synced-pattern-popups' ) ); ?>');"
-												>
-													<?php esc_html_e( 'Delete', 'synced-pattern-popups' ); ?>
-												</a>
-											<?php endif; ?>
-											<?php
-											$delete_transient_url = wp_nonce_url(
-												admin_url( 'themes.php?page=simplest-popup-patterns&action=delete_transient&pattern_id=' . $pattern_id ),
-												'delete_transient_' . $pattern_id
-											);
-											?>
-											<a 
-												href="<?php echo esc_url( $delete_transient_url ); ?>" 
-												class="button button-small delete-transient"
-												onclick="return confirm('<?php echo esc_js( sprintf( __( 'Are you sure you want to delete the transient cache for pattern #%d?', 'synced-pattern-popups' ), $pattern_id ) ); ?>');"
-											>
+										<td class="column-actions" data-colname="<?php esc_attr_e( 'Actions', 'synced-pattern-popups' ); ?>">
+											<div class="sppopups-actions-wrapper">
+												<div class="sppopups-actions-row">
+													<?php if ( $edit_url ) : ?>
+														<a href="<?php echo esc_url( $edit_url ); ?>" class="button button-small">
+															<?php esc_html_e( 'Edit', 'synced-pattern-popups' ); ?>
+														</a>
+													<?php endif; ?>
+													<?php if ( current_user_can( 'delete_post', $pattern_id ) ) : ?>
+														<a 
+															href="<?php echo esc_url( $delete_url ); ?>" 
+															class="button button-small delete-pattern"
+															onclick="return confirm('<?php echo esc_js( __( 'Are you sure you want to delete this pattern?', 'synced-pattern-popups' ) ); ?>');"
+														>
+															<?php esc_html_e( 'Delete', 'synced-pattern-popups' ); ?>
+														</a>
+													<?php endif; ?>
+												</div>
 												<?php
-												/* translators: %d: Pattern ID */
-												echo esc_html( sprintf( __( 'Delete Transient #%d', 'synced-pattern-popups' ), $pattern_id ) );
+												$delete_transient_url = wp_nonce_url(
+													admin_url( 'themes.php?page=simplest-popup-patterns&action=delete_transient&pattern_id=' . $pattern_id ),
+													'delete_transient_' . $pattern_id
+												);
 												?>
-											</a>
+												<a 
+													href="<?php echo esc_url( $delete_transient_url ); ?>" 
+													class="button button-small delete-transient sppopups-action-transient"
+													onclick="return confirm('<?php echo esc_js( sprintf( __( 'Are you sure you want to delete the transient cache for pattern #%d?', 'synced-pattern-popups' ), $pattern_id ) ); ?>');"
+												>
+													<?php
+													/* translators: %d: Pattern ID */
+													echo esc_html( sprintf( __( 'Delete Transient #%d', 'synced-pattern-popups' ), $pattern_id ) );
+													?>
+												</a>
+											</div>
 										</td>
 									</tr>
 								<?php endforeach; ?>
@@ -729,6 +728,57 @@ class SPPopups_Admin {
 			wp_safe_redirect( admin_url( 'themes.php?page=simplest-popup-patterns#tldr' ) );
 			exit;
 		}
+	}
+
+	/**
+	 * Add link to Synced Pattern Popups on Patterns list table page
+	 * Adds a link next to the "Add Pattern" button
+	 */
+	public function add_patterns_list_table_link() {
+		global $pagenow, $typenow;
+
+		// Only on the Patterns (wp_block) list table page
+		if ( 'edit.php' !== $pagenow || 'wp_block' !== $typenow ) {
+			return;
+		}
+
+		$link_url = admin_url( 'themes.php?page=simplest-popup-patterns' );
+		$link_text = __( 'Go to Synced Pattern Popups', 'synced-pattern-popups' );
+		?>
+		<script type="text/javascript">
+		(function() {
+			// Find the page title actions area
+			var pageTitle = document.querySelector('.wp-heading-inline');
+			if (!pageTitle) {
+				return;
+			}
+
+			// Find the parent container that holds the title and buttons
+			var titleContainer = pageTitle.parentElement;
+			if (!titleContainer) {
+				return;
+			}
+
+			// Find all page-title-action buttons
+			var actionButtons = titleContainer.querySelectorAll('.page-title-action');
+			if (actionButtons.length === 0) {
+				return;
+			}
+
+			// Get the last button (usually "Add Pattern")
+			var lastButton = actionButtons[actionButtons.length - 1];
+
+			// Create the link with WordPress admin button classes
+			var link = document.createElement('a');
+			link.href = <?php echo wp_json_encode( $link_url ); ?>;
+			link.textContent = <?php echo wp_json_encode( $link_text ); ?>;
+			link.className = 'page-title-action';
+
+			// Insert after the last button
+			lastButton.parentNode.insertBefore(link, lastButton.nextSibling);
+		})();
+		</script>
+		<?php
 	}
 }
 
