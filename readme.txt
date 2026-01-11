@@ -3,7 +3,7 @@ Contributors: webdevmattcrom
 Tags: popup, modal, synced-patterns, ai, tldr
 Requires at least: 5.8
 Tested up to: 6.9
-Stable tag: 1.1.2
+Stable tag: 1.1.3
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -198,6 +198,13 @@ PHP 7.4 or higher.
 
 == Changelog ==
 
+= 1.1.3 =
+* New: Added delayed admin review notice to encourage user reviews (appears after 10 days on settings page)
+* New: Custom styled review notice with dismiss functionality (AJAX-based)
+* New: Settings link added to plugin action links for quick access
+* Improved: Admin UI consistency with unified 960px max-width constraint for all settings content
+* Improved: Review notice styling matches modern WordPress design patterns
+
 = 1.1.2 =
 * Fixed: Added translators comment for sprintf with placeholders (Plugin Check compliance)
 * Fixed: Added proper nonce verification documentation for GET parameter handling
@@ -245,6 +252,9 @@ PHP 7.4 or higher.
 * Full translation support
 
 == Upgrade Notice ==
+
+= 1.1.3 =
+Admin UI improvements and review notice feature. Settings page now has consistent width constraints, and a friendly review notice will appear after 10 days to encourage user feedback. All existing functionality remains unchanged.
 
 = 1.1.2 =
 Internationalization and code quality improvements. Enhanced translation support with proper textdomain loading and updated German translations. All Plugin Check compliance issues resolved. Recommended for all users.

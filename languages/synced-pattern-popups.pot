@@ -2,14 +2,14 @@
 # This file is distributed under the GPL v2 or later.
 msgid ""
 msgstr ""
-"Project-Id-Version: Synced Pattern Popups 1.1.2\n"
-"Report-Msgid-Bugs-To: https://wordpress.org/support/plugin/synced-pattern-popups\n"
+"Project-Id-Version: Synced Pattern Popups 1.1.3\n"
+"Report-Msgid-Bugs-To: https://wordpress.org/support/plugin/sppopups\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"POT-Creation-Date: 2026-01-09T16:03:54+00:00\n"
+"POT-Creation-Date: 2026-01-11T11:09:58+00:00\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "X-Generator: WP-CLI 2.12.0\n"
 "X-Domain: synced-pattern-popups\n"
@@ -98,7 +98,7 @@ msgstr ""
 
 #: includes/class-sppopups-abilities.php:218
 #: includes/class-sppopups-abilities.php:299
-#: includes/class-sppopups-admin.php:367
+#: includes/class-sppopups-admin.php:375
 msgid "(no title)"
 msgstr ""
 
@@ -184,30 +184,30 @@ msgstr ""
 msgid "Either post_id or html parameter is required."
 msgstr ""
 
-#: includes/class-sppopups-admin.php:67
-#: includes/class-sppopups-admin.php:68
-#: includes/class-sppopups-admin.php:264
+#: includes/class-sppopups-admin.php:71
+#: includes/class-sppopups-admin.php:72
+#: includes/class-sppopups-admin.php:269
 msgid "Synced Patterns"
 msgstr ""
 
-#: includes/class-sppopups-admin.php:105
+#: includes/class-sppopups-admin.php:110
 msgid "Copied!"
 msgstr ""
 
-#: includes/class-sppopups-admin.php:106
+#: includes/class-sppopups-admin.php:111
 msgid "Failed to copy"
 msgstr ""
 
-#: includes/class-sppopups-admin.php:163
+#: includes/class-sppopups-admin.php:168
 msgid "Security check failed."
 msgstr ""
 
-#: includes/class-sppopups-admin.php:230
+#: includes/class-sppopups-admin.php:235
 msgid "Pattern deleted successfully."
 msgstr ""
 
 #. translators: %d: number of cache entries deleted
-#: includes/class-sppopups-admin.php:236
+#: includes/class-sppopups-admin.php:241
 #, php-format
 msgid "Cache cleared successfully. %d entry deleted."
 msgid_plural "Cache cleared successfully. %d entries deleted."
@@ -215,240 +215,244 @@ msgstr[0] ""
 msgstr[1] ""
 
 #. translators: %d: Pattern ID
-#: includes/class-sppopups-admin.php:250
+#: includes/class-sppopups-admin.php:255
 #, php-format
 msgid "Transient cache deleted successfully for pattern #%d."
 msgstr ""
 
-#: includes/class-sppopups-admin.php:257
+#: includes/class-sppopups-admin.php:262
 msgid "TLDR settings saved successfully."
 msgstr ""
 
-#: includes/class-sppopups-admin.php:269
+#: includes/class-sppopups-admin.php:274
 msgid "Learn more about Synced Pattern Popups"
 msgstr ""
 
-#: includes/class-sppopups-admin.php:277
+#: includes/class-sppopups-admin.php:282
 msgid "Patterns"
 msgstr ""
 
-#: includes/class-sppopups-admin.php:280
+#: includes/class-sppopups-admin.php:285
 #: includes/class-sppopups-ajax.php:362
 msgid "TLDR"
 msgstr ""
 
-#: includes/class-sppopups-admin.php:283
+#: includes/class-sppopups-admin.php:288
 msgid "How to Use"
 msgstr ""
 
-#: includes/class-sppopups-admin.php:285
+#: includes/class-sppopups-admin.php:291
 msgid "Get Support"
 msgstr ""
 
-#: includes/class-sppopups-admin.php:292
+#: includes/class-sppopups-admin.php:300
 msgid "Add New"
 msgstr ""
 
-#: includes/class-sppopups-admin.php:301
+#: includes/class-sppopups-admin.php:309
 msgid "Clear Transient Cache"
 msgstr ""
 
-#: includes/class-sppopups-admin.php:306
+#: includes/class-sppopups-admin.php:314
 msgid "Manage synced patterns that can be used as popups. Only synced patterns are available for popup triggers."
 msgstr ""
 
-#: includes/class-sppopups-admin.php:312
+#: includes/class-sppopups-admin.php:320
 msgid "No synced patterns found."
 msgstr ""
 
-#: includes/class-sppopups-admin.php:314
+#: includes/class-sppopups-admin.php:322
 msgid "Create your first synced pattern"
 msgstr ""
 
-#: includes/class-sppopups-admin.php:323
-#: includes/class-sppopups-admin.php:361
+#: includes/class-sppopups-admin.php:331
+#: includes/class-sppopups-admin.php:369
 msgid "ID"
 msgstr ""
 
-#: includes/class-sppopups-admin.php:324
-#: includes/class-sppopups-admin.php:364
+#: includes/class-sppopups-admin.php:332
+#: includes/class-sppopups-admin.php:372
 msgid "Title"
 msgstr ""
 
-#: includes/class-sppopups-admin.php:325
-#: includes/class-sppopups-admin.php:378
+#: includes/class-sppopups-admin.php:333
+#: includes/class-sppopups-admin.php:386
 msgid "Status"
 msgstr ""
 
-#: includes/class-sppopups-admin.php:326
-#: includes/class-sppopups-admin.php:390
+#: includes/class-sppopups-admin.php:334
+#: includes/class-sppopups-admin.php:398
 msgid "Trigger Code"
 msgstr ""
 
-#: includes/class-sppopups-admin.php:327
-#: includes/class-sppopups-admin.php:405
+#: includes/class-sppopups-admin.php:335
+#: includes/class-sppopups-admin.php:413
 msgid "Actions"
 msgstr ""
 
-#: includes/class-sppopups-admin.php:397
-#: includes/class-sppopups-admin.php:398
+#: includes/class-sppopups-admin.php:405
+#: includes/class-sppopups-admin.php:406
 msgid "Copy to Clipboard"
 msgstr ""
 
-#: includes/class-sppopups-admin.php:410
+#: includes/class-sppopups-admin.php:418
 msgid "Edit"
 msgstr ""
 
-#: includes/class-sppopups-admin.php:417
+#: includes/class-sppopups-admin.php:425
 msgid "Are you sure you want to delete this pattern?"
 msgstr ""
 
-#: includes/class-sppopups-admin.php:419
+#: includes/class-sppopups-admin.php:427
 msgid "Delete"
 msgstr ""
 
 #. translators: %d: Pattern ID
-#: includes/class-sppopups-admin.php:434
+#: includes/class-sppopups-admin.php:442
 #, php-format
 msgid "Are you sure you want to delete the transient cache for pattern #%d?"
 msgstr ""
 
 #. translators: %d: Pattern ID
-#: includes/class-sppopups-admin.php:439
+#: includes/class-sppopups-admin.php:447
 #, php-format
 msgid "Delete Transient #%d"
 msgstr ""
 
-#: includes/class-sppopups-admin.php:464
+#: includes/class-sppopups-admin.php:472
 msgid "How to Use Synced Pattern Popups"
 msgstr ""
 
-#: includes/class-sppopups-admin.php:466
+#: includes/class-sppopups-admin.php:474
 msgid "There are two ways to trigger a popup on your site:"
 msgstr ""
 
-#: includes/class-sppopups-admin.php:470
+#: includes/class-sppopups-admin.php:478
 msgid "Method 1: Class Name"
 msgstr ""
 
-#: includes/class-sppopups-admin.php:471
+#: includes/class-sppopups-admin.php:479
 msgid "Add the class"
 msgstr ""
 
-#: includes/class-sppopups-admin.php:471
+#: includes/class-sppopups-admin.php:479
 msgid "to any clickable element, where"
 msgstr ""
 
-#: includes/class-sppopups-admin.php:471
+#: includes/class-sppopups-admin.php:479
 msgid "is the numeric ID of your Synced Pattern."
 msgstr ""
 
-#: includes/class-sppopups-admin.php:472
+#: includes/class-sppopups-admin.php:480
 msgid "Examples:"
 msgstr ""
 
-#: includes/class-sppopups-admin.php:473
 #: includes/class-sppopups-admin.php:481
+#: includes/class-sppopups-admin.php:489
 msgid "Open Popup"
 msgstr ""
 
-#: includes/class-sppopups-admin.php:474
+#: includes/class-sppopups-admin.php:482
 msgid "Click Me"
 msgstr ""
 
-#: includes/class-sppopups-admin.php:478
+#: includes/class-sppopups-admin.php:486
 msgid "Method 2: Href Attribute"
 msgstr ""
 
-#: includes/class-sppopups-admin.php:479
+#: includes/class-sppopups-admin.php:487
 msgid "Set the"
 msgstr ""
 
-#: includes/class-sppopups-admin.php:479
+#: includes/class-sppopups-admin.php:487
 msgid "attribute to"
 msgstr ""
 
-#: includes/class-sppopups-admin.php:479
+#: includes/class-sppopups-admin.php:487
 msgid "on any link element. This is especially useful in the WordPress Block Editor where you can't easily add custom classes."
 msgstr ""
 
-#: includes/class-sppopups-admin.php:480
-#: includes/class-sppopups-admin.php:487
+#: includes/class-sppopups-admin.php:488
+#: includes/class-sppopups-admin.php:495
 msgid "Example:"
 msgstr ""
 
-#: includes/class-sppopups-admin.php:485
+#: includes/class-sppopups-admin.php:493
 msgid "Custom Width"
 msgstr ""
 
-#: includes/class-sppopups-admin.php:486
+#: includes/class-sppopups-admin.php:494
 msgid "You can specify a custom modal width by adding a width suffix:"
 msgstr ""
 
-#: includes/class-sppopups-admin.php:486
+#: includes/class-sppopups-admin.php:494
 msgid "where width is in pixels (100-5000px)."
 msgstr ""
 
-#: includes/class-sppopups-admin.php:488
+#: includes/class-sppopups-admin.php:496
 msgid "Open 800px Modal"
 msgstr ""
 
-#: includes/class-sppopups-admin.php:492
+#: includes/class-sppopups-admin.php:500
 msgid "Finding Pattern IDs"
 msgstr ""
 
-#: includes/class-sppopups-admin.php:493
+#: includes/class-sppopups-admin.php:501
 msgid "Go to WordPress Admin → Appearance → Synced Patterns. The ID column shows the pattern ID prominently. You can also click the \"Copy Trigger\" button in the Actions column to copy the complete trigger code."
 msgstr ""
 
-#: includes/class-sppopups-admin.php:516
+#: includes/class-sppopups-admin.php:524
 msgid "Synced Pattern Popup Support"
 msgstr ""
 
-#: includes/class-sppopups-admin.php:544
+#: includes/class-sppopups-admin.php:552
 #: includes/class-sppopups-settings.php:287
 #: includes/class-sppopups-settings.php:381
 msgid "Default"
 msgstr ""
 
-#: includes/class-sppopups-admin.php:549
+#: includes/class-sppopups-admin.php:557
 msgid "Forced On"
 msgstr ""
 
-#: includes/class-sppopups-admin.php:553
+#: includes/class-sppopups-admin.php:561
 msgid "In most cases you can leave this on Default. Use Forced On if your trigger link/class is injected dynamically (e.g., forms, AJAX, page builders) and the popup assets aren't loading."
 msgstr ""
 
-#: includes/class-sppopups-admin.php:613
+#: includes/class-sppopups-admin.php:621
 msgid "You do not have permission to install plugins."
 msgstr ""
 
 #. translators: %s: Error message
-#: includes/class-sppopups-admin.php:651
+#: includes/class-sppopups-admin.php:659
 #, php-format
 msgid "Error retrieving plugin information: %s"
 msgstr ""
 
-#: includes/class-sppopups-admin.php:661
+#: includes/class-sppopups-admin.php:669
 msgid "Filesystem credentials are required to install plugins."
 msgstr ""
 
-#: includes/class-sppopups-admin.php:665
+#: includes/class-sppopups-admin.php:673
 msgid "Filesystem initialization failed."
 msgstr ""
 
 #. translators: %s: Error message
-#: includes/class-sppopups-admin.php:680
+#: includes/class-sppopups-admin.php:688
 #, php-format
 msgid "Plugin installation failed: %s"
 msgstr ""
 
-#: includes/class-sppopups-admin.php:687
+#: includes/class-sppopups-admin.php:695
 msgid "Plugin installation failed. Please try again."
 msgstr ""
 
-#: includes/class-sppopups-admin.php:756
+#: includes/class-sppopups-admin.php:764
 msgid "Go to Synced Pattern Popups"
+msgstr ""
+
+#: includes/class-sppopups-admin.php:810
+msgid "Settings"
 msgstr ""
 
 #: includes/class-sppopups-ajax.php:167
@@ -458,6 +462,7 @@ msgstr ""
 
 #: includes/class-sppopups-ajax.php:174
 #: includes/class-sppopups-ajax.php:293
+#: includes/class-sppopups-review-notice.php:210
 msgid "Invalid security token. Please refresh the page and try again."
 msgstr ""
 
@@ -515,6 +520,44 @@ msgstr ""
 
 #: includes/class-sppopups-plugin.php:330
 msgid "Close"
+msgstr ""
+
+#. translators: %s: Plugin name
+#: includes/class-sppopups-review-notice.php:168
+#, php-format
+msgid "Enjoying %s?"
+msgstr ""
+
+#: includes/class-sppopups-review-notice.php:173
+msgid "Leave us a kind review on WordPress.org"
+msgstr ""
+
+#: includes/class-sppopups-review-notice.php:182
+msgid "Leave your Review Here"
+msgstr ""
+
+#: includes/class-sppopups-review-notice.php:184
+msgid "Dismiss this notice"
+msgstr ""
+
+#: includes/class-sppopups-review-notice.php:185
+msgid "I'd rather not (dismiss)"
+msgstr ""
+
+#: includes/class-sppopups-review-notice.php:190
+msgid "Your review and feedback keeps us developing this plugin for more users like you!"
+msgstr ""
+
+#: includes/class-sppopups-review-notice.php:203
+msgid "Insufficient permissions."
+msgstr ""
+
+#: includes/class-sppopups-review-notice.php:217
+msgid "User not found."
+msgstr ""
+
+#: includes/class-sppopups-review-notice.php:224
+msgid "Notice dismissed."
 msgstr ""
 
 #: includes/class-sppopups-settings.php:98
