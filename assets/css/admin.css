@@ -488,6 +488,9 @@
 	justify-content: space-between;
 	align-items: center;
 	margin-bottom: 0;
+	max-width: 960px;
+	width: 100%;
+	box-sizing: border-box;
 }
 
 .sppopups-header-actions {
@@ -917,4 +920,113 @@
 		transform: scale(1);
 		opacity: 1;
 	}
+}
+
+/* Review Notice Styles */
+.sppopups-review-notice-wrapper {
+	margin: 20px 0;
+	width: 100%;
+	max-width: 960px;
+}
+
+.sppopups-review-notice {
+	position: relative;
+	width: 100%;
+	max-width: 100%;
+	padding: 24px 32px;
+	background: linear-gradient(135deg, #f7f8f9 0%, #f0f1f3 100%);
+	border: 1px solid #e5e7e9;
+	border-radius: 8px;
+	box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+	box-sizing: border-box;
+}
+
+.sppopups-review-notice-heading {
+	margin: 0 0 8px 0;
+	padding: 0;
+	font-size: 18px;
+	font-weight: 600;
+	color: #1d2327;
+	line-height: 1.4;
+}
+
+.sppopups-review-notice-subheading {
+	margin: 0 0 12px 0;
+	padding: 0;
+	font-size: 14px;
+	color: #50575e;
+	line-height: 1.5;
+}
+
+.sppopups-review-notice-stars {
+	margin: 0 0 16px 0;
+	font-size: 20px;
+	line-height: 1;
+	letter-spacing: 2px;
+}
+
+.sppopups-review-notice-actions {
+	margin: 0 0 12px 0;
+	display: flex;
+	align-items: center;
+	gap: 16px;
+	flex-wrap: wrap;
+}
+
+.sppopups-review-notice-button {
+	display: inline-block;
+	padding: 10px 20px;
+	background: #2271b1;
+	color: #fff;
+	text-decoration: none;
+	border-radius: 4px;
+	font-size: 14px;
+	font-weight: 500;
+	line-height: 1.5;
+	transition: background-color 0.2s ease, color 0.2s ease;
+}
+
+.sppopups-review-notice-button:hover,
+.sppopups-review-notice-button:focus {
+	background: #135e96;
+	color: #fff;
+	text-decoration: none;
+	outline: 2px solid #2271b1;
+	outline-offset: 2px;
+}
+
+.sppopups-review-notice-button:active {
+	background: #0a4b78;
+}
+
+.sppopups-review-notice-footer {
+	margin: 0;
+	padding: 0;
+	font-size: 12px;
+	color: #646970;
+	line-height: 1.5;
+}
+
+.sppopups-review-notice-footer em {
+	font-style: italic;
+	color: #646970;
+}
+
+.sppopups-review-notice-dismiss-link {
+	color: #646970;
+	text-decoration: none;
+	font-size: 13px;
+	cursor: pointer;
+	transition: color 0.2s ease;
+}
+
+.sppopups-review-notice-dismiss-link:hover,
+.sppopups-review-notice-dismiss-link:focus {
+	color: #1d2327;
+	text-decoration: underline;
+	outline: none;
+}
+
+.sppopups-review-notice-dismiss-link:active {
+	color: #0a4b78;
 }

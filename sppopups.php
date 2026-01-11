@@ -34,6 +34,13 @@ require_once SPPOPUPS_PLUGIN_DIR . 'includes/class-sppopups-abilities.php';
 require_once SPPOPUPS_PLUGIN_DIR . 'includes/class-sppopups-settings.php';
 require_once SPPOPUPS_PLUGIN_DIR . 'includes/class-sppopups-tldr.php';
 require_once SPPOPUPS_PLUGIN_DIR . 'includes/class-sppopups-plugin.php';
+require_once SPPOPUPS_PLUGIN_DIR . 'includes/class-sppopups-review-notice.php';
+
+// Register activation hook to set review notice trigger date
+register_activation_hook( __FILE__, array( 'SPPopups_Review_Notice', 'set_trigger_date' ) );
+
+// Register uninstall hook for cleanup
+register_uninstall_hook( __FILE__, 'sppopups_uninstall' );
 
 // Initialize plugin
 add_action( 'plugins_loaded', 'sppopups_init' );
@@ -56,5 +63,18 @@ function sppopups_init() {
 	// Initialize main plugin
 	$plugin = new SPPopups_Plugin();
 	$plugin->init();
+
+	// Initialize review notice (admin only)
+	if ( is_admin() ) {
+		$review_notice = new SPPopups_Review_Notice();
+		$review_notice->init();
+	}
+}
+
+/**
+ * Cleanup on plugin uninstall
+ */
+function sppopups_uninstall() {
+	SPPopups_Review_Notice::cleanup();
 }
 

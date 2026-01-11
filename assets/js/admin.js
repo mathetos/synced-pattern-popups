@@ -343,5 +343,67 @@
 			radio.addEventListener('change', toggleCustomPrompt);
 		});
 	}
+
+	/**
+	 * Handle review notice dismissal
+	 */
+	function initReviewNoticeDismiss() {
+		var dismissLink = document.querySelector('.sppopups-review-notice-dismiss-link');
+		if (!dismissLink) {
+			return;
+		}
+
+		var notice = dismissLink.closest('.sppopups-review-notice');
+		if (!notice) {
+			return;
+		}
+
+		var nonce = notice.getAttribute('data-nonce');
+		if (!nonce) {
+			return;
+		}
+
+		dismissLink.addEventListener('click', function(event) {
+			event.preventDefault();
+
+			// Hide notice immediately for better UX
+			notice.style.transition = 'opacity 0.3s ease';
+			notice.style.opacity = '0';
+
+			// Send AJAX request
+			var formData = new FormData();
+			formData.append('action', 'sppopups_dismiss_review_notice');
+			formData.append('nonce', nonce);
+
+			var ajaxUrl = (typeof sppopupsAdmin !== 'undefined' && sppopupsAdmin.ajaxUrl) ? sppopupsAdmin.ajaxUrl : (typeof ajaxurl !== 'undefined' ? ajaxurl : '/wp-admin/admin-ajax.php');
+			fetch(ajaxUrl, {
+				method: 'POST',
+				body: formData,
+				credentials: 'same-origin'
+			})
+			.then(function(response) {
+				return response.json();
+			})
+			.then(function(data) {
+				if (data.success) {
+					// Remove notice from DOM after fade out
+					setTimeout(function() {
+						notice.remove();
+					}, 300);
+				} else {
+					// Show notice again on error
+					notice.style.opacity = '1';
+				}
+			})
+			.catch(function(error) {
+				console.error('Error dismissing notice:', error);
+				// Show notice again on error
+				notice.style.opacity = '1';
+			});
+		});
+	}
+
+	// Initialize review notice dismiss functionality
+	initReviewNoticeDismiss();
 })();
 

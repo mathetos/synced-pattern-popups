@@ -57,6 +57,10 @@ class SPPopups_Admin {
 		
 		// Add link to Synced Pattern Popups on Patterns list table
 		add_action( 'admin_footer', array( $this, 'add_patterns_list_table_link' ) );
+		
+		// Add Settings link to plugin action links
+		$plugin_file = plugin_basename( SPPOPUPS_PLUGIN_DIR . 'sppopups.php' );
+		add_filter( 'plugin_action_links_' . $plugin_file, array( $this, 'add_settings_link' ) );
 	}
 
 	/**
@@ -101,6 +105,7 @@ class SPPopups_Admin {
 			'simplest-popup-admin',
 			'sppopupsAdmin',
 			array(
+				'ajaxUrl' => admin_url( 'admin-ajax.php' ),
 				'strings' => array(
 					'copied' => __( 'Copied!', 'synced-pattern-popups' ),
 					'copyFailed' => __( 'Failed to copy', 'synced-pattern-popups' ),
@@ -792,6 +797,19 @@ class SPPopups_Admin {
 		})();
 		</script>
 		<?php
+	}
+
+	/**
+	 * Add Settings link to plugin action links
+	 * Adds the link as the first item in the action links array
+	 *
+	 * @param array $links Plugin action links array
+	 * @return array Modified plugin action links array
+	 */
+	public function add_settings_link( $links ) {
+		$settings_link = '<a href="' . esc_url( admin_url( 'themes.php?page=simplest-popup-patterns' ) ) . '">' . esc_html__( 'Settings', 'synced-pattern-popups' ) . '</a>';
+		array_unshift( $links, $settings_link );
+		return $links;
 	}
 }
 
