@@ -64,7 +64,7 @@
 	 * @property {Function} focusWithoutScroll - Function to focus without scrolling
 	 * @property {Function} getImageUrl - Function to extract image URL from image object
 	 * @property {Function} setMaxWidth - Function to set currentMaxWidth in modal.js
-	 * @property {HTMLElement|null} modalContainer - Cached modal container reference
+	 * @property {Object} modalState - Modal state object (Phase 2: for modalContainer access)
 	 * @private
 	 */
 	var dependencies = {
@@ -79,7 +79,7 @@
 		focusWithoutScroll: null,
 		getImageUrl: null,
 		setMaxWidth: null, // Function to set currentMaxWidth
-		modalContainer: null // Cached modal container reference
+		modalState: null // Modal state object (contains modalContainer)
 	};
 
 	/**
@@ -100,7 +100,7 @@
 	 * @param {Function} deps.focusWithoutScroll - Function to focus without scrolling
 	 * @param {Function} deps.getImageUrl - Function to extract image URL
 	 * @param {Function} deps.setMaxWidth - Function to set currentMaxWidth
-	 * @param {HTMLElement|null} [deps.modalContainer=null] - Cached modal container reference
+	 * @param {Object} deps.modalState - Modal state object (contains modalContainer)
 	 * @return {void}
 	 * @public
 	 */
@@ -542,9 +542,11 @@
 		function updateContainerHeight(galleryContainer, img) {
 			if (!galleryContainer || !img) return;
 			
-			// Cache modal container reference
-			if (!dependencies.modalContainer || !dependencies.modal || !dependencies.modal.contains(dependencies.modalContainer)) {
-				dependencies.modalContainer = galleryContainer.closest('.sppopups-container');
+			// Cache modal container reference in state object
+			if (!dependencies.modalState || !dependencies.modalState.modalContainer || !dependencies.modal || !dependencies.modal.contains(dependencies.modalState.modalContainer)) {
+				if (dependencies.modalState) {
+					dependencies.modalState.modalContainer = galleryContainer.closest('.sppopups-container');
+				}
 			}
 			
 			// Use requestAnimationFrame for better timing than setTimeout
@@ -555,7 +557,8 @@
 				
 				if (imgHeight > 0 && imgWidth > 0) {
 					// Get the modal container width (the actual max-width setting)
-					var containerWidth = dependencies.modalContainer ? (dependencies.modalContainer.offsetWidth || dependencies.modalContainer.clientWidth) : 600;
+					var modalContainer = dependencies.modalState ? dependencies.modalState.modalContainer : null;
+					var containerWidth = modalContainer ? (modalContainer.offsetWidth || modalContainer.clientWidth) : 600;
 					
 					// Calculate aspect ratio
 					var aspectRatio = imgHeight / imgWidth;

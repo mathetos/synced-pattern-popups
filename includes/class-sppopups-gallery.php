@@ -111,22 +111,49 @@ class SPPopups_Gallery {
 			$html_content = $processed_content->get_updated_html();
 		}
 		
-		// Reset index for the actual modification pass
-		$image_index = 0;
+		// Build a map of image IDs to image data for efficient lookup (handles random order)
+		$image_id_map = array();
+		foreach ( $gallery_data['images'] as $index => $image_data ) {
+			if ( ! empty( $image_data['id'] ) && $image_data['id'] > 0 ) {
+				$image_id_map[ $image_data['id'] ] = $image_data;
+			}
+		}
 
 		// Use regex to find and modify image links/figures
 		// Pattern matches figure elements containing images
 		$html_content = preg_replace_callback(
 			self::PATTERN_FIGURE_IMAGE,
-			function ( $matches ) use ( &$image_index, $gallery_data ) {
+			function ( $matches ) use ( $gallery_data, $image_id_map ) {
 				$figure_attrs = $matches[1];
 				$figure_content = $matches[2];
 
-				// Get image data for this index
-				$image_data = isset( $gallery_data['images'][ $image_index ] ) ? $gallery_data['images'][ $image_index ] : null;
+				// Extract image ID from figure's img element (Core adds data-id attribute)
+				// This works regardless of whether Core has randomized the order
+				$figure_image_id = 0;
+				if ( preg_match( '/<img[^>]*\bdata-id=["\']?(\d+)["\']?/i', $figure_content, $img_matches ) ) {
+					$figure_image_id = intval( $img_matches[1] );
+				}
+
+				// Match figure to gallery data by image ID (most reliable, handles random order)
+				$image_data = null;
+				if ( $figure_image_id > 0 && isset( $image_id_map[ $figure_image_id ] ) ) {
+					$image_data = $image_id_map[ $figure_image_id ];
+				} else {
+					// Fallback: Try to match by image src URL if ID not found
+					if ( preg_match( '/<img[^>]*\bsrc=["\']([^"\']+)["\']/i', $figure_content, $src_matches ) ) {
+						$figure_src = esc_url_raw( $src_matches[1] );
+						foreach ( $gallery_data['images'] as $img_data ) {
+							$gallery_url = isset( $img_data['fullUrl'] ) ? $img_data['fullUrl'] : ( isset( $img_data['url'] ) ? $img_data['url'] : '' );
+							if ( $gallery_url && $figure_src === $gallery_url ) {
+								$image_data = $img_data;
+								break;
+							}
+						}
+					}
+				}
 
 				if ( ! $image_data ) {
-					$image_index++;
+					// Could not match figure to gallery data, return unchanged
 					return $matches[0];
 				}
 
@@ -141,13 +168,24 @@ class SPPopups_Gallery {
 				if ( ! empty( $image_data['id'] ) && $image_data['id'] > 0 ) {
 					$figure_attrs .= ' data-image-id="' . esc_attr( $image_data['id'] ) . '"';
 				}
-				$figure_attrs .= ' data-image-index="' . esc_attr( $image_index ) . '"'; // Keep for backward compatibility
+				// Find index in gallery data for backward compatibility (find by ID)
+				$image_index = false;
+				if ( ! empty( $image_data['id'] ) ) {
+					foreach ( $gallery_data['images'] as $idx => $img ) {
+						if ( isset( $img['id'] ) && intval( $img['id'] ) === intval( $image_data['id'] ) ) {
+							$image_index = $idx;
+							break;
+						}
+					}
+				}
+				if ( $image_index !== false ) {
+					$figure_attrs .= ' data-image-index="' . esc_attr( $image_index ) . '"'; // Keep for backward compatibility
+				}
 				$figure_attrs .= ' data-image-data="' . esc_attr( wp_json_encode( $image_data ) ) . '"';
 				
 				// Don't modify links or add links - preserve Core's exact HTML structure
 				// JavaScript will intercept clicks via event delegation and match by image ID/URL
 
-				$image_index++;
 				return '<figure' . $figure_attrs . '>' . $figure_content . '</figure>';
 			},
 			$html_content
@@ -199,8 +237,15 @@ class SPPopups_Gallery {
 		} else {
 			// Process images array
 			foreach ( $images as $index => $image ) {
+				// Extract ID - handle both string and numeric formats from block attributes
+				$image_id = 0;
+				if ( isset( $image['id'] ) ) {
+					// ID can come as string from data-id attribute or as number
+					$image_id = is_numeric( $image['id'] ) ? intval( $image['id'] ) : 0;
+				}
+				
 				$image_data = array(
-					'id' => isset( $image['id'] ) ? intval( $image['id'] ) : 0,
+					'id' => $image_id,
 					'fullUrl' => isset( $image['fullUrl'] ) ? esc_url_raw( $image['fullUrl'] ) : ( isset( $image['url'] ) ? esc_url_raw( $image['url'] ) : '' ),
 					'caption' => isset( $image['caption'] ) ? wp_kses_post( $image['caption'] ) : '',
 					'alt' => isset( $image['alt'] ) ? esc_attr( $image['alt'] ) : '',
