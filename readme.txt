@@ -7,11 +7,11 @@ Stable tag: 1.1.3
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
-Trigger a sleek modal popup from any WordPress Synced Pattern with a class name or "spp-trigger-{id}".
+Synced Pattern Popups helps you create popups using the WordPress editor you already know, not yet another builder.
 
 == Description ==
 
-Synced Pattern Popups is a lightweight, developer-friendly WordPress plugin that displays beautiful modal popups with content from WordPress Synced Patterns. No build process required - everything works out of the box.
+Synced Pattern Popups helps you create popups using the WordPress editor you already know, not yet another builder.
 
 **Perfect for:**
 * Marketing campaigns and promotional popups
