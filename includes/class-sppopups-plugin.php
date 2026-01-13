@@ -173,6 +173,18 @@ class SPPopups_Plugin {
 			if ( $this->content_has_triggers( $post->post_content ) ) {
 				return true;
 			}
+
+			// Check for Gallery blocks with sppopup linkTo option
+			if ( has_block( 'core/gallery', $post->post_content ) ) {
+				$blocks = parse_blocks( $post->post_content );
+				foreach ( $blocks as $block ) {
+					if ( 'core/gallery' === $block['blockName'] && 
+						 isset( $block['attrs']['linkTo'] ) && 
+						 'sppopup' === $block['attrs']['linkTo'] ) {
+						return true;
+					}
+				}
+			}
 		}
 
 		// Check menu items for href triggers (lightweight - only check URLs)
@@ -239,6 +251,11 @@ class SPPopups_Plugin {
 			return true;
 		}
 
+		// Check for gallery with sppopup link option
+		if ( preg_match( '/data-sppopup-gallery/', $content ) ) {
+			return true;
+		}
+
 		return false;
 	}
 
@@ -259,11 +276,20 @@ class SPPopups_Plugin {
 			SPPOPUPS_VERSION
 		);
 
-		// Enqueue JavaScript
+		// Enqueue gallery JavaScript first (dependency)
+		wp_enqueue_script(
+			'sppopups-gallery',
+			SPPOPUPS_PLUGIN_URL . 'assets/js/gallery.js',
+			array(),
+			SPPOPUPS_VERSION,
+			true
+		);
+
+		// Enqueue JavaScript (depends on gallery.js)
 		wp_enqueue_script(
 			'simplest-popup-modal',
 			SPPOPUPS_PLUGIN_URL . 'assets/js/modal.js',
-			array(),
+			array( 'sppopups-gallery' ),
 			SPPOPUPS_VERSION,
 			true
 		);

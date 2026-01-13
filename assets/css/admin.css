@@ -17,6 +17,7 @@
 }
 
 /* Scroll indicator shadows */
+
 .sppopups-table-wrapper::before,
 .sppopups-table-wrapper::after {
 	content: '';
@@ -1037,3 +1038,5 @@
 .sppopups-review-notice-dismiss-link:active {
 	color: #0a4b78;
 }
+
+/* Gallery Block Editor Styles - Using standard TextControl, no custom styles needed */

@@ -47,6 +47,20 @@
 	// Track which scripts have been loaded to prevent duplicates
 	var loadedScripts = new Set();
 
+	// Cache commonly queried DOM elements
+	var titleElement = null; // Will be cached on first use
+	var modalContainer = null; // Will be cached per gallery
+
+	// Cache focusable elements selector (static, never changes)
+	var FOCUSABLE_SELECTORS = [
+		'a[href]',
+		'button:not([disabled])',
+		'textarea:not([disabled])',
+		'input:not([disabled])',
+		'select:not([disabled])',
+		'[tabindex]:not([tabindex="-1"])'
+	].join(', ');
+
 	/**
 	 * Validate URL is safe for injection (same origin or relative)
 	 * Prevents XSS via malicious script/style URLs
@@ -81,6 +95,19 @@
 			// Invalid URL format
 			return false;
 		}
+	}
+
+	/**
+	 * Get image URL from image object (with fallback)
+	 *
+	 * @param {object} image Image object
+	 * @return {string} Image URL or empty string
+	 */
+	function getImageUrl(image) {
+		if (!image) {
+			return '';
+		}
+		return image.fullUrl || image.url || '';
 	}
 
 	/**
@@ -461,17 +488,7 @@
 			return [];
 		}
 		
-		// Selectors for focusable elements
-		var selectors = [
-			'a[href]',
-			'button:not([disabled])',
-			'textarea:not([disabled])',
-			'input:not([disabled])',
-			'select:not([disabled])',
-			'[tabindex]:not([tabindex="-1"])'
-		].join(', ');
-		
-		var focusable = Array.prototype.slice.call(card.querySelectorAll(selectors));
+		var focusable = Array.prototype.slice.call(card.querySelectorAll(FOCUSABLE_SELECTORS));
 		
 		// Filter out elements that are not visible
 		return focusable.filter(function(el) {
@@ -527,17 +544,12 @@
 	}
 
 	/**
-	 * Open modal and load content
+	 * Setup modal state (common initialization logic)
 	 *
-	 * @param {number} patternId Synced pattern ID
 	 * @param {number|null} maxWidth Optional max-width in pixels
+	 * @param {string} loadingContent HTML content to show while loading
 	 */
-	function openModal(patternId, maxWidth) {
-		if (!patternId || !Number.isInteger(Number(patternId)) || patternId <= 0) {
-			console.error('Synced Pattern Popups: Invalid pattern ID');
-			return;
-		}
-
+	function setupModalState(maxWidth, loadingContent) {
 		// Save scroll position BEFORE any DOM changes (for all screen sizes)
 		savedScrollPosition = window.pageYOffset || document.documentElement.scrollTop || document.body.scrollTop || 0;
 
@@ -548,8 +560,12 @@
 		currentMaxWidth = maxWidth;
 		
 		// Calculate and apply max-width with 6% margin
-		var calculatedWidth = calculateMaxWidth(maxWidth);
-		container.style.maxWidth = calculatedWidth + 'px';
+		if (maxWidth !== null) {
+			var calculatedWidth = calculateMaxWidth(maxWidth);
+			container.style.maxWidth = calculatedWidth + 'px';
+		} else {
+			container.style.maxWidth = '';
+		}
 
 		// Prevent body scroll by saving scroll position (for all screen sizes)
 		body.style.top = '-' + savedScrollPosition + 'px';
@@ -564,7 +580,7 @@
 		modal.classList.add('active');
 		modal.style.display = 'flex';
 		body.classList.add('sppopups-open');
-		content.innerHTML = loadingHtml;
+		content.innerHTML = loadingContent || loadingHtml;
 		
 		// Focus modal container or close button for accessibility
 		// Use setTimeout to ensure modal is visible before focusing
@@ -577,6 +593,33 @@
 				focusWithoutScroll(modal);
 			}
 		}, 0);
+	}
+
+	/**
+	 * Get or cache title element
+	 *
+	 * @return {HTMLElement|null} Title element or null
+	 */
+	function getTitleElement() {
+		if (!titleElement || !modal.contains(titleElement)) {
+			titleElement = modal.querySelector('#sppopups-title');
+		}
+		return titleElement;
+	}
+
+	/**
+	 * Open modal and load content
+	 *
+	 * @param {number} patternId Synced pattern ID
+	 * @param {number|null} maxWidth Optional max-width in pixels
+	 */
+	function openModal(patternId, maxWidth) {
+		if (!patternId || !Number.isInteger(Number(patternId)) || patternId <= 0) {
+			console.error('Synced Pattern Popups: Invalid pattern ID');
+			return;
+		}
+
+		setupModalState(maxWidth, loadingHtml);
 
 		// Prepare form data for POST request
 		var formData = new FormData();
@@ -600,12 +643,12 @@
 				modal.setAttribute('aria-busy', 'false');
 				
 				// Update dialog title from AJAX response
-				var titleElement = modal.querySelector('#sppopups-title');
-				if (titleElement && data.success && data.data && data.data.title) {
-					titleElement.textContent = data.data.title;
-				} else if (titleElement) {
+				var titleEl = getTitleElement();
+				if (titleEl && data.success && data.data && data.data.title) {
+					titleEl.textContent = data.data.title;
+				} else if (titleEl) {
 					// Fallback title
-					titleElement.textContent = 'Popup';
+					titleEl.textContent = 'Popup';
 				}
 				
 				if (data.success && data.data && data.data.html) {
@@ -730,6 +773,38 @@
 		// Reset max-width to default
 		container.style.maxWidth = '';
 		currentMaxWidth = null;
+
+		// Reset gallery state
+		if (window.sppopupsGallery && window.sppopupsGallery.resetGalleryState) {
+			window.sppopupsGallery.resetGalleryState();
+		}
+
+		// Reset close button visibility
+		if (closeBtn) {
+			closeBtn.style.display = '';
+		}
+
+		// Reset footer to default
+		var footer = modal.querySelector('.sppopups-footer');
+		if (footer) {
+			var closeLabel = 'Close modal';
+			try {
+				closeLabel = footer.querySelector('.sppopups-close-footer') ? 
+					footer.querySelector('.sppopups-close-footer').getAttribute('aria-label') : 'Close modal';
+			} catch (e) {
+				// Use default
+			}
+			
+			footer.innerHTML = '<button class="sppopups-close-footer" type="button" aria-label="' + closeLabel + '">Close →</button>';
+			
+			// Reattach close footer button listener
+			var newCloseFooterBtn = footer.querySelector('.sppopups-close-footer');
+			if (newCloseFooterBtn) {
+				newCloseFooterBtn.addEventListener('click', closeModal);
+				// Update global reference
+				closeFooterBtn = newCloseFooterBtn;
+			}
+		}
 		
 		// Restore scroll position BEFORE removing body styles and restoring focus
 		// This prevents any scroll jumps
@@ -775,6 +850,24 @@
 		if (e.key === 'Escape') {
 			closeModal();
 			return;
+		}
+
+		// Gallery navigation with arrow keys
+		if (window.sppopupsGallery && window.sppopupsGallery.isGalleryMode && window.sppopupsGallery.isGalleryMode()) {
+			if (e.key === 'ArrowLeft') {
+				e.preventDefault();
+				if (window.sppopupsGallery.navigateGallery) {
+					window.sppopupsGallery.navigateGallery('prev');
+				}
+				return;
+			}
+			if (e.key === 'ArrowRight') {
+				e.preventDefault();
+				if (window.sppopupsGallery.navigateGallery) {
+					window.sppopupsGallery.navigateGallery('next');
+				}
+				return;
+			}
 		}
 		
 		// Focus trap: handle Tab and Shift+Tab
@@ -868,6 +961,85 @@
 			e.preventDefault();
 			e.stopPropagation();
 			openModal(patternData.id, patternData.maxWidth);
+			return;
+		}
+
+		// Check for gallery image click (handles clicks on figure, image, or links within)
+		// This works regardless of whether Core created links or not, and handles randomized order
+		var galleryItem = trigger.closest('[data-image-id], [data-image-index]');
+		if (galleryItem) {
+			var gallery = galleryItem.closest('[data-sppopup-gallery]');
+			if (gallery) {
+				var galleryDataAttr = gallery.getAttribute('data-gallery-data');
+				if (galleryDataAttr) {
+					try {
+						var galleryData = JSON.parse(galleryDataAttr);
+						
+						// Identify clicked image by ID (preferred) or by matching image src URL
+						var clickedImageId = galleryItem.getAttribute('data-image-id');
+						var clickedImageIndex = -1;
+						
+						// Try to find by ID first (most reliable)
+						if (clickedImageId) {
+							for (var i = 0; i < galleryData.images.length; i++) {
+								if (galleryData.images[i].id && parseInt(galleryData.images[i].id, 10) === parseInt(clickedImageId, 10)) {
+									clickedImageIndex = i;
+									break;
+								}
+							}
+						}
+						
+						// Fallback: Find by matching image src URL (handles cases where ID might not match)
+						if (clickedImageIndex === -1) {
+							var clickedImg = galleryItem.querySelector('img');
+							if (clickedImg && clickedImg.src) {
+								// Normalize clicked image URL (remove query params, hash, normalize)
+								var clickedSrc = clickedImg.src.split('?')[0].split('#')[0];
+								// Extract filename for more reliable matching
+								var clickedFilename = clickedSrc.split('/').pop();
+								
+								for (var j = 0; j < galleryData.images.length; j++) {
+									var imageUrl = getImageUrl(galleryData.images[j]);
+									if (imageUrl) {
+										// Normalize gallery image URL
+										var compareUrl = imageUrl.split('?')[0].split('#')[0];
+										var compareFilename = compareUrl.split('/').pop();
+										
+										// Match by full URL or by filename (more reliable)
+										if (clickedSrc === compareUrl || 
+										    clickedSrc.endsWith(compareUrl) || 
+										    compareUrl.endsWith(clickedSrc) ||
+										    (clickedFilename && compareFilename && clickedFilename === compareFilename)) {
+											clickedImageIndex = j;
+											break;
+										}
+									}
+								}
+							}
+						}
+						
+						// Final fallback: Use data-image-index if available (for backward compatibility)
+						if (clickedImageIndex === -1) {
+							var fallbackIndex = galleryItem.getAttribute('data-image-index');
+							if (fallbackIndex) {
+								clickedImageIndex = parseInt(fallbackIndex, 10);
+							}
+						}
+						
+						if (galleryData && Array.isArray(galleryData.images) && clickedImageIndex >= 0 && clickedImageIndex < galleryData.images.length) {
+							// Prevent default navigation (important for links)
+							e.preventDefault();
+							e.stopPropagation();
+							if (window.sppopupsGallery && window.sppopupsGallery.openGalleryModal) {
+								window.sppopupsGallery.openGalleryModal(galleryData, clickedImageIndex);
+							}
+							return;
+						}
+					} catch (err) {
+						console.error('Synced Pattern Popups: Error parsing gallery data:', err);
+					}
+				}
+			}
 		}
 	});
 
@@ -911,50 +1083,8 @@
 			return;
 		}
 
-		// Save scroll position BEFORE any DOM changes
-		savedScrollPosition = window.pageYOffset || document.documentElement.scrollTop || document.body.scrollTop || 0;
-
-		// Store the element that triggered the modal for focus restoration
-		lastActiveElement = document.activeElement;
-
-		// Reset max-width to default (no custom width for TLDR)
-		currentMaxWidth = null;
-		if (container && container.style) {
-			container.style.maxWidth = '';
-		}
-
-		// Prevent body scroll by saving scroll position
-		if (body && body.style) {
-			body.style.top = '-' + savedScrollPosition + 'px';
-		}
-
-		// Update ARIA attributes
-		if (modal) {
-			modal.setAttribute('aria-hidden', 'false');
-			modal.setAttribute('aria-busy', 'true');
-		}
-
-		// Hide background from assistive technology
-		hideBackgroundFromAT();
-
-		if (modal) {
-			modal.classList.add('active');
-			modal.style.display = 'flex';
-		}
-		if (body && body.classList) {
-			body.classList.add('sppopups-open');
-		}
-		// Use custom loading message for TLDR
-		content.innerHTML = '<div class="sppopups-loading"><div class="sppopups-spinner"></div><p>Generating TLDR</p></div>';
-
-		// Focus modal container or close button for accessibility
-		setTimeout(function() {
-			if (closeBtn) {
-				focusWithoutScroll(closeBtn);
-			} else {
-				focusWithoutScroll(modal);
-			}
-		}, 0);
+		// Use common modal setup (no custom max-width for TLDR)
+		setupModalState(null, '<div class="sppopups-loading"><div class="sppopups-spinner"></div><p>Generating TLDR</p></div>');
 
 		// Prepare form data
 		var formData = new FormData();
@@ -979,11 +1109,11 @@
 			modal.setAttribute('aria-busy', 'false');
 
 			// Update dialog title from AJAX response
-			var titleElement = modal.querySelector('#sppopups-title');
-			if (titleElement && data.success && data.data && data.data.title) {
-				titleElement.textContent = data.data.title;
-			} else if (titleElement) {
-				titleElement.textContent = 'TLDR';
+			var titleEl = getTitleElement();
+			if (titleEl && data.success && data.data && data.data.title) {
+				titleEl.textContent = data.data.title;
+			} else if (titleEl) {
+				titleEl.textContent = 'TLDR';
 			}
 
 			if (data.success && data.data && data.data.html) {
@@ -1010,8 +1140,29 @@
 			resizeTimeout = setTimeout(function() {
 				var calculatedWidth = calculateMaxWidth(currentMaxWidth);
 				container.style.maxWidth = calculatedWidth + 'px';
-			}, 100); // Debounce resize events
+			}, 150); // Increased debounce for better performance
 		}
 	});
+
+	// Initialize gallery module with dependencies
+	// Gallery module must be loaded before modal.js
+	if (window.sppopupsGallery && window.sppopupsGallery.init) {
+		window.sppopupsGallery.init({
+			modal: modal,
+			content: content,
+			container: container,
+			closeBtn: closeBtn,
+			body: body,
+			setupModalState: setupModalState,
+			getTitleElement: getTitleElement,
+			closeModal: closeModal,
+			focusWithoutScroll: focusWithoutScroll,
+			getImageUrl: getImageUrl,
+			setMaxWidth: function(width) {
+				currentMaxWidth = width;
+			},
+			modalContainer: null // Will be cached by gallery module
+		});
+	}
 })();
 

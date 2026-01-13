@@ -36,6 +36,7 @@ require_once SPPOPUPS_PLUGIN_DIR . 'includes/class-sppopups-tldr.php';
 require_once SPPOPUPS_PLUGIN_DIR . 'includes/class-sppopups-plugin.php';
 require_once SPPOPUPS_PLUGIN_DIR . 'includes/class-sppopups-review-notice.php';
 require_once SPPOPUPS_PLUGIN_DIR . 'includes/class-sppopups-shipped-patterns.php';
+require_once SPPOPUPS_PLUGIN_DIR . 'includes/class-sppopups-gallery.php';
 
 // Register activation hook to set review notice trigger date and ensure shipped patterns
 register_activation_hook( __FILE__, 'sppopups_activate' );
@@ -75,6 +76,10 @@ function sppopups_init() {
 	// Initialize main plugin
 	$plugin = new SPPopups_Plugin();
 	$plugin->init();
+
+	// Initialize gallery integration
+	$gallery = new SPPopups_Gallery();
+	$gallery->init();
 
 	// Initialize review notice (admin only)
 	if ( is_admin() ) {
