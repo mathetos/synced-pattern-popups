@@ -1,0 +1,130 @@
+---
+alwaysApply: false
+description: "Optimization audit for a WordPress plugin feature (PHP OOP + JS/CSS). Use only when explicitly requested."
+globs: []
+---
+# Optimization Audit Rule (WordPress Plugin)
+
+Only apply this rule when the user explicitly requests an optimization / efficiency / tightening / audit pass.  
+If the user did not ask for optimization, do not apply this rule.
+
+## Goal
+Audit the implementation of the specified feature end-to-end and propose **measurable, defensible** improvements with **minimal diff noise**.
+
+## Non-goals
+- Do not do cosmetic refactors (renames, reformatting, “style cleanups”) unless they directly support an optimization below.
+- Do not change public behavior unless explicitly approved. Preserve compatibility and expected outputs.
+
+## Evidence and confidence rules
+- Do not invent query counts, percentages, or performance metrics.
+- If a claim is inferred (not measured), label it explicitly as **Estimated**.
+- Prefer comparative language ("reduces repeated calls", "removes work from loop") over numeric claims unless directly derivable from the code.
+- When possible, suggest how to verify the improvement (Query Monitor, timing, profiler).
+
+## Required output format
+1) **Top 10 high-impact changes** (ranked)
+   - For each: `Impact (High/Med/Low)`, `Risk (Low/Med/High)`, `Effort (S/M/L)`
+   - Include file path(s) and the specific class/function/method involved
+   - Explain the “why” in 1–3 sentences
+   - Provide a patch-style snippet or clear before/after code
+
+2) **Quick wins** (safe, low-risk)
+3) **Refactors** (bigger structural changes, optional)
+4) **Regression checklist** (what to test after changes)
+
+## Impact ranking guidance
+Rank items higher if they:
+- Scale with content size (images, blocks, posts, users)
+- Run on every request or every editor interaction
+- Sit on hot paths (render, REST, admin list tables, observers)
+
+Rank items lower if they:
+- Run once per request
+- Save microseconds but add complexity
+- Primarily improve cleanliness rather than behavior
+
+## Lifecycle awareness
+- For PHP: assume a single-request lifecycle with object/meta caching available.
+- For JS (block editor): assume dynamic DOM, node replacement, and frequent re-renders.
+- Call out when an optimization risks stale references or timing issues in Gutenberg.
+
+## Optimization lenses (in priority order)
+
+### 1) Runtime and query efficiency
+Look for:
+- Queries inside loops; N+1 patterns (admin list tables, REST callbacks, render loops)
+- Repeated WP calls that can be memoized per request:
+  - `get_option()`, `get_post_meta()`, `get_term_meta()`, `wp_get_current_user()`, `current_user_can()`
+- Over-fetching (more rows or fields than needed)
+- Caching opportunities:
+  - Per-request memoization first
+  - Then transients/object cache if justified
+- Inefficient string/array manipulation in hot paths
+
+Deliver:
+- Describe what work is removed or reduced
+- Label savings as **Estimated** unless provable from the code
+
+### 2) Hook registration and load-order hygiene
+Look for:
+- Hooks registered unconditionally when they should be gated
+- Feature code loading when feature is disabled
+- Admin code loading on frontend and vice versa
+- REST routes/AJAX handlers registered when not needed
+- Heavy work happening during bootstrap instead of deferred
+
+Prefer:
+- Lazy-loading boundaries (settings flags, screen checks, post type checks, block presence)
+- Minimal bootstrap that wires behavior without computation
+
+### 3) OOP boundaries and duplication reduction
+Look for:
+- Classes with multiple responsibilities (boot, logic, rendering, persistence)
+- Duplicate validation/sanitization logic
+- Repeated query or repository code
+- Inconsistent patterns across admin, REST, and AJAX
+
+Prefer:
+- Clear separation: bootstrap, controllers, services, repositories, view rendering
+- Shared helpers for boundary logic (permissions, sanitization, response shaping)
+
+### 4) Security and data correctness at boundaries
+Audit:
+- Sanitization on input, escaping on output
+- Capability checks and nonces (admin and AJAX)
+- REST permission callbacks (least privilege)
+- Strict comparisons and type consistency where it prevents bugs
+- `WP_Error` usage for programmatic surfaces with consistent error shapes
+
+Flag:
+- Missing caps, nonces, escaping, or inconsistent sanitization patterns
+
+### 5) Assets, enqueues, and bundle efficiency
+Audit:
+- Enqueue conditions (only load where needed)
+- Duplicate dependencies or unnecessary globals
+- JS split points (admin vs editor vs frontend)
+- CSS scope leakage vs block wrapper scoping
+
+Prefer:
+- `wp_register_script/style` with conditional enqueue
+- Avoid loading assets on all admin screens if used on one
+
+## Change hygiene rules
+- Keep diffs tight; avoid reordering methods or rewriting files without cause.
+- Prefer surgical, reviewable changes.
+- If a change exceeds ~30 lines, justify it as a **Refactor** and mark risk/effort clearly.
+- If removing code, confirm nothing depends on it (hooks, filters, public methods).
+- If an optimization is micro-level (regex, early returns, instantiation count),
+  explicitly justify its impact or downgrade it to **Quick Wins**.
+
+## Defer or avoid unless profiling proves otherwise
+- Regex compilation micro-optimizations
+- Early-return restructuring for call overhead alone
+- Reducing object instantiations outside of loops
+
+## When information is missing
+If context is required to optimize safely:
+- Make the safest reasonable assumption
+- Label assumptions clearly
+- Suggest a quick validation step to confirm correctness
