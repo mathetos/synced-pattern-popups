@@ -568,6 +568,13 @@
 	border-radius: 2px 2px 0 0;
 }
 
+.sppopups-tab-nav-link .dashicons-external {
+	font-size: 16px;
+	width: 20px;
+	height: 20px;
+	vertical-align: middle;	
+}
+
 .sppopups-tab-content-wrapper {
 	margin-top: 0;
 	max-width: 960px;

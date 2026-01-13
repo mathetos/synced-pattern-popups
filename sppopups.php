@@ -35,15 +35,27 @@ require_once SPPOPUPS_PLUGIN_DIR . 'includes/class-sppopups-settings.php';
 require_once SPPOPUPS_PLUGIN_DIR . 'includes/class-sppopups-tldr.php';
 require_once SPPOPUPS_PLUGIN_DIR . 'includes/class-sppopups-plugin.php';
 require_once SPPOPUPS_PLUGIN_DIR . 'includes/class-sppopups-review-notice.php';
+require_once SPPOPUPS_PLUGIN_DIR . 'includes/class-sppopups-shipped-patterns.php';
 
-// Register activation hook to set review notice trigger date
-register_activation_hook( __FILE__, array( 'SPPopups_Review_Notice', 'set_trigger_date' ) );
+// Register activation hook to set review notice trigger date and ensure shipped patterns
+register_activation_hook( __FILE__, 'sppopups_activate' );
 
 // Register uninstall hook for cleanup
 register_uninstall_hook( __FILE__, 'sppopups_uninstall' );
 
 // Initialize plugin
 add_action( 'plugins_loaded', 'sppopups_init' );
+
+/**
+ * Plugin activation handler
+ */
+function sppopups_activate() {
+	// Set review notice trigger date
+	SPPopups_Review_Notice::set_trigger_date();
+	
+	// Ensure shipped patterns exist on activation
+	SPPopups_Shipped_Patterns::activate();
+}
 
 /**
  * Initialize the plugin
@@ -68,6 +80,10 @@ function sppopups_init() {
 	if ( is_admin() ) {
 		$review_notice = new SPPopups_Review_Notice();
 		$review_notice->init();
+
+		// Ensure shipped patterns exist (runs on install and when version changes)
+		$shipped_patterns = new SPPopups_Shipped_Patterns();
+		add_action( 'admin_init', array( $shipped_patterns, 'maybe_ensure_patterns' ) );
 	}
 }
 

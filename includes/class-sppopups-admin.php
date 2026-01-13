@@ -288,7 +288,7 @@ class SPPopups_Admin {
 					<?php esc_html_e( 'How to Use', 'synced-pattern-popups' ); ?>
 				</a>
 				<a href="<?php echo esc_url( 'https://wordpress.org/support/plugin/synced-pattern-popups/' ); ?>" class="sppopups-tab-nav-link" target="_blank" rel="noopener noreferrer">
-					<?php esc_html_e( 'Get Support', 'synced-pattern-popups' ); ?>
+					<?php esc_html_e( 'Get Support', 'synced-pattern-popups' ); ?> <span class="dashicons dashicons-external"></span>
 				</a>
 			</nav>
 
