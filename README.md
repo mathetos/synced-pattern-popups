@@ -1,5 +1,7 @@
 # Synced Pattern Popups
 
+[Synced Pattern Popups](https://wordpress.org/plugins/synced-pattern-popups) helps you create popups using the WordPress editor you already know, not yet another builder.
+
 Developer-focused docs for the **Synced Pattern Popups** WordPress plugin.
 
 This plugin lets you open a lightweight modal popup whose content comes from a WordPress **Synced Pattern** (`wp_block`), using simple triggers like `spp-trigger-{id}`.
