@@ -199,16 +199,21 @@ PHP 7.4 or higher.
 == Changelog ==
 
 = 1.2.0 =
-* New: Added support for the Core Gallery Block!!
+* New: Added support for the Core Gallery Block with full modal integration!
+* New: Gallery block settings panel with modal size, close buttons, and image navigation options
+* New: Per-post asset loading controls (Modal Assets and Gallery Assets) with Auto-Detect and Loaded options
 * New: Added two wireframe Synced Patterns: "More Details" and "Terms & Conditions". 
 * Refactor: Centralized modal state management into a new `modalState` object in `modal.js`.
 * Refactor: Migrated all scattered global state variables (e.g., `currentMaxWidth`, `lastActiveElement`, `loadedStyles`) into the `modalState` object.
-* Refactor: Added comprehensive JSDoc comments to the `modalState` object and its methods for improved documentation.
+* Refactor: Extracted gallery functionality into separate `gallery.js` module for better code organization and conditional loading
+* Refactor: Added comprehensive JSDoc comments to gallery module and `modalState` object for improved documentation.
 * Refactor: Implemented robust validation for `maxWidth` (100-5000px) within the `modalState` setter.
 * Fixed: Corrected an issue where gallery images in "Random order" would open the wrong image in the modal. The system now reliably identifies the clicked image by its ID, regardless of randomization.
+* Fixed: Gallery assets now automatically force modal assets to load when set to "Loaded" (dependency requirement)
 * Fixed: Addressed Plugin Check error by removing the discouraged `load_plugin_textdomain()` call.
 * Fixed: Resolved Plugin Check warning by ensuring the text domain (`synced-pattern-popups`) consistently matches across all plugin files.
-* Improved: Enhanced code organization and maintainability through centralized state management.
+* Improved: Enhanced code organization and maintainability through centralized state management and module separation.
+* Improved: Gallery images now have smooth crossfade transitions and responsive modal sizing
 
 = 1.1.3 =
 * New: Added delayed admin review notice to encourage user reviews (appears after 10 days on settings page)
