@@ -6,11 +6,17 @@
  * @package SPPopups
  */
 
-// Exit if accessed directly
+// Exit if accessed directly.
 if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
+
+/**
+ * SPPopups_Admin class.
+ *
+ * @package SPPopups
+ */
 class SPPopups_Admin {
 
 	/**
@@ -30,12 +36,12 @@ class SPPopups_Admin {
 	/**
 	 * Constructor
 	 *
-	 * @param SPPopups_Pattern $pattern_service Pattern service instance
-	 * @param SPPopups_Cache   $cache_service   Cache service instance
+	 * @param SPPopups_Pattern $pattern_service Pattern service instance.
+	 * @param SPPopups_Cache   $cache_service   Cache service instance.
 	 */
 	public function __construct( SPPopups_Pattern $pattern_service, SPPopups_Cache $cache_service = null ) {
 		$this->pattern_service = $pattern_service;
-		// Create cache service if not provided
+		// Create cache service if not provided.
 		$this->cache_service = $cache_service ? $cache_service : new SPPopups_Cache();
 	}
 
@@ -46,19 +52,19 @@ class SPPopups_Admin {
 		add_action( 'admin_menu', array( $this, 'add_admin_menu' ) );
 		add_action( 'admin_enqueue_scripts', array( $this, 'enqueue_admin_assets' ) );
 		add_action( 'admin_init', array( $this, 'handle_actions' ) );
-		
-		// Add meta box for popup support toggle
+
+		// Add meta box for popup support toggle.
 		add_action( 'add_meta_boxes', array( $this, 'register_popup_support_metabox' ) );
 		add_action( 'save_post', array( $this, 'save_popup_support_metabox' ) );
-		
-		// Handle redirect after plugin activation
+
+		// Handle redirect after plugin activation.
 		add_action( 'activated_plugin', array( $this, 'handle_plugin_activation_redirect' ), 10, 2 );
 		add_action( 'admin_init', array( $this, 'check_activation_redirect' ) );
-		
-		// Add link to Synced Pattern Popups on Patterns list table
+
+		// Add link to Synced Pattern Popups on Patterns list table.
 		add_action( 'admin_footer', array( $this, 'add_patterns_list_table_link' ) );
-		
-		// Add Settings link to plugin action links
+
+		// Add Settings link to plugin action links.
 		$plugin_file = plugin_basename( SPPOPUPS_PLUGIN_DIR . 'sppopups.php' );
 		add_filter( 'plugin_action_links_' . $plugin_file, array( $this, 'add_settings_link' ) );
 	}
@@ -79,7 +85,7 @@ class SPPopups_Admin {
 	/**
 	 * Enqueue admin assets
 	 *
-	 * @param string $hook Current admin page hook
+	 * @param string $hook Current admin page hook.
 	 */
 	public function enqueue_admin_assets( $hook ) {
 		if ( 'appearance_page_simplest-popup-patterns' !== $hook ) {
@@ -107,7 +113,7 @@ class SPPopups_Admin {
 			array(
 				'ajaxUrl' => admin_url( 'admin-ajax.php' ),
 				'strings' => array(
-					'copied' => __( 'Copied!', 'synced-pattern-popups' ),
+					'copied'     => __( 'Copied!', 'synced-pattern-popups' ),
 					'copyFailed' => __( 'Failed to copy', 'synced-pattern-popups' ),
 				),
 			)
@@ -122,7 +128,7 @@ class SPPopups_Admin {
 			return;
 		}
 
-		// Handle delete action
+		// Handle delete action.
 		if ( isset( $_GET['action'] ) && 'delete' === $_GET['action'] && isset( $_GET['pattern_id'] ) ) {
 			check_admin_referer( 'delete_pattern_' . absint( $_GET['pattern_id'] ) );
 
@@ -134,7 +140,7 @@ class SPPopups_Admin {
 			}
 		}
 
-		// Handle clear cache action
+		// Handle clear cache action.
 		if ( isset( $_GET['action'] ) && 'clear_cache' === $_GET['action'] ) {
 			check_admin_referer( 'clear_popup_cache' );
 
@@ -145,48 +151,48 @@ class SPPopups_Admin {
 			}
 		}
 
-		// Handle delete transient for single pattern
+		// Handle delete transient for single pattern.
 		if ( isset( $_GET['action'] ) && 'delete_transient' === $_GET['action'] && isset( $_GET['pattern_id'] ) ) {
 			check_admin_referer( 'delete_transient_' . absint( $_GET['pattern_id'] ) );
 
 			if ( current_user_can( 'manage_options' ) ) {
 				$pattern_id = absint( $_GET['pattern_id'] );
-				$deleted = $this->cache_service->delete( $pattern_id );
-				
-				// Also clear pattern object cache
+				$deleted    = $this->cache_service->delete( $pattern_id );
+
+				// Also clear pattern object cache.
 				$pattern_cache_key = 'sppopups_pattern_' . $pattern_id;
 				wp_cache_delete( $pattern_cache_key, 'sppopups_patterns' );
-				
+
 				wp_safe_redirect( admin_url( 'themes.php?page=simplest-popup-patterns&transient_deleted=1&pattern_id=' . $pattern_id ) );
 				exit;
 			}
 		}
 
-		// Handle TLDR settings save
+		// Handle TLDR settings save.
 		if ( isset( $_POST['save_tldr_settings'] ) && isset( $_POST['sppopups_tldr_settings_nonce'] ) ) {
 			if ( ! wp_verify_nonce( sanitize_text_field( wp_unslash( $_POST['sppopups_tldr_settings_nonce'] ) ), 'sppopups_save_tldr_settings' ) ) {
 				wp_die( esc_html__( 'Security check failed.', 'synced-pattern-popups' ) );
 			}
 
 			if ( current_user_can( 'manage_options' ) ) {
-				// Save TLDR enabled
+				// Save TLDR enabled.
 				$tldr_enabled = isset( $_POST['sppopups_tldr_enabled'] ) ? true : false;
 				update_option( 'sppopups_tldr_enabled', $tldr_enabled );
 
-				// Save TLDR prompt type and custom prompt
+				// Save TLDR prompt type and custom prompt.
 				$prompt_type = isset( $_POST['sppopups_tldr_prompt_type'] ) ? sanitize_text_field( wp_unslash( $_POST['sppopups_tldr_prompt_type'] ) ) : 'default';
-				$use_custom = ( 'custom' === $prompt_type );
+				$use_custom  = ( 'custom' === $prompt_type );
 				update_option( 'sppopups_tldr_prompt_custom', $use_custom );
-				
+
 				if ( $use_custom && isset( $_POST['sppopups_tldr_prompt'] ) ) {
 					$tldr_prompt = sanitize_textarea_field( wp_unslash( $_POST['sppopups_tldr_prompt'] ) );
 					update_option( 'sppopups_tldr_prompt', $tldr_prompt );
 				}
 
-				// Save TLDR cache TTL
+				// Save TLDR cache TTL.
 				if ( isset( $_POST['sppopups_tldr_cache_ttl'] ) ) {
 					$tldr_cache_ttl = absint( $_POST['sppopups_tldr_cache_ttl'] );
-					// Validate range (1-168 hours)
+					// Validate range (1-168 hours).
 					if ( $tldr_cache_ttl >= 1 && $tldr_cache_ttl <= 168 ) {
 						update_option( 'sppopups_tldr_cache_ttl', $tldr_cache_ttl );
 					}
@@ -197,7 +203,7 @@ class SPPopups_Admin {
 			}
 		}
 
-		// Handle install AI Experiments action
+		// Handle install AI Experiments action.
 		if ( isset( $_GET['action'] ) && 'install_ai_experiments' === $_GET['action'] ) {
 			$this->handle_install_ai_experiments();
 		}
@@ -219,18 +225,18 @@ class SPPopups_Admin {
 	public function render_admin_page() {
 		$patterns = $this->get_synced_patterns();
 
-		// Show success messages
-		// These $_GET values are sanitized and only used for display purposes (admin notices)
-		// Nonce verification is handled in handle_actions() before redirects occur
+		// Show success messages.
+		// These $_GET values are sanitized and only used for display purposes (admin notices).
+		// Nonce verification is handled in handle_actions() before redirects occur.
 		// phpcs:disable WordPress.Security.NonceVerification.Recommended
-		$deleted = isset( $_GET['deleted'] ) ? sanitize_text_field( wp_unslash( $_GET['deleted'] ) ) : '';
-		$cache_cleared = isset( $_GET['cache_cleared'] ) ? sanitize_text_field( wp_unslash( $_GET['cache_cleared'] ) ) : '';
-		$deleted_count = isset( $_GET['deleted'] ) ? absint( $_GET['deleted'] ) : 0;
-		$tldr_settings_saved = isset( $_GET['tldr_settings_saved'] ) ? sanitize_text_field( wp_unslash( $_GET['tldr_settings_saved'] ) ) : '';
-		$transient_deleted = isset( $_GET['transient_deleted'] ) ? sanitize_text_field( wp_unslash( $_GET['transient_deleted'] ) ) : '';
+		$deleted              = isset( $_GET['deleted'] ) ? sanitize_text_field( wp_unslash( $_GET['deleted'] ) ) : '';
+		$cache_cleared        = isset( $_GET['cache_cleared'] ) ? sanitize_text_field( wp_unslash( $_GET['cache_cleared'] ) ) : '';
+		$deleted_count        = isset( $_GET['deleted'] ) ? absint( $_GET['deleted'] ) : 0;
+		$tldr_settings_saved  = isset( $_GET['tldr_settings_saved'] ) ? sanitize_text_field( wp_unslash( $_GET['tldr_settings_saved'] ) ) : '';
+		$transient_deleted    = isset( $_GET['transient_deleted'] ) ? sanitize_text_field( wp_unslash( $_GET['transient_deleted'] ) ) : '';
 		$transient_pattern_id = isset( $_GET['pattern_id'] ) ? absint( $_GET['pattern_id'] ) : 0;
 		// phpcs:enable WordPress.Security.NonceVerification.Recommended
-		
+
 		if ( '1' === $deleted ) {
 			echo '<div class="notice notice-success is-dismissible"><p>' . esc_html__( 'Pattern deleted successfully.', 'synced-pattern-popups' ) . '</p></div>';
 		}
@@ -337,33 +343,33 @@ class SPPopups_Admin {
 							</thead>
 							<tbody>
 								<?php
-								// Cache post status objects to avoid repeated lookups
+								// Cache post status objects to avoid repeated lookups.
 								$status_cache = array();
 								foreach ( $patterns as $pattern ) :
-									// Skip if pattern is not a valid object
+									// Skip if pattern is not a valid object.
 									if ( ! is_object( $pattern ) || ! isset( $pattern->ID ) ) {
 										continue;
 									}
 
-									$pattern_id = (int) $pattern->ID;
+									$pattern_id  = (int) $pattern->ID;
 									$post_status = isset( $pattern->post_status ) ? $pattern->post_status : 'publish';
 
-									// Meta is already cached from update_post_meta_cache, so this is fast
-									$sync_status = get_post_meta( $pattern_id, 'wp_pattern_sync_status', true );
-									$is_synced = ( 'unsynced' !== $sync_status );
+									// Meta is already cached from update_post_meta_cache, so this is fast.
+									$sync_status  = get_post_meta( $pattern_id, 'wp_pattern_sync_status', true );
+									$is_synced    = ( 'unsynced' !== $sync_status );
 									$trigger_code = 'spp-trigger-' . $pattern_id;
-									$edit_url = get_edit_post_link( $pattern_id );
-									$delete_url = wp_nonce_url(
+									$edit_url     = get_edit_post_link( $pattern_id );
+									$delete_url   = wp_nonce_url(
 										admin_url( 'themes.php?page=simplest-popup-patterns&action=delete&pattern_id=' . $pattern_id ),
 										'delete_pattern_' . $pattern_id
 									);
 
-									// Cache post status object
+									// Cache post status object.
 									if ( ! isset( $status_cache[ $post_status ] ) ) {
-										$status_obj = get_post_status_object( $post_status );
+										$status_obj                   = get_post_status_object( $post_status );
 										$status_cache[ $post_status ] = $status_obj ? $status_obj : null;
 									}
-									$status = isset( $status_cache[ $post_status ] ) && $status_cache[ $post_status ] !== null ? $status_cache[ $post_status ] : null;
+									$status = isset( $status_cache[ $post_status ] ) && null !== $status_cache[ $post_status ] ? $status_cache[ $post_status ] : null;
 									?>
 									<tr>
 										<td class="column-id" data-colname="<?php esc_attr_e( 'ID', 'synced-pattern-popups' ); ?>">
@@ -389,7 +395,7 @@ class SPPopups_Admin {
 												$status_class = 'publish' === $post_status ? 'status-publish' : 'status-' . esc_attr( $post_status );
 												echo '<span class="status-badge ' . esc_attr( $status_class ) . '">' . esc_html( $status->label ) . '</span>';
 											} elseif ( $post_status ) {
-												// Fallback if status object not available
+												// Fallback if status object not available.
 												$status_class = 'publish' === $post_status ? 'status-publish' : 'status-' . esc_attr( $post_status );
 												echo '<span class="status-badge ' . esc_attr( $status_class ) . '">' . esc_html( ucfirst( $post_status ) ) . '</span>';
 											}
@@ -437,10 +443,12 @@ class SPPopups_Admin {
 												<a 
 													href="<?php echo esc_url( $delete_transient_url ); ?>" 
 													class="button button-small delete-transient sppopups-action-transient"
-													onclick="return confirm('<?php
+													onclick="return confirm('
+													<?php
 													/* translators: %d: Pattern ID */
 													echo esc_js( sprintf( __( 'Are you sure you want to delete the transient cache for pattern #%d?', 'synced-pattern-popups' ), $pattern_id ) );
-													?>');"
+													?>
+													');"
 												>
 													<?php
 													/* translators: %d: Pattern ID */
@@ -460,7 +468,7 @@ class SPPopups_Admin {
 				<!-- TLDR Tab -->
 				<div id="sppopups-tab-tldr" class="sppopups-tab-content" role="tabpanel" aria-labelledby="tldr">
 					<?php
-					// Render TLDR settings section (without the box wrapper)
+					// Render TLDR settings section (without the box wrapper).
 					$settings = new SPPopups_Settings();
 					$settings->render_settings_section_for_tab();
 					?>
@@ -512,9 +520,9 @@ class SPPopups_Admin {
 	 */
 	public function register_popup_support_metabox() {
 		$post_types = get_post_types( array( 'public' => true ), 'names' );
-		
+
 		foreach ( $post_types as $post_type ) {
-			// Skip attachment post type
+			// Skip attachment post type.
 			if ( 'attachment' === $post_type ) {
 				continue;
 			}
@@ -533,13 +541,13 @@ class SPPopups_Admin {
 	/**
 	 * Render popup support meta box
 	 *
-	 * @param WP_Post $post Current post object
+	 * @param WP_Post $post Current post object.
 	 */
 	public function render_popup_support_metabox( $post ) {
-		// Add nonce for security
+		// Add nonce for security.
 		wp_nonce_field( 'sppopups_support_metabox', 'sppopups_support_nonce' );
 
-		// Get current values
+		// Get current values.
 		$modal_assets = get_post_meta( $post->ID, '_sppopups_modal_assets', true );
 		if ( empty( $modal_assets ) ) {
 			$modal_assets = 'auto-detect';
@@ -589,56 +597,56 @@ class SPPopups_Admin {
 	/**
 	 * Save popup support meta box
 	 *
-	 * @param int $post_id Post ID
+	 * @param int $post_id Post ID.
 	 */
 	public function save_popup_support_metabox( $post_id ) {
-		// Check if nonce is set
+		// Check if nonce is set.
 		if ( ! isset( $_POST['sppopups_support_nonce'] ) ) {
 			return;
 		}
 
-		// Verify nonce
+		// Verify nonce.
 		$nonce = isset( $_POST['sppopups_support_nonce'] ) ? sanitize_text_field( wp_unslash( $_POST['sppopups_support_nonce'] ) ) : '';
 		if ( ! wp_verify_nonce( $nonce, 'sppopups_support_metabox' ) ) {
 			return;
 		}
 
-		// Check if autosave
+		// Check if autosave.
 		if ( defined( 'DOING_AUTOSAVE' ) && DOING_AUTOSAVE ) {
 			return;
 		}
 
-		// Check user permissions
+		// Check user permissions.
 		if ( ! current_user_can( 'edit_post', $post_id ) ) {
 			return;
 		}
 
-		// Check if revision
+		// Check if revision.
 		if ( wp_is_post_revision( $post_id ) ) {
 			return;
 		}
 
-		// Get and sanitize modal assets value
-		$modal_assets = isset( $_POST['sppopups_modal_assets'] ) ? sanitize_text_field( wp_unslash( $_POST['sppopups_modal_assets'] ) ) : 'auto-detect';
+		// Get and sanitize modal assets value.
+		$modal_assets  = isset( $_POST['sppopups_modal_assets'] ) ? sanitize_text_field( wp_unslash( $_POST['sppopups_modal_assets'] ) ) : 'auto-detect';
 		$allowed_modal = array( 'auto-detect', 'loaded' );
-		
+
 		if ( ! in_array( $modal_assets, $allowed_modal, true ) ) {
 			$modal_assets = 'auto-detect';
 		}
 
-		// Get and sanitize gallery assets value
-		$gallery_assets = isset( $_POST['sppopups_gallery_assets'] ) ? sanitize_text_field( wp_unslash( $_POST['sppopups_gallery_assets'] ) ) : 'auto-detect';
+		// Get and sanitize gallery assets value.
+		$gallery_assets  = isset( $_POST['sppopups_gallery_assets'] ) ? sanitize_text_field( wp_unslash( $_POST['sppopups_gallery_assets'] ) ) : 'auto-detect';
 		$allowed_gallery = array( 'auto-detect', 'loaded' );
-		
+
 		if ( ! in_array( $gallery_assets, $allowed_gallery, true ) ) {
 			$gallery_assets = 'auto-detect';
 		}
 
-		// Update post meta
+		// Update post meta.
 		update_post_meta( $post_id, '_sppopups_modal_assets', $modal_assets );
 		update_post_meta( $post_id, '_sppopups_gallery_assets', $gallery_assets );
 
-		// Backward compatibility: Remove old meta key if it exists
+		// Backward compatibility: Remove old meta key if it exists.
 		delete_post_meta( $post_id, '_sppopups_support' );
 	}
 
@@ -647,34 +655,34 @@ class SPPopups_Admin {
 	 * Installs the plugin programmatically and redirects back to TLDR page
 	 */
 	private function handle_install_ai_experiments() {
-		// Verify nonce
+		// Verify nonce.
 		check_admin_referer( 'install_ai_experiments' );
 
-		// Check user capability
+		// Check user capability.
 		if ( ! current_user_can( 'install_plugins' ) ) {
 			wp_die( esc_html__( 'You do not have permission to install plugins.', 'synced-pattern-popups' ) );
 		}
 
-		// Check if plugin is already installed
+		// Check if plugin is already installed.
 		if ( ! function_exists( 'get_plugins' ) ) {
 			require_once ABSPATH . 'wp-admin/includes/plugin.php';
 		}
 
 		$plugins = get_plugins();
 		if ( isset( $plugins['ai/ai.php'] ) ) {
-			// Plugin already installed, just redirect
+			// Plugin already installed, just redirect.
 			wp_safe_redirect( admin_url( 'themes.php?page=simplest-popup-patterns#tldr' ) );
 			exit;
 		}
 
-		// Required WordPress core files for plugin installation
+		// Required WordPress core files for plugin installation.
 		require_once ABSPATH . 'wp-admin/includes/plugin-install.php';
 		require_once ABSPATH . 'wp-admin/includes/class-wp-upgrader.php';
 		require_once ABSPATH . 'wp-admin/includes/class-plugin-upgrader.php';
 		require_once ABSPATH . 'wp-admin/includes/class-automatic-upgrader-skin.php';
 		require_once ABSPATH . 'wp-admin/includes/file.php';
 
-		// Get plugin information from WordPress repository
+		// Get plugin information from WordPress repository.
 		$api = plugins_api(
 			'plugin_information',
 			array(
@@ -685,7 +693,7 @@ class SPPopups_Admin {
 			)
 		);
 
-		// Check for errors
+		// Check for errors.
 		if ( is_wp_error( $api ) ) {
 			wp_die(
 				sprintf(
@@ -696,8 +704,8 @@ class SPPopups_Admin {
 			);
 		}
 
-		// Initialize filesystem
-		$url = wp_nonce_url( admin_url( 'themes.php?page=simplest-popup-patterns' ), 'install_ai_experiments' );
+		// Initialize filesystem.
+		$url   = wp_nonce_url( admin_url( 'themes.php?page=simplest-popup-patterns' ), 'install_ai_experiments' );
 		$creds = request_filesystem_credentials( $url, '', false, false, null );
 		if ( false === $creds ) {
 			wp_die( esc_html__( 'Filesystem credentials are required to install plugins.', 'synced-pattern-popups' ) );
@@ -707,14 +715,14 @@ class SPPopups_Admin {
 			wp_die( esc_html__( 'Filesystem initialization failed.', 'synced-pattern-popups' ) );
 		}
 
-		// Use Automatic_Upgrader_Skin for silent installation
-		$skin = new Automatic_Upgrader_Skin();
+		// Use Automatic_Upgrader_Skin for silent installation.
+		$skin     = new Automatic_Upgrader_Skin();
 		$upgrader = new Plugin_Upgrader( $skin );
 
-		// Install the plugin
+		// Install the plugin.
 		$result = $upgrader->install( $api->download_link );
 
-		// Check for errors
+		// Check for errors.
 		if ( is_wp_error( $result ) ) {
 			wp_die(
 				sprintf(
@@ -729,10 +737,10 @@ class SPPopups_Admin {
 			wp_die( esc_html__( 'Plugin installation failed. Please try again.', 'synced-pattern-popups' ) );
 		}
 
-		// Clear plugin cache
+		// Clear plugin cache.
 		wp_clean_plugins_cache();
 
-		// Redirect back to TLDR page
+		// Redirect back to TLDR page.
 		wp_safe_redirect( admin_url( 'themes.php?page=simplest-popup-patterns#tldr' ) );
 		exit;
 	}
@@ -742,20 +750,20 @@ class SPPopups_Admin {
 	 * Sets a transient to track that we should redirect back to TLDR page
 	 *
 	 * @param string $plugin Plugin file path that was activated.
-	 * @param bool   $network_wide Whether the plugin was activated network-wide.
+	 * @param bool   $_network_wide Whether the plugin was activated network-wide.
 	 */
-	public function handle_plugin_activation_redirect( $plugin, $network_wide ) {
-		// Only handle redirect for AI Experiments plugin
+	public function handle_plugin_activation_redirect( $plugin, $_network_wide ) {
+		// Only handle redirect for AI Experiments plugin.
 		if ( 'ai/ai.php' !== $plugin ) {
 			return;
 		}
 
-		// Check if activation was initiated from our page
-		// The activation URL includes a nonce via wp_nonce_url(), but WordPress core's activation redirect
+		// Check if activation was initiated from our page.
+		// The activation URL includes a nonce via wp_nonce_url(), but WordPress core's activation redirect.
 		// doesn't preserve it. This GET parameter is only used as a flag to set a transient for redirect.
 		// phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Used only as a flag, not for data processing.
 		if ( isset( $_GET['sppopups_redirect'] ) && '1' === $_GET['sppopups_redirect'] ) {
-			// Set a transient to indicate we should redirect
+			// Set a transient to indicate we should redirect.
 			set_transient( 'sppopups_redirect_after_activation', true, 30 );
 		}
 	}
@@ -765,18 +773,18 @@ class SPPopups_Admin {
 	 * Redirects to TLDR settings page if transient is set
 	 */
 	public function check_activation_redirect() {
-		// Only check on plugins page
+		// Only check on plugins page.
 		global $pagenow;
 		if ( 'plugins.php' !== $pagenow ) {
 			return;
 		}
 
-		// Check if transient is set
+		// Check if transient is set.
 		if ( get_transient( 'sppopups_redirect_after_activation' ) ) {
-			// Delete the transient
+			// Delete the transient.
 			delete_transient( 'sppopups_redirect_after_activation' );
-			
-			// Redirect to TLDR settings page
+
+			// Redirect to TLDR settings page.
 			wp_safe_redirect( admin_url( 'themes.php?page=simplest-popup-patterns#tldr' ) );
 			exit;
 		}
@@ -789,44 +797,44 @@ class SPPopups_Admin {
 	public function add_patterns_list_table_link() {
 		global $pagenow, $typenow;
 
-		// Only on the Patterns (wp_block) list table page
+		// Only on the Patterns (wp_block) list table page.
 		if ( 'edit.php' !== $pagenow || 'wp_block' !== $typenow ) {
 			return;
 		}
 
-		$link_url = admin_url( 'themes.php?page=simplest-popup-patterns' );
+		$link_url  = admin_url( 'themes.php?page=simplest-popup-patterns' );
 		$link_text = __( 'Go to Synced Pattern Popups', 'synced-pattern-popups' );
 		?>
 		<script type="text/javascript">
 		(function() {
-			// Find the page title actions area
+			// Find the page title actions area.
 			var pageTitle = document.querySelector('.wp-heading-inline');
 			if (!pageTitle) {
 				return;
 			}
 
-			// Find the parent container that holds the title and buttons
+			// Find the parent container that holds the title and buttons.
 			var titleContainer = pageTitle.parentElement;
 			if (!titleContainer) {
 				return;
 			}
 
-			// Find all page-title-action buttons
+			// Find all page-title-action buttons.
 			var actionButtons = titleContainer.querySelectorAll('.page-title-action');
 			if (actionButtons.length === 0) {
 				return;
 			}
 
-			// Get the last button (usually "Add Pattern")
+			// Get the last button (usually "Add Pattern").
 			var lastButton = actionButtons[actionButtons.length - 1];
 
-			// Create the link with WordPress admin button classes
+			// Create the link with WordPress admin button classes.
 			var link = document.createElement('a');
 			link.href = <?php echo wp_json_encode( $link_url ); ?>;
 			link.textContent = <?php echo wp_json_encode( $link_text ); ?>;
 			link.className = 'page-title-action';
 
-			// Insert after the last button
+			// Insert after the last button.
 			lastButton.parentNode.insertBefore(link, lastButton.nextSibling);
 		})();
 		</script>
@@ -837,7 +845,7 @@ class SPPopups_Admin {
 	 * Add Settings link to plugin action links
 	 * Adds the link as the first item in the action links array
 	 *
-	 * @param array $links Plugin action links array
+	 * @param array $links Plugin action links array.
 	 * @return array Modified plugin action links array
 	 */
 	public function add_settings_link( $links ) {

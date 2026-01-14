@@ -6,11 +6,17 @@
  * @package SPPopups
  */
 
-// Exit if accessed directly
+// Exit if accessed directly.
 if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
+
+/**
+ * SPPopups_Cache class.
+ *
+ * @package SPPopups
+ */
 class SPPopups_Cache {
 
 	/**
@@ -28,12 +34,12 @@ class SPPopups_Cache {
 	 * @return int Cache TTL in seconds
 	 */
 	private function get_cache_ttl() {
-		// Return cached value if available
+		// Return cached value if available.
 		if ( null !== self::$cached_ttl ) {
 			return self::$cached_ttl;
 		}
 
-		// Call filter once and cache the result
+		// Call filter once and cache the result.
 		self::$cached_ttl = (int) apply_filters( 'sppopups_cache_ttl', SPPOPUPS_CACHE_TTL );
 
 		return self::$cached_ttl;
@@ -42,7 +48,7 @@ class SPPopups_Cache {
 	/**
 	 * Get cache key for a pattern ID
 	 *
-	 * @param int $pattern_id Synced pattern ID
+	 * @param int $pattern_id Synced pattern ID.
 	 * @return string Cache key
 	 */
 	private function get_cache_key( $pattern_id ) {
@@ -75,30 +81,30 @@ class SPPopups_Cache {
 	 * Get cached rendered content for a pattern
 	 * Uses object cache if available, falls back to transients
 	 *
-	 * @param int $pattern_id Synced pattern ID
+	 * @param int $pattern_id Synced pattern ID.
 	 * @return array|false Array with HTML and styles, or false if not cached
 	 */
 	public function get( $pattern_id ) {
 		$cache_key = $this->get_cache_key( $pattern_id );
-		$group = $this->get_cache_group();
+		$group     = $this->get_cache_group();
 
-		// Try object cache first (faster if available)
+		// Try object cache first (faster if available).
 		$cached = wp_cache_get( $cache_key, $group );
 		if ( false !== $cached ) {
 			$normalized = $this->normalize_cached_data( $cached );
-			// If normalization failed (invalid format), treat as cache miss
+			// If normalization failed (invalid format), treat as cache miss.
 			if ( false === $normalized ) {
 				return false;
 			}
 			return $normalized;
 		}
 
-		// Fallback to transient
+		// Fallback to transient.
 		$transient = get_transient( $cache_key );
 		if ( false !== $transient ) {
-			// Prime object cache for next time
+			// Prime object cache for next time.
 			$normalized = $this->normalize_cached_data( $transient );
-			// If normalization failed (invalid format), treat as cache miss
+			// If normalization failed (invalid format), treat as cache miss.
 			if ( false === $normalized ) {
 				return false;
 			}
@@ -112,37 +118,37 @@ class SPPopups_Cache {
 	/**
 	 * Normalize cached data (array format or JSON-encoded array)
 	 *
-	 * @param mixed $data Cached data (array or JSON-encoded array string)
+	 * @param mixed $data Cached data (array or JSON-encoded array string).
 	 * @return array|false Normalized array data or false if invalid
 	 */
 	private function normalize_cached_data( $data ) {
 		$normalized = null;
 
-		// If it's already an array, use it
+		// If it's already an array, use it.
 		if ( is_array( $data ) ) {
 			$normalized = $data;
 		} elseif ( is_string( $data ) ) {
-			// If it's a JSON string, decode it
+			// If it's a JSON string, decode it.
 			$decoded = json_decode( $data, true );
 			if ( json_last_error() === JSON_ERROR_NONE && is_array( $decoded ) ) {
 				$normalized = $decoded;
 			} else {
-				// Invalid format - return false
+				// Invalid format - return false.
 				return false;
 			}
 		} else {
-			// Invalid type - return false
+			// Invalid type - return false.
 			return false;
 		}
 
-		// Ensure asset_data exists with default empty arrays if missing
+		// Ensure asset_data exists with default empty arrays if missing.
 		if ( is_array( $normalized ) && ! isset( $normalized['asset_data'] ) ) {
 			$normalized['asset_data'] = self::get_default_asset_data();
 		} elseif ( is_array( $normalized ) && isset( $normalized['asset_data'] ) && ! is_array( $normalized['asset_data'] ) ) {
-			// If asset_data exists but is not an array, reset it
+			// If asset_data exists but is not an array, reset it.
 			$normalized['asset_data'] = self::get_default_asset_data();
 		} elseif ( is_array( $normalized ) && isset( $normalized['asset_data'] ) && is_array( $normalized['asset_data'] ) ) {
-			// Ensure styles and scripts keys exist
+			// Ensure styles and scripts keys exist.
 			if ( ! isset( $normalized['asset_data']['styles'] ) || ! is_array( $normalized['asset_data']['styles'] ) ) {
 				$normalized['asset_data']['styles'] = array();
 			}
@@ -158,38 +164,38 @@ class SPPopups_Cache {
 	 * Set cached rendered content for a pattern
 	 * Uses object cache if available, falls back to transients
 	 *
-	 * @param int         $pattern_id Synced pattern ID
-	 * @param string|array $data      Rendered HTML (string) or array with HTML and styles
+	 * @param int          $pattern_id Synced pattern ID.
+	 * @param string|array $data      Rendered HTML (string) or array with HTML and styles.
 	 * @return bool True on success, false on failure
 	 */
 	public function set( $pattern_id, $data ) {
 		$cache_key = $this->get_cache_key( $pattern_id );
-		$group = $this->get_cache_group();
-		$ttl = $this->get_cache_ttl();
+		$group     = $this->get_cache_group();
+		$ttl       = $this->get_cache_ttl();
 
-		// Normalize data for storage
+		// Normalize data for storage.
 		$storage_data = $this->prepare_data_for_storage( $data );
 
-		// Store in object cache (if available)
+		// Store in object cache (if available).
 		wp_cache_set( $cache_key, $storage_data, $group, $ttl );
 
-		// Also store in transient as fallback
+		// Also store in transient as fallback.
 		return set_transient( $cache_key, $storage_data, $ttl );
 	}
 
 	/**
 	 * Prepare data for storage (encode arrays as JSON for transients)
 	 *
-	 * @param string|array $data Data to prepare
+	 * @param string|array $data Data to prepare.
 	 * @return string|array Prepared data
 	 */
 	private function prepare_data_for_storage( $data ) {
-		// If it's an array, JSON encode it for storage
+		// If it's an array, JSON encode it for storage.
 		if ( is_array( $data ) ) {
 			return wp_json_encode( $data );
 		}
 
-		// String data can be stored as-is
+		// String data can be stored as-is.
 		return $data;
 	}
 
@@ -197,17 +203,17 @@ class SPPopups_Cache {
 	 * Delete cached content for a pattern
 	 * Clears both object cache and transient
 	 *
-	 * @param int $pattern_id Synced pattern ID
+	 * @param int $pattern_id Synced pattern ID.
 	 * @return bool True on success, false on failure
 	 */
 	public function delete( $pattern_id ) {
 		$cache_key = $this->get_cache_key( $pattern_id );
-		$group = $this->get_cache_group();
+		$group     = $this->get_cache_group();
 
-		// Delete from object cache
+		// Delete from object cache.
 		wp_cache_delete( $cache_key, $group );
 
-		// Delete from transient
+		// Delete from transient.
 		return delete_transient( $cache_key );
 	}
 
@@ -222,16 +228,16 @@ class SPPopups_Cache {
 		global $wpdb;
 
 		$pattern = '_transient_sppopups_block_%';
-		$group = $this->get_cache_group();
-		
-		// Clear object cache group (if function exists - WordPress 6.1+)
+		$group   = $this->get_cache_group();
+
+		// Clear object cache group (if function exists - WordPress 6.1+).
 		if ( function_exists( 'wp_cache_flush_group' ) ) {
 			wp_cache_flush_group( $group );
 		}
 
-		// Clear transients
-		// Direct database query is necessary here for bulk cache clearing
-		// wp_cache_flush_group() handles object cache, but transients require direct DB access
+		// Clear transients.
+		// Direct database query is necessary here for bulk cache clearing.
+		// wp_cache_flush_group() handles object cache, but transients require direct DB access.
 		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching
 		$deleted = $wpdb->query(
 			$wpdb->prepare(
@@ -244,4 +250,3 @@ class SPPopups_Cache {
 		return $deleted;
 	}
 }
-

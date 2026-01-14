@@ -21,7 +21,7 @@ param(
     [switch]$SkipTag = $false
 )
 
-$ErrorActionPreference = "Stop"
+$ErrorActionPreference = "Continue"
 
 # Get current version from main plugin file
 $pluginFile = "sppopups.php"
@@ -63,7 +63,7 @@ $content = Get-Content $pluginFile -Raw -Encoding UTF8
 $content = $content -replace "Version:\s*$currentVersion", "Version: $NewVersion"
 $content = $content -replace "define\( 'SPPOPUPS_VERSION', '$currentVersion' \)", "define( 'SPPOPUPS_VERSION', '$NewVersion' )"
 Set-Content -Path $pluginFile -Value $content -Encoding UTF8 -NoNewline
-Write-Host "   ✓ Updated version in plugin header and constant" -ForegroundColor Green
+Write-Host "   [OK] Updated version in plugin header and constant" -ForegroundColor Green
 
 # 2. Update version in readme.txt (Stable tag)
 Write-Host "2. Updating version in readme.txt..." -ForegroundColor Yellow
@@ -71,7 +71,7 @@ $readmeFile = "readme.txt"
 $readmeContent = Get-Content $readmeFile -Raw -Encoding UTF8
 $readmeContent = $readmeContent -replace "Stable tag:\s*$currentVersion", "Stable tag: $NewVersion"
 Set-Content -Path $readmeFile -Value $readmeContent -Encoding UTF8 -NoNewline
-Write-Host "   ✓ Updated stable tag in readme.txt" -ForegroundColor Green
+Write-Host "   [OK] Updated stable tag in readme.txt" -ForegroundColor Green
 
 # 3. Update changelog in readme.txt
 Write-Host "3. Updating changelog..." -ForegroundColor Yellow
@@ -83,60 +83,60 @@ if ([string]::IsNullOrWhiteSpace($ChangelogEntries)) {
     Write-Host "   b) Re-run with -ChangelogEntries parameter" -ForegroundColor Cyan
     Write-Host ""
     Write-Host "   Changelog format example:" -ForegroundColor Cyan
-    Write-Host "   -ChangelogEntries `"* Fixed: Issue description`n* Improved: Feature description`"" -ForegroundColor Gray
+    Write-Host '   -ChangelogEntries "* Fixed: Issue description' -ForegroundColor Gray
+    Write-Host '                      * Improved: Feature description"' -ForegroundColor Gray
 } else {
     # Insert new changelog entry at the top (after the = NewVersion = line)
     # Find the position after "== Description ==" section
-    $changelogSection = "= $NewVersion =`n$ChangelogEntries`n`n"
+    $newline = [Environment]::NewLine
+    $changelogSection = "= $NewVersion =$newline$ChangelogEntries$newline$newline"
     
     # Insert after "== Description ==" section ends (before first changelog entry)
+    $replacement = '$1' + $newline + $newline + $changelogSection + '$2'
     if ($readmeContent -match '(== Description ==.*?)(= \d+\.\d+\.\d+ =)') {
-        $readmeContent = $readmeContent -replace '(== Description ==.*?)(= \d+\.\d+\.\d+ =)', "`$1`n`n$changelogSection`$2"
+        $readmeContent = $readmeContent -replace '(== Description ==.*?)(= \d+\.\d+\.\d+ =)', $replacement
     } else {
         # Fallback: insert after Description section
-        $readmeContent = $readmeContent -replace '(== Description ==.*?\n\n)', "`$1$changelogSection"
+        $fallbackReplacement = '$1' + $changelogSection
+        $readmeContent = $readmeContent -replace '(== Description ==.*?\n\n)', $fallbackReplacement
     }
     
     # Also add to Upgrade Notice section
-    $upgradeNotice = "= $NewVersion =`nRelease notes for version $NewVersion.`n`n"
+    $upgradeNotice = "= $NewVersion =$newline" + "Release notes for version $NewVersion.$newline$newline"
+    $upgradeReplacement = '$1' + $newline + $newline + $upgradeNotice
     if ($readmeContent -match '(== Upgrade Notice ==)') {
-        $readmeContent = $readmeContent -replace '(== Upgrade Notice ==)', "`$1`n`n$upgradeNotice"
+        $readmeContent = $readmeContent -replace '(== Upgrade Notice ==)', $upgradeReplacement
     }
     
     Set-Content -Path $readmeFile -Value $readmeContent -Encoding UTF8 -NoNewline
-    Write-Host "   ✓ Added changelog entry" -ForegroundColor Green
+    Write-Host "   [OK] Added changelog entry" -ForegroundColor Green
 }
 
 # 4. Generate POT file
-if (-not $SkipPot) {
-    Write-Host "4. Generating POT file..." -ForegroundColor Yellow
-    try {
-        # Try to find wp-cli
-        $wpCli = "wp"
-        if (Test-Path "..\..\..\wp.ps1") {
-            $wpCli = "..\..\..\wp.ps1"
-        } elseif (Test-Path "wp.ps1") {
-            $wpCli = ".\wp.ps1"
-        }
-        
-        # Run from plugin directory
-        Push-Location $PSScriptRoot
-        & $wpCli i18n make-pot . languages/synced-pattern-popups.pot --domain=synced-pattern-popups
-        $potExitCode = $LASTEXITCODE
-        Pop-Location
-        
-        if ($potExitCode -eq 0) {
-            Write-Host "   ✓ POT file generated successfully" -ForegroundColor Green
-        } else {
-            Write-Host "   ⚠ POT generation may have failed (exit code: $potExitCode)" -ForegroundColor Yellow
-            Write-Host "   Please verify: wp i18n make-pot . languages/synced-pattern-popups.pot" -ForegroundColor Cyan
-        }
-    } catch {
-        Write-Host "   ⚠ Could not run wp i18n make-pot: $_" -ForegroundColor Yellow
-        Write-Host "   Please run manually: wp i18n make-pot . languages/synced-pattern-popups.pot" -ForegroundColor Cyan
-    }
-} else {
+if ($SkipPot) {
     Write-Host "4. Skipping POT generation (--SkipPot flag)" -ForegroundColor Yellow
+} else {
+    Write-Host "4. Generating POT file..." -ForegroundColor Yellow
+    # Try to find wp-cli
+    $wpCli = "wp"
+    if (Test-Path "..\..\..\wp.ps1") {
+        $wpCli = "..\..\..\wp.ps1"
+    }
+    if (Test-Path "wp.ps1") {
+        $wpCli = ".\wp.ps1"
+    }
+    
+    # Run from plugin directory (we're already here)
+    $potExitCode = 1
+    $null = & $wpCli i18n make-pot . languages/synced-pattern-popups.pot --domain=synced-pattern-popups 2>&1 | Out-Null
+    $potExitCode = $LASTEXITCODE
+    
+    if ($potExitCode -eq 0) {
+        Write-Host "   [OK] POT file generated successfully" -ForegroundColor Green
+    } else {
+        Write-Host "   [WARNING] POT generation may have failed (exit code: $potExitCode)" -ForegroundColor Yellow
+        Write-Host "   Please verify: wp i18n make-pot . languages/synced-pattern-popups.pot" -ForegroundColor Cyan
+    }
 }
 
 # 5. Git operations
@@ -144,7 +144,7 @@ Write-Host "5. Preparing Git operations..." -ForegroundColor Yellow
 
 # Check if we're in a git repo
 if (-not (Test-Path ".git")) {
-    Write-Host "   ⚠ Not a git repository. Skipping git operations." -ForegroundColor Yellow
+    Write-Host "   [WARNING] Not a git repository. Skipping git operations." -ForegroundColor Yellow
     Write-Host ""
     Write-Host "Release preparation complete!" -ForegroundColor Green
     Write-Host "Files modified: $pluginFile, $readmeFile" -ForegroundColor Cyan
@@ -177,16 +177,17 @@ if (-not $SkipTag) {
     Write-Host "   git push origin v$NewVersion" -ForegroundColor Cyan
     Write-Host ""
     Write-Host "4. Push everything with ONE command:" -ForegroundColor White
-    Write-Host "   git push origin main --tags" -ForegroundColor Green
+    Write-Host "   git push origin main && git push origin v$NewVersion" -ForegroundColor Green
     Write-Host ""
-    Write-Host "   Or push commits and tags separately:" -ForegroundColor Gray
-    Write-Host "   git push origin main && git push origin v$NewVersion" -ForegroundColor Gray
+    Write-Host "   Note: This pushes only the new tag, not all tags." -ForegroundColor Gray
 } else {
     Write-Host "3. Create tag manually (--SkipTag flag was used):" -ForegroundColor White
     Write-Host "   git tag -a v$NewVersion -m 'Release version $NewVersion'" -ForegroundColor Cyan
     Write-Host ""
     Write-Host "4. Push everything with ONE command:" -ForegroundColor White
-    Write-Host "   git push origin main --tags" -ForegroundColor Green
+    Write-Host "   git push origin main && git push origin v$NewVersion" -ForegroundColor Green
+    Write-Host ""
+    Write-Host "   Note: This pushes only the new tag, not all tags." -ForegroundColor Gray
 }
 
 Write-Host ""

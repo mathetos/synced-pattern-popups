@@ -1,9 +1,9 @@
-=== Synced Pattern Popups ===
+﻿=== Synced Pattern Popups ===
 Contributors: webdevmattcrom
 Tags: popup, modal, synced-patterns, ai, tldr
 Requires at least: 5.8
 Tested up to: 6.9
-Stable tag: 1.2.0
+Stable tag: 1.2.1
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 

@@ -73,16 +73,7 @@ jobs:
           # Copy plugin files to temp directory, excluding unwanted files
           # This ensures ZIP extracts to sppopups/ folder (WordPress standard)
           rsync -av \
-            --exclude='.git' \
-            --exclude='.github' \
-            --exclude='.gitignore' \
-            --exclude='node_modules' \
-            --exclude='.DS_Store' \
-            --exclude='.cursor' \
-            --exclude='.vscode' \
-            --exclude='.idea' \
-            --exclude='Thumbs.db' \
-            --exclude='*.zip' \
+            --exclude-from='.distignore' \
             ./ /tmp/sppopups-release/sppopups/
           
           # Create ZIP from temporary directory

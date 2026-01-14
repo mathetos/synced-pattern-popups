@@ -6,11 +6,17 @@
  * @package SPPopups
  */
 
-// Exit if accessed directly
+// Exit if accessed directly.
 if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
+
+/**
+ * SPPopups_Settings class.
+ *
+ * @package SPPopups
+ */
 class SPPopups_Settings {
 
 	/**
@@ -38,7 +44,7 @@ class SPPopups_Settings {
 	 * Register settings
 	 */
 	public function register_settings() {
-		// Register settings (no page needed, we'll handle saving manually)
+		// Register settings (no page needed, we'll handle saving manually).
 		register_setting(
 			$this->option_group,
 			'sppopups_tldr_enabled',
@@ -160,10 +166,10 @@ class SPPopups_Settings {
 	 * @return array Status of AI plugin and credentials
 	 */
 	private function check_ai_availability() {
-		$plugin_slug = 'ai/ai.php';
+		$plugin_slug      = 'ai/ai.php';
 		$plugin_installed = $this->is_ai_plugin_installed();
-		$plugin_active = $this->is_ai_plugin_active();
-		$credentials = false;
+		$plugin_active    = $this->is_ai_plugin_active();
+		$credentials      = false;
 
 		if ( $plugin_active && function_exists( 'WordPress\AI\has_valid_ai_credentials' ) ) {
 			$credentials = \WordPress\AI\has_valid_ai_credentials();
@@ -211,7 +217,7 @@ class SPPopups_Settings {
 	 * @return string Settings page URL
 	 */
 	private function get_ai_experiments_settings_url() {
-		// Try to get URL from AI Experiments plugin if it exposes a function
+		// Try to get URL from AI Experiments plugin if it exposes a function.
 		if ( function_exists( 'WordPress\AI\get_settings_url' ) ) {
 			$url = \WordPress\AI\get_settings_url();
 			if ( ! empty( $url ) ) {
@@ -219,7 +225,7 @@ class SPPopups_Settings {
 			}
 		}
 
-		// Fallback to standard settings page
+		// Fallback to standard settings page.
 		return admin_url( 'options-general.php?page=wp-ai-client' );
 	}
 
@@ -277,8 +283,8 @@ class SPPopups_Settings {
 							</th>
 							<td>
 								<?php
-								$prompt_type = get_option( 'sppopups_tldr_prompt_custom', false ) ? 'custom' : 'default';
-								$custom_prompt = get_option( 'sppopups_tldr_prompt', '' );
+								$prompt_type    = get_option( 'sppopups_tldr_prompt_custom', false ) ? 'custom' : 'default';
+								$custom_prompt  = get_option( 'sppopups_tldr_prompt', '' );
 								$default_prompt = $this->get_default_prompt();
 								?>
 								<fieldset>
@@ -326,7 +332,7 @@ class SPPopups_Settings {
 	 * Render settings section for tab (without box wrapper)
 	 */
 	public function render_settings_section_for_tab() {
-		$ai_available = $this->check_ai_availability();
+		$ai_available         = $this->check_ai_availability();
 		$all_requirements_met = $ai_available['plugin_installed'] && $ai_available['plugin_active'] && $ai_available['credentials'];
 		?>
 		<div class="sppopups-tab-content-inner">
@@ -371,8 +377,8 @@ class SPPopups_Settings {
 								</th>
 								<td>
 									<?php
-									$prompt_type = get_option( 'sppopups_tldr_prompt_custom', false ) ? 'custom' : 'default';
-									$custom_prompt = get_option( 'sppopups_tldr_prompt', '' );
+									$prompt_type    = get_option( 'sppopups_tldr_prompt_custom', false ) ? 'custom' : 'default';
+									$custom_prompt  = get_option( 'sppopups_tldr_prompt', '' );
 									$default_prompt = $this->get_default_prompt();
 									?>
 									<fieldset>
@@ -420,7 +426,7 @@ class SPPopups_Settings {
 	/**
 	 * Render requirements checklist
 	 *
-	 * @param array $status AI availability status array
+	 * @param array $status AI availability status array.
 	 */
 	private function render_requirements_checklist( $status ) {
 		?>
@@ -478,7 +484,7 @@ class SPPopups_Settings {
 					<span class="sppopups-requirement-action">
 						<?php
 						$activate_url = wp_nonce_url(
-							admin_url( 'plugins.php?action=activate&plugin=' . urlencode( $status['plugin_slug'] ) . '&plugin_status=all&paged=1&s=&sppopups_redirect=1' ),
+							admin_url( 'plugins.php?action=activate&plugin=' . rawurlencode( $status['plugin_slug'] ) . '&plugin_status=all&paged=1&s=&sppopups_redirect=1' ),
 							'activate-plugin_' . $status['plugin_slug']
 						);
 						?>
@@ -530,14 +536,14 @@ class SPPopups_Settings {
 	 * @return string Prompt template
 	 */
 	public static function get_tldr_prompt() {
-		$default = "Create a concise TLDR (Too Long; Didn't Read) summary of the following content. The summary should be 2-3 sentences and capture the main points.";
+		$default    = "Create a concise TLDR (Too Long; Didn't Read) summary of the following content. The summary should be 2-3 sentences and capture the main points.";
 		$use_custom = get_option( 'sppopups_tldr_prompt_custom', false );
-		
+
 		if ( $use_custom ) {
 			$custom_prompt = get_option( 'sppopups_tldr_prompt', '' );
 			return ! empty( $custom_prompt ) ? $custom_prompt : $default;
 		}
-		
+
 		return $default;
 	}
 

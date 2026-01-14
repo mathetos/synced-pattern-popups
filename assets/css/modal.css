@@ -239,7 +239,7 @@
 	overflow-y: auto;
 	overflow-x: hidden;
 	flex: 1;
-	
+
 	/* Smooth scrolling on iOS */
 	-webkit-overflow-scrolling: touch;
 	/* Better scrollbar appearance */
@@ -707,16 +707,16 @@ body:not(.block-editor-page):not(.wp-admin) [class*="wp-block"]:hover {
 		grid-template-rows: auto auto auto;
 		gap: 12px;
 	}
-	
+
 	.sppopups-gallery-nav-group {
 		justify-content: flex-start;
 	}
-	
+
 	.sppopups-gallery-caption {
 		text-align: left;
 		padding: 0;
 	}
-	
+
 	.sppopups-gallery-footer .sppopups-close-footer {
 		margin-left: 0;
 		width: 100%;
@@ -846,5 +846,5 @@ body:not(.block-editor-page):not(.wp-admin) [class*="wp-block"]:hover {
 /* Frontend gallery images - pointer cursor on hover */
 /* Target gallery links with our data attribute */
 figure[data-sppopup-gallery=true] figure {
-    cursor: pointer;
+	cursor: pointer;
 }

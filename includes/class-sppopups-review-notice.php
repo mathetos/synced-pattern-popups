@@ -6,11 +6,17 @@
  * @package SPPopups
  */
 
-// Exit if accessed directly
+// Exit if accessed directly.
 if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
+
+/**
+ * SPPopups_Review_Notice class.
+ *
+ * @package SPPopups
+ */
 class SPPopups_Review_Notice {
 
 	/**
@@ -52,15 +58,15 @@ class SPPopups_Review_Notice {
 	 * Initialize review notice
 	 */
 	public function init() {
-		// Only run in admin
+		// Only run in admin.
 		if ( ! is_admin() ) {
 			return;
 		}
 
-		// Hook into admin notices
+		// Hook into admin notices.
 		add_action( 'admin_notices', array( $this, 'maybe_show_notice' ) );
 
-		// Register AJAX handler
+		// Register AJAX handler.
 		add_action( 'wp_ajax_' . self::AJAX_ACTION, array( $this, 'handle_dismiss_ajax' ) );
 	}
 
@@ -69,7 +75,7 @@ class SPPopups_Review_Notice {
 	 * Static method to be called from activation hook
 	 */
 	public static function set_trigger_date() {
-		// Only set if option doesn't exist
+		// Only set if option doesn't exist.
 		if ( get_option( self::OPTION_NAME ) === false ) {
 			$trigger_date = time() + ( DAY_IN_SECONDS * self::DELAY_DAYS );
 			add_option( self::OPTION_NAME, $trigger_date, '', false );
@@ -82,12 +88,12 @@ class SPPopups_Review_Notice {
 	 * @return bool True if notice should be shown
 	 */
 	private function should_show_notice() {
-		// Check if user has capability (super admin, admin, or editor)
+		// Check if user has capability (super admin, admin, or editor).
 		if ( ! is_super_admin() && ! current_user_can( 'edit_posts' ) ) {
 			return false;
 		}
 
-		// Check if user has dismissed the notice
+		// Check if user has dismissed the notice.
 		$user_id = get_current_user_id();
 		if ( empty( $user_id ) ) {
 			return false;
@@ -98,19 +104,19 @@ class SPPopups_Review_Notice {
 			return false;
 		}
 
-		// Check if we're on the correct admin page (do this BEFORE option check for efficiency)
+		// Check if we're on the correct admin page (do this BEFORE option check for efficiency).
 		$screen = get_current_screen();
 		if ( ! $screen || 'appearance_page_simplest-popup-patterns' !== $screen->id ) {
 			return false;
 		}
 
-		// Check if trigger date option exists, initialize if not (for existing users upgrading)
+		// Check if trigger date option exists, initialize if not (for existing users upgrading).
 		$trigger_date = get_option( self::OPTION_NAME );
 		if ( false === $trigger_date ) {
-			// Initialize for existing users who upgraded to version with this feature
-			// Only runs once because option will exist after this
+			// Initialize for existing users who upgraded to version with this feature.
+			// Only runs once because option will exist after this.
 			$this->initialize_trigger_date_for_existing_user();
-			// Re-fetch the option (should now exist)
+			// Re-fetch the option (should now exist).
 			$trigger_date = get_option( self::OPTION_NAME, 0 );
 		}
 
@@ -131,18 +137,18 @@ class SPPopups_Review_Notice {
 	 * Only called when option doesn't exist and we're on the relevant page
 	 */
 	private function initialize_trigger_date_for_existing_user() {
-		// Ensure plugin.php is loaded for is_plugin_active()
+		// Ensure plugin.php is loaded for is_plugin_active().
 		if ( ! function_exists( 'is_plugin_active' ) ) {
 			require_once ABSPATH . 'wp-admin/includes/plugin.php';
 		}
 
-		// Double-check plugin is active (safety check)
+		// Double-check plugin is active (safety check).
 		$plugin_file = plugin_basename( SPPOPUPS_PLUGIN_DIR . 'sppopups.php' );
 		if ( ! is_plugin_active( $plugin_file ) ) {
 			return;
 		}
 
-		// Set trigger date to 30 days from now for existing users
+		// Set trigger date to 30 days from now for existing users.
 		$trigger_date = time() + ( DAY_IN_SECONDS * self::DELAY_DAYS );
 		add_option( self::OPTION_NAME, $trigger_date, '', false );
 	}
@@ -156,8 +162,8 @@ class SPPopups_Review_Notice {
 		}
 
 		$plugin_name = self::PLUGIN_NAME;
-		$review_url = self::REVIEW_URL;
-		$nonce = wp_create_nonce( self::NONCE_ACTION );
+		$review_url  = self::REVIEW_URL;
+		$nonce       = wp_create_nonce( self::NONCE_ACTION );
 
 		?>
 		<div class="sppopups-review-notice-wrapper">
@@ -198,27 +204,27 @@ class SPPopups_Review_Notice {
 	 * Handle AJAX dismissal request
 	 */
 	public function handle_dismiss_ajax() {
-		// Check user capability
+		// Check user capability.
 		if ( ! is_super_admin() && ! current_user_can( 'edit_posts' ) ) {
 			wp_send_json_error( array( 'message' => __( 'Insufficient permissions.', 'synced-pattern-popups' ) ) );
 			return;
 		}
 
-		// Verify nonce
+		// Verify nonce.
 		$nonce = isset( $_POST['nonce'] ) ? sanitize_text_field( wp_unslash( $_POST['nonce'] ) ) : '';
 		if ( ! wp_verify_nonce( $nonce, self::NONCE_ACTION ) ) {
 			wp_send_json_error( array( 'message' => __( 'Invalid security token. Please refresh the page and try again.', 'synced-pattern-popups' ) ) );
 			return;
 		}
 
-		// Get current user ID
+		// Get current user ID.
 		$user_id = get_current_user_id();
 		if ( empty( $user_id ) ) {
 			wp_send_json_error( array( 'message' => __( 'User not found.', 'synced-pattern-popups' ) ) );
 			return;
 		}
 
-		// Save dismissal
+		// Save dismissal.
 		update_user_meta( $user_id, self::USER_META_KEY, '1' );
 
 		wp_send_json_success( array( 'message' => __( 'Notice dismissed.', 'synced-pattern-popups' ) ) );
@@ -229,10 +235,10 @@ class SPPopups_Review_Notice {
 	 * Static method to be called from uninstall hook
 	 */
 	public static function cleanup() {
-		// Delete option
+		// Delete option.
 		delete_option( self::OPTION_NAME );
 
-		// Delete user meta for all users
+		// Delete user meta for all users.
 		$users = get_users( array( 'fields' => 'ID' ) );
 		foreach ( $users as $user_id ) {
 			delete_user_meta( $user_id, self::USER_META_KEY );

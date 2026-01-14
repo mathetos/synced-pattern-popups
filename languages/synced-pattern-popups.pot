@@ -2,21 +2,23 @@
 # This file is distributed under the GPL v2 or later.
 msgid ""
 msgstr ""
-"Project-Id-Version: Synced Pattern Popups 1.1.3\n"
-"Report-Msgid-Bugs-To: https://wordpress.org/support/plugin/sppopups\n"
+"Project-Id-Version: Synced Pattern Popups 1.2.1\n"
+"Report-Msgid-Bugs-To: https://wordpress.org/support/plugin/synced-pattern-popups\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"POT-Creation-Date: 2026-01-11T11:09:58+00:00\n"
+"POT-Creation-Date: 2026-01-14T22:46:52+00:00\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "X-Generator: WP-CLI 2.12.0\n"
 "X-Domain: synced-pattern-popups\n"
 
 #. Plugin Name of the plugin
 #: sppopups.php
-#: includes/class-sppopups-abilities.php:77
+#: includes/class-sppopups-abilities.php:83
+#: includes/class-sppopups-admin.php:532
+#: assets/js/gallery-editor.js:229
 msgid "Synced Pattern Popups"
 msgstr ""
 
@@ -35,179 +37,179 @@ msgstr ""
 msgid "https://www.mattcromwell.com"
 msgstr ""
 
-#: includes/class-sppopups-abilities.php:78
+#: includes/class-sppopups-abilities.php:84
 msgid "Abilities for managing popup content from Synced Patterns."
 msgstr ""
 
-#: includes/class-sppopups-abilities.php:121
+#: includes/class-sppopups-abilities.php:127
 msgid "Render Popup Content"
 msgstr ""
 
-#: includes/class-sppopups-abilities.php:122
+#: includes/class-sppopups-abilities.php:128
 msgid "Renders a synced pattern as popup content with all required styles and assets."
 msgstr ""
 
-#: includes/class-sppopups-abilities.php:129
+#: includes/class-sppopups-abilities.php:135
 msgid "The ID of the synced pattern to render."
 msgstr ""
 
-#: includes/class-sppopups-abilities.php:140
+#: includes/class-sppopups-abilities.php:146
 msgid "Rendered HTML content."
 msgstr ""
 
-#: includes/class-sppopups-abilities.php:144
+#: includes/class-sppopups-abilities.php:150
 msgid "Pattern title."
 msgstr ""
 
-#: includes/class-sppopups-abilities.php:148
+#: includes/class-sppopups-abilities.php:154
 msgid "Array of style handles required for this pattern."
 msgstr ""
 
-#: includes/class-sppopups-abilities.php:153
+#: includes/class-sppopups-abilities.php:159
 msgid "Block supports CSS from Style Engine."
 msgstr ""
 
-#: includes/class-sppopups-abilities.php:157
+#: includes/class-sppopups-abilities.php:163
 msgid "Block style variation CSS (is-style-* classes)."
 msgstr ""
 
-#: includes/class-sppopups-abilities.php:161
+#: includes/class-sppopups-abilities.php:167
 msgid "Global stylesheet for CSS variables."
 msgstr ""
 
-#: includes/class-sppopups-abilities.php:165
+#: includes/class-sppopups-abilities.php:171
 msgid "Detailed asset data (styles and scripts with URLs and inline content)."
 msgstr ""
 
-#: includes/class-sppopups-abilities.php:194
+#: includes/class-sppopups-abilities.php:200
 msgid "Invalid pattern ID."
 msgstr ""
 
-#: includes/class-sppopups-abilities.php:201
-#: includes/class-sppopups-abilities.php:387
+#: includes/class-sppopups-abilities.php:207
+#: includes/class-sppopups-abilities.php:393
 msgid "Pattern ID out of valid range."
 msgstr ""
 
-#: includes/class-sppopups-abilities.php:207
+#: includes/class-sppopups-abilities.php:213
 msgid "Pattern not found."
 msgstr ""
 
-#: includes/class-sppopups-abilities.php:214
+#: includes/class-sppopups-abilities.php:220
 msgid "Failed to render pattern content."
 msgstr ""
 
-#: includes/class-sppopups-abilities.php:218
-#: includes/class-sppopups-abilities.php:299
-#: includes/class-sppopups-admin.php:375
+#: includes/class-sppopups-abilities.php:224
+#: includes/class-sppopups-abilities.php:305
+#: includes/class-sppopups-admin.php:381
 msgid "(no title)"
 msgstr ""
 
-#: includes/class-sppopups-abilities.php:230
+#: includes/class-sppopups-abilities.php:236
 msgid "List Synced Patterns"
 msgstr ""
 
-#: includes/class-sppopups-abilities.php:231
+#: includes/class-sppopups-abilities.php:237
 msgid "Returns a list of all synced patterns available for popups."
 msgstr ""
 
-#: includes/class-sppopups-abilities.php:238
+#: includes/class-sppopups-abilities.php:244
 msgid "Filter by post status (e.g., \"publish\", \"draft\"). Optional."
 msgstr ""
 
-#: includes/class-sppopups-abilities.php:248
+#: includes/class-sppopups-abilities.php:254
 msgid "Array of synced pattern objects."
 msgstr ""
 
-#: includes/class-sppopups-abilities.php:316
+#: includes/class-sppopups-abilities.php:322
 msgid "Clear Popup Cache"
 msgstr ""
 
-#: includes/class-sppopups-abilities.php:317
+#: includes/class-sppopups-abilities.php:323
 msgid "Clears cached popup content for a specific synced pattern or all patterns."
 msgstr ""
 
-#: includes/class-sppopups-abilities.php:324
+#: includes/class-sppopups-abilities.php:330
 msgid "The ID of the pattern to clear cache for (integer), or \"all\" (string) to clear all cached content."
 msgstr ""
 
-#: includes/class-sppopups-abilities.php:335
+#: includes/class-sppopups-abilities.php:341
 msgid "Whether the cache was successfully cleared. For single pattern operations, this indicates success. For \"all\" operations, this is true if any entries were deleted."
 msgstr ""
 
-#: includes/class-sppopups-abilities.php:339
+#: includes/class-sppopups-abilities.php:345
 msgid "Number of cache entries deleted. For single pattern operations, this will be 0 or 1. For \"all\" operations, this is the total count."
 msgstr ""
 
-#: includes/class-sppopups-abilities.php:364
+#: includes/class-sppopups-abilities.php:370
 msgid "pattern_id parameter is required."
 msgstr ""
 
-#: includes/class-sppopups-abilities.php:380
+#: includes/class-sppopups-abilities.php:386
 msgid "pattern_id must be an integer or \"all\"."
 msgstr ""
 
-#: includes/class-sppopups-abilities.php:410
+#: includes/class-sppopups-abilities.php:416
 msgid "Scan for Popup Triggers"
 msgstr ""
 
-#: includes/class-sppopups-abilities.php:411
+#: includes/class-sppopups-abilities.php:417
 msgid "Scans HTML content or a post/page for popup trigger links and classes."
 msgstr ""
 
-#: includes/class-sppopups-abilities.php:418
+#: includes/class-sppopups-abilities.php:424
 msgid "Post ID to scan. Mutually exclusive with html parameter."
 msgstr ""
 
-#: includes/class-sppopups-abilities.php:422
+#: includes/class-sppopups-abilities.php:428
 msgid "Raw HTML content to scan. Mutually exclusive with post_id parameter."
 msgstr ""
 
-#: includes/class-sppopups-abilities.php:431
+#: includes/class-sppopups-abilities.php:437
 msgid "Array of discovered trigger objects."
 msgstr ""
 
-#: includes/class-sppopups-abilities.php:437
+#: includes/class-sppopups-abilities.php:443
 msgid "Trigger type: \"class\" or \"href\"."
 msgstr ""
 
-#: includes/class-sppopups-abilities.php:443
+#: includes/class-sppopups-abilities.php:449
 msgid "Optional max-width in pixels."
 msgstr ""
 
-#: includes/class-sppopups-abilities.php:476
-#: includes/class-sppopups-ajax.php:319
-#: includes/class-sppopups-tldr.php:94
+#: includes/class-sppopups-abilities.php:482
+#: includes/class-sppopups-ajax.php:332
+#: includes/class-sppopups-tldr.php:100
 msgid "Post not found."
 msgstr ""
 
-#: includes/class-sppopups-abilities.php:482
+#: includes/class-sppopups-abilities.php:488
 msgid "Either post_id or html parameter is required."
 msgstr ""
 
-#: includes/class-sppopups-admin.php:71
-#: includes/class-sppopups-admin.php:72
-#: includes/class-sppopups-admin.php:269
+#: includes/class-sppopups-admin.php:77
+#: includes/class-sppopups-admin.php:78
+#: includes/class-sppopups-admin.php:275
 msgid "Synced Patterns"
 msgstr ""
 
-#: includes/class-sppopups-admin.php:110
+#: includes/class-sppopups-admin.php:116
 msgid "Copied!"
 msgstr ""
 
-#: includes/class-sppopups-admin.php:111
+#: includes/class-sppopups-admin.php:117
 msgid "Failed to copy"
 msgstr ""
 
-#: includes/class-sppopups-admin.php:168
+#: includes/class-sppopups-admin.php:174
 msgid "Security check failed."
 msgstr ""
 
-#: includes/class-sppopups-admin.php:235
+#: includes/class-sppopups-admin.php:241
 msgid "Pattern deleted successfully."
 msgstr ""
 
 #. translators: %d: number of cache entries deleted
-#: includes/class-sppopups-admin.php:241
+#: includes/class-sppopups-admin.php:247
 #, php-format
 msgid "Cache cleared successfully. %d entry deleted."
 msgid_plural "Cache cleared successfully. %d entries deleted."
@@ -215,516 +217,565 @@ msgstr[0] ""
 msgstr[1] ""
 
 #. translators: %d: Pattern ID
-#: includes/class-sppopups-admin.php:255
+#: includes/class-sppopups-admin.php:261
 #, php-format
 msgid "Transient cache deleted successfully for pattern #%d."
 msgstr ""
 
-#: includes/class-sppopups-admin.php:262
+#: includes/class-sppopups-admin.php:268
 msgid "TLDR settings saved successfully."
 msgstr ""
 
-#: includes/class-sppopups-admin.php:274
+#: includes/class-sppopups-admin.php:280
 msgid "Learn more about Synced Pattern Popups"
 msgstr ""
 
-#: includes/class-sppopups-admin.php:282
+#: includes/class-sppopups-admin.php:288
 msgid "Patterns"
 msgstr ""
 
-#: includes/class-sppopups-admin.php:285
-#: includes/class-sppopups-ajax.php:362
+#: includes/class-sppopups-admin.php:291
+#: includes/class-sppopups-ajax.php:374
 msgid "TLDR"
 msgstr ""
 
-#: includes/class-sppopups-admin.php:288
+#: includes/class-sppopups-admin.php:294
 msgid "How to Use"
 msgstr ""
 
-#: includes/class-sppopups-admin.php:291
+#: includes/class-sppopups-admin.php:297
 msgid "Get Support"
 msgstr ""
 
-#: includes/class-sppopups-admin.php:300
+#: includes/class-sppopups-admin.php:306
 msgid "Add New"
 msgstr ""
 
-#: includes/class-sppopups-admin.php:309
+#: includes/class-sppopups-admin.php:315
 msgid "Clear Transient Cache"
 msgstr ""
 
-#: includes/class-sppopups-admin.php:314
+#: includes/class-sppopups-admin.php:320
 msgid "Manage synced patterns that can be used as popups. Only synced patterns are available for popup triggers."
 msgstr ""
 
-#: includes/class-sppopups-admin.php:320
+#: includes/class-sppopups-admin.php:326
 msgid "No synced patterns found."
 msgstr ""
 
-#: includes/class-sppopups-admin.php:322
+#: includes/class-sppopups-admin.php:328
 msgid "Create your first synced pattern"
 msgstr ""
 
-#: includes/class-sppopups-admin.php:331
-#: includes/class-sppopups-admin.php:369
+#: includes/class-sppopups-admin.php:337
+#: includes/class-sppopups-admin.php:375
 msgid "ID"
 msgstr ""
 
-#: includes/class-sppopups-admin.php:332
-#: includes/class-sppopups-admin.php:372
+#: includes/class-sppopups-admin.php:338
+#: includes/class-sppopups-admin.php:378
 msgid "Title"
 msgstr ""
 
-#: includes/class-sppopups-admin.php:333
-#: includes/class-sppopups-admin.php:386
+#: includes/class-sppopups-admin.php:339
+#: includes/class-sppopups-admin.php:392
 msgid "Status"
 msgstr ""
 
-#: includes/class-sppopups-admin.php:334
-#: includes/class-sppopups-admin.php:398
+#: includes/class-sppopups-admin.php:340
+#: includes/class-sppopups-admin.php:404
 msgid "Trigger Code"
 msgstr ""
 
-#: includes/class-sppopups-admin.php:335
-#: includes/class-sppopups-admin.php:413
+#: includes/class-sppopups-admin.php:341
+#: includes/class-sppopups-admin.php:419
 msgid "Actions"
 msgstr ""
 
-#: includes/class-sppopups-admin.php:405
-#: includes/class-sppopups-admin.php:406
+#: includes/class-sppopups-admin.php:411
+#: includes/class-sppopups-admin.php:412
 msgid "Copy to Clipboard"
 msgstr ""
 
-#: includes/class-sppopups-admin.php:418
+#: includes/class-sppopups-admin.php:424
 msgid "Edit"
 msgstr ""
 
-#: includes/class-sppopups-admin.php:425
+#: includes/class-sppopups-admin.php:431
 msgid "Are you sure you want to delete this pattern?"
 msgstr ""
 
-#: includes/class-sppopups-admin.php:427
+#: includes/class-sppopups-admin.php:433
 msgid "Delete"
 msgstr ""
 
 #. translators: %d: Pattern ID
-#: includes/class-sppopups-admin.php:442
+#: includes/class-sppopups-admin.php:449
 #, php-format
 msgid "Are you sure you want to delete the transient cache for pattern #%d?"
 msgstr ""
 
 #. translators: %d: Pattern ID
-#: includes/class-sppopups-admin.php:447
+#: includes/class-sppopups-admin.php:455
 #, php-format
 msgid "Delete Transient #%d"
 msgstr ""
 
-#: includes/class-sppopups-admin.php:472
+#: includes/class-sppopups-admin.php:480
 msgid "How to Use Synced Pattern Popups"
 msgstr ""
 
-#: includes/class-sppopups-admin.php:474
+#: includes/class-sppopups-admin.php:482
 msgid "There are two ways to trigger a popup on your site:"
 msgstr ""
 
-#: includes/class-sppopups-admin.php:478
+#: includes/class-sppopups-admin.php:486
 msgid "Method 1: Class Name"
 msgstr ""
 
-#: includes/class-sppopups-admin.php:479
+#: includes/class-sppopups-admin.php:487
 msgid "Add the class"
 msgstr ""
 
-#: includes/class-sppopups-admin.php:479
+#: includes/class-sppopups-admin.php:487
 msgid "to any clickable element, where"
 msgstr ""
 
-#: includes/class-sppopups-admin.php:479
+#: includes/class-sppopups-admin.php:487
 msgid "is the numeric ID of your Synced Pattern."
 msgstr ""
 
-#: includes/class-sppopups-admin.php:480
+#: includes/class-sppopups-admin.php:488
 msgid "Examples:"
 msgstr ""
 
-#: includes/class-sppopups-admin.php:481
 #: includes/class-sppopups-admin.php:489
+#: includes/class-sppopups-admin.php:497
 msgid "Open Popup"
 msgstr ""
 
-#: includes/class-sppopups-admin.php:482
+#: includes/class-sppopups-admin.php:490
 msgid "Click Me"
 msgstr ""
 
-#: includes/class-sppopups-admin.php:486
+#: includes/class-sppopups-admin.php:494
 msgid "Method 2: Href Attribute"
 msgstr ""
 
-#: includes/class-sppopups-admin.php:487
+#: includes/class-sppopups-admin.php:495
 msgid "Set the"
 msgstr ""
 
-#: includes/class-sppopups-admin.php:487
+#: includes/class-sppopups-admin.php:495
 msgid "attribute to"
 msgstr ""
 
-#: includes/class-sppopups-admin.php:487
+#: includes/class-sppopups-admin.php:495
 msgid "on any link element. This is especially useful in the WordPress Block Editor where you can't easily add custom classes."
 msgstr ""
 
-#: includes/class-sppopups-admin.php:488
-#: includes/class-sppopups-admin.php:495
+#: includes/class-sppopups-admin.php:496
+#: includes/class-sppopups-admin.php:503
 msgid "Example:"
 msgstr ""
 
-#: includes/class-sppopups-admin.php:493
+#: includes/class-sppopups-admin.php:501
 msgid "Custom Width"
 msgstr ""
 
-#: includes/class-sppopups-admin.php:494
+#: includes/class-sppopups-admin.php:502
 msgid "You can specify a custom modal width by adding a width suffix:"
 msgstr ""
 
-#: includes/class-sppopups-admin.php:494
+#: includes/class-sppopups-admin.php:502
 msgid "where width is in pixels (100-5000px)."
 msgstr ""
 
-#: includes/class-sppopups-admin.php:496
+#: includes/class-sppopups-admin.php:504
 msgid "Open 800px Modal"
 msgstr ""
 
-#: includes/class-sppopups-admin.php:500
+#: includes/class-sppopups-admin.php:508
 msgid "Finding Pattern IDs"
 msgstr ""
 
-#: includes/class-sppopups-admin.php:501
+#: includes/class-sppopups-admin.php:509
 msgid "Go to WordPress Admin → Appearance → Synced Patterns. The ID column shows the pattern ID prominently. You can also click the \"Copy Trigger\" button in the Actions column to copy the complete trigger code."
 msgstr ""
 
-#: includes/class-sppopups-admin.php:524
-msgid "Synced Pattern Popup Support"
+#: includes/class-sppopups-admin.php:564
+msgid "Modal Assets:"
 msgstr ""
 
-#: includes/class-sppopups-admin.php:552
-#: includes/class-sppopups-settings.php:287
-#: includes/class-sppopups-settings.php:381
-msgid "Default"
+#: includes/class-sppopups-admin.php:569
+#: includes/class-sppopups-admin.php:585
+msgid "Auto-Detect"
 msgstr ""
 
-#: includes/class-sppopups-admin.php:557
-msgid "Forced On"
+#: includes/class-sppopups-admin.php:573
+#: includes/class-sppopups-admin.php:589
+msgid "Loaded"
 msgstr ""
 
-#: includes/class-sppopups-admin.php:561
-msgid "In most cases you can leave this on Default. Use Forced On if your trigger link/class is injected dynamically (e.g., forms, AJAX, page builders) and the popup assets aren't loading."
+#: includes/class-sppopups-admin.php:580
+msgid "Gallery Assets:"
 msgstr ""
 
-#: includes/class-sppopups-admin.php:621
+#: includes/class-sppopups-admin.php:663
 msgid "You do not have permission to install plugins."
 msgstr ""
 
 #. translators: %s: Error message
-#: includes/class-sppopups-admin.php:659
+#: includes/class-sppopups-admin.php:701
 #, php-format
 msgid "Error retrieving plugin information: %s"
 msgstr ""
 
-#: includes/class-sppopups-admin.php:669
+#: includes/class-sppopups-admin.php:711
 msgid "Filesystem credentials are required to install plugins."
 msgstr ""
 
-#: includes/class-sppopups-admin.php:673
+#: includes/class-sppopups-admin.php:715
 msgid "Filesystem initialization failed."
 msgstr ""
 
 #. translators: %s: Error message
-#: includes/class-sppopups-admin.php:688
+#: includes/class-sppopups-admin.php:730
 #, php-format
 msgid "Plugin installation failed: %s"
 msgstr ""
 
-#: includes/class-sppopups-admin.php:695
+#: includes/class-sppopups-admin.php:737
 msgid "Plugin installation failed. Please try again."
 msgstr ""
 
-#: includes/class-sppopups-admin.php:764
+#: includes/class-sppopups-admin.php:806
 msgid "Go to Synced Pattern Popups"
 msgstr ""
 
-#: includes/class-sppopups-admin.php:810
+#: includes/class-sppopups-admin.php:852
 msgid "Settings"
 msgstr ""
 
-#: includes/class-sppopups-ajax.php:167
-#: includes/class-sppopups-ajax.php:286
+#: includes/class-sppopups-ajax.php:173
+#: includes/class-sppopups-ajax.php:299
 msgid "Too many requests. Please try again later."
 msgstr ""
 
-#: includes/class-sppopups-ajax.php:174
-#: includes/class-sppopups-ajax.php:293
-#: includes/class-sppopups-review-notice.php:210
+#: includes/class-sppopups-ajax.php:180
+#: includes/class-sppopups-ajax.php:306
+#: includes/class-sppopups-review-notice.php:216
 msgid "Invalid security token. Please refresh the page and try again."
 msgstr ""
 
-#: includes/class-sppopups-ajax.php:182
 #: includes/class-sppopups-ajax.php:188
-#: includes/class-sppopups-ajax.php:198
+#: includes/class-sppopups-ajax.php:194
 #: includes/class-sppopups-ajax.php:204
+#: includes/class-sppopups-ajax.php:210
 msgid "Invalid request."
 msgstr ""
 
-#: includes/class-sppopups-ajax.php:211
+#: includes/class-sppopups-ajax.php:217
 msgid "Popup"
 msgstr ""
 
-#: includes/class-sppopups-ajax.php:245
 #: includes/class-sppopups-ajax.php:253
+#: includes/class-sppopups-ajax.php:261
 msgid "Content not available."
 msgstr ""
 
-#: includes/class-sppopups-ajax.php:310
+#: includes/class-sppopups-ajax.php:323
 msgid "Invalid request. Post ID required."
 msgstr ""
 
-#: includes/class-sppopups-ajax.php:324
-#: includes/class-sppopups-tldr.php:99
+#: includes/class-sppopups-ajax.php:337
+#: includes/class-sppopups-tldr.php:105
 msgid "Post is not published."
 msgstr ""
 
-#: includes/class-sppopups-ajax.php:333
-#: includes/class-sppopups-ajax.php:339
+#: includes/class-sppopups-ajax.php:346
+#: includes/class-sppopups-ajax.php:351
 msgid "You do not have permission to view this content."
 msgstr ""
 
-#: includes/class-sppopups-plugin.php:297
-#: includes/class-sppopups-plugin.php:325
+#: includes/class-sppopups-plugin.php:389
+#: includes/class-sppopups-plugin.php:417
 msgid "Loading content..."
 msgstr ""
 
-#: includes/class-sppopups-plugin.php:298
+#: includes/class-sppopups-plugin.php:390
 msgid "Error loading content. Please try again."
 msgstr ""
 
-#: includes/class-sppopups-plugin.php:299
+#: includes/class-sppopups-plugin.php:391
 msgid "Content not found."
 msgstr ""
 
-#: includes/class-sppopups-plugin.php:316
+#: includes/class-sppopups-plugin.php:408
 msgid "Press Escape to close. Tab stays within the popup."
 msgstr ""
 
-#: includes/class-sppopups-plugin.php:317
-#: includes/class-sppopups-plugin.php:329
+#: includes/class-sppopups-plugin.php:409
+#: includes/class-sppopups-plugin.php:421
 msgid "Close modal"
 msgstr ""
 
-#: includes/class-sppopups-plugin.php:330
+#: includes/class-sppopups-plugin.php:422
 msgid "Close"
 msgstr ""
 
 #. translators: %s: Plugin name
-#: includes/class-sppopups-review-notice.php:168
+#: includes/class-sppopups-review-notice.php:174
 #, php-format
 msgid "Enjoying %s?"
 msgstr ""
 
-#: includes/class-sppopups-review-notice.php:173
+#: includes/class-sppopups-review-notice.php:179
 msgid "Leave us a kind review on WordPress.org"
 msgstr ""
 
-#: includes/class-sppopups-review-notice.php:182
+#: includes/class-sppopups-review-notice.php:188
 msgid "Leave your Review Here"
 msgstr ""
 
-#: includes/class-sppopups-review-notice.php:184
+#: includes/class-sppopups-review-notice.php:190
 msgid "Dismiss this notice"
 msgstr ""
 
-#: includes/class-sppopups-review-notice.php:185
+#: includes/class-sppopups-review-notice.php:191
 msgid "I'd rather not (dismiss)"
 msgstr ""
 
-#: includes/class-sppopups-review-notice.php:190
+#: includes/class-sppopups-review-notice.php:196
 msgid "Your review and feedback keeps us developing this plugin for more users like you!"
 msgstr ""
 
-#: includes/class-sppopups-review-notice.php:203
+#: includes/class-sppopups-review-notice.php:209
 msgid "Insufficient permissions."
 msgstr ""
 
-#: includes/class-sppopups-review-notice.php:217
+#: includes/class-sppopups-review-notice.php:223
 msgid "User not found."
 msgstr ""
 
-#: includes/class-sppopups-review-notice.php:224
+#: includes/class-sppopups-review-notice.php:230
 msgid "Notice dismissed."
 msgstr ""
 
-#: includes/class-sppopups-settings.php:98
+#: includes/class-sppopups-settings.php:104
 msgid "Configure the AI-powered TLDR feature that generates page summaries on-demand."
 msgstr ""
 
-#: includes/class-sppopups-settings.php:101
-#: includes/class-sppopups-settings.php:239
+#: includes/class-sppopups-settings.php:107
+#: includes/class-sppopups-settings.php:245
 msgid "AI Experiments plugin is not active. TLDR feature requires the AI Experiments plugin to be installed and activated."
 msgstr ""
 
-#: includes/class-sppopups-settings.php:105
-#: includes/class-sppopups-settings.php:243
+#: includes/class-sppopups-settings.php:111
+#: includes/class-sppopups-settings.php:249
 msgid "AI credentials are not configured. Please configure AI credentials in Settings → AI Experiments."
 msgstr ""
 
-#: includes/class-sppopups-settings.php:109
-#: includes/class-sppopups-settings.php:247
+#: includes/class-sppopups-settings.php:115
+#: includes/class-sppopups-settings.php:253
 msgid "AI Experiments plugin is active and credentials are configured."
 msgstr ""
 
-#: includes/class-sppopups-settings.php:123
-#: includes/class-sppopups-settings.php:265
-#: includes/class-sppopups-settings.php:359
+#: includes/class-sppopups-settings.php:129
+#: includes/class-sppopups-settings.php:271
+#: includes/class-sppopups-settings.php:365
 msgid "Enable AI-powered TLDR feature"
 msgstr ""
 
-#: includes/class-sppopups-settings.php:126
-#: includes/class-sppopups-settings.php:268
-#: includes/class-sppopups-settings.php:362
+#: includes/class-sppopups-settings.php:132
+#: includes/class-sppopups-settings.php:274
+#: includes/class-sppopups-settings.php:368
 msgid "When enabled, users can click elements with class \"spp-trigger-tldr\" to generate and display AI-powered summaries of the current page."
 msgstr ""
 
-#: includes/class-sppopups-settings.php:139
-#: includes/class-sppopups-settings.php:298
-#: includes/class-sppopups-settings.php:392
+#: includes/class-sppopups-settings.php:145
+#: includes/class-sppopups-settings.php:304
+#: includes/class-sppopups-settings.php:398
 msgid "The prompt template used to generate TLDR summaries. The page content will be automatically appended to your prompt."
 msgstr ""
 
-#: includes/class-sppopups-settings.php:152
+#: includes/class-sppopups-settings.php:158
 msgid "How long to cache generated TLDR summaries (in hours). Default: 12 hours."
 msgstr ""
 
-#: includes/class-sppopups-settings.php:234
-#: includes/class-sppopups-settings.php:333
+#: includes/class-sppopups-settings.php:240
+#: includes/class-sppopups-settings.php:339
 msgid "AI TLDR Settings"
 msgstr ""
 
-#: includes/class-sppopups-settings.php:259
-#: includes/class-sppopups-settings.php:353
+#: includes/class-sppopups-settings.php:265
+#: includes/class-sppopups-settings.php:359
 msgid "Enable TLDR Feature"
 msgstr ""
 
-#: includes/class-sppopups-settings.php:275
-#: includes/class-sppopups-settings.php:369
+#: includes/class-sppopups-settings.php:281
+#: includes/class-sppopups-settings.php:375
 msgid "TLDR Prompt"
 msgstr ""
 
-#: includes/class-sppopups-settings.php:291
-#: includes/class-sppopups-settings.php:385
+#: includes/class-sppopups-settings.php:293
+#: includes/class-sppopups-settings.php:387
+msgid "Default"
+msgstr ""
+
+#: includes/class-sppopups-settings.php:297
+#: includes/class-sppopups-settings.php:391
 msgid "Custom"
 msgstr ""
 
-#: includes/class-sppopups-settings.php:305
-#: includes/class-sppopups-settings.php:399
+#: includes/class-sppopups-settings.php:311
+#: includes/class-sppopups-settings.php:405
 msgid "Cache Duration"
 msgstr ""
 
-#: includes/class-sppopups-settings.php:310
-#: includes/class-sppopups-settings.php:404
+#: includes/class-sppopups-settings.php:316
+#: includes/class-sppopups-settings.php:410
 msgid "hours"
 msgstr ""
 
-#: includes/class-sppopups-settings.php:312
-#: includes/class-sppopups-settings.php:406
+#: includes/class-sppopups-settings.php:318
+#: includes/class-sppopups-settings.php:412
 msgid "How long to cache generated TLDR summaries. Default: 12 hours."
 msgstr ""
 
-#: includes/class-sppopups-settings.php:319
-#: includes/class-sppopups-settings.php:413
+#: includes/class-sppopups-settings.php:325
+#: includes/class-sppopups-settings.php:419
 msgid "Save TLDR Settings"
 msgstr ""
 
-#: includes/class-sppopups-settings.php:337
+#: includes/class-sppopups-settings.php:343
 msgid "The AI-powered TLDR feature generates concise summaries of your page content on-demand. To use this feature, you need to complete the following requirements:"
 msgstr ""
 
-#: includes/class-sppopups-settings.php:342
+#: includes/class-sppopups-settings.php:348
 msgid "AI Experiments plugin is active and credentials are configured. You can now configure the TLDR feature settings below."
 msgstr ""
 
-#: includes/class-sppopups-settings.php:434
+#: includes/class-sppopups-settings.php:440
 msgid "Step 1"
 msgstr ""
 
-#: includes/class-sppopups-settings.php:436
+#: includes/class-sppopups-settings.php:442
 msgid "AI Experiments plugin installed"
 msgstr ""
 
-#: includes/class-sppopups-settings.php:440
+#: includes/class-sppopups-settings.php:446
 msgid "Install the AI Experiments plugin from the WordPress repository"
 msgstr ""
 
-#: includes/class-sppopups-settings.php:452
+#: includes/class-sppopups-settings.php:458
 msgid "Install"
 msgstr ""
 
-#: includes/class-sppopups-settings.php:468
+#: includes/class-sppopups-settings.php:474
 msgid "Step 2"
 msgstr ""
 
-#: includes/class-sppopups-settings.php:470
+#: includes/class-sppopups-settings.php:476
 msgid "AI Experiments plugin activated"
 msgstr ""
 
-#: includes/class-sppopups-settings.php:474
+#: includes/class-sppopups-settings.php:480
 msgid "Activate the AI Experiments plugin to enable AI features"
 msgstr ""
 
-#: includes/class-sppopups-settings.php:486
+#: includes/class-sppopups-settings.php:492
 msgid "Activate"
 msgstr ""
 
-#: includes/class-sppopups-settings.php:497
+#: includes/class-sppopups-settings.php:503
 msgid "Step 3"
 msgstr ""
 
-#: includes/class-sppopups-settings.php:499
+#: includes/class-sppopups-settings.php:505
 msgid "AI credentials saved in settings"
 msgstr ""
 
-#: includes/class-sppopups-settings.php:503
+#: includes/class-sppopups-settings.php:509
 msgid "Configure your AI API credentials in the plugin settings"
 msgstr ""
 
-#: includes/class-sppopups-settings.php:509
+#: includes/class-sppopups-settings.php:515
 msgid "Start"
 msgstr ""
 
-#: includes/class-sppopups-tldr.php:43
+#: includes/class-sppopups-tldr.php:49
 msgid "Invalid post ID."
 msgstr ""
 
-#: includes/class-sppopups-tldr.php:48
+#: includes/class-sppopups-tldr.php:54
 msgid "TLDR feature is disabled."
 msgstr ""
 
-#: includes/class-sppopups-tldr.php:60
+#: includes/class-sppopups-tldr.php:66
 msgid "AI service is not available. Please check AI Experiments plugin configuration."
 msgstr ""
 
-#: includes/class-sppopups-tldr.php:70
+#: includes/class-sppopups-tldr.php:76
 msgid "No content found to generate TLDR."
 msgstr ""
 
-#: includes/class-sppopups-tldr.php:149
+#: includes/class-sppopups-tldr.php:157
 msgid "AI Client is not available."
 msgstr ""
 
-#: includes/class-sppopups-tldr.php:159
+#: includes/class-sppopups-tldr.php:167
 msgid "Format your response using Markdown syntax (use **bold** for emphasis, * for lists, ## for headings, etc.)."
 msgstr ""
 
-#: includes/class-sppopups-tldr.php:181
+#: includes/class-sppopups-tldr.php:189
 msgid "Invalid response from AI service."
 msgstr ""
 
-#: includes/class-sppopups-tldr.php:183
+#: includes/class-sppopups-tldr.php:191
 msgid "Failed to generate TLDR: "
+msgstr ""
+
+#: assets/js/gallery-editor.js:235
+msgid "Modal Size"
+msgstr ""
+
+#: assets/js/gallery-editor.js:242
+msgid "Width in pixels"
+msgstr ""
+
+#: assets/js/gallery-editor.js:249
+msgid "Close Buttons"
+msgstr ""
+
+#: assets/js/gallery-editor.js:253
+msgid "X icon"
+msgstr ""
+
+#: assets/js/gallery-editor.js:254
+msgid "Close Button"
+msgstr ""
+
+#: assets/js/gallery-editor.js:255
+#: assets/js/gallery-editor.js:269
+msgid "Both"
+msgstr ""
+
+#: assets/js/gallery-editor.js:263
+msgid "Image Navigation"
+msgstr ""
+
+#: assets/js/gallery-editor.js:267
+msgid "On Image"
+msgstr ""
+
+#: assets/js/gallery-editor.js:268
+msgid "In Footer"
+msgstr ""
+
+#: assets/js/gallery-editor.js:453
+#: assets/js/gallery-editor.js:459
+#: assets/js/gallery-editor.js:469
+#: assets/js/gallery-editor.js:548
+msgid "Open in Synced Pattern Popups"
 msgstr ""
