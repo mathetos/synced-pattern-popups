@@ -1,0 +1,33 @@
+# Development / VCS metadata
+/.git
+/.github
+/.cursor
+/.vscode
+/.idea
+/.wordpress-org
+/.gitignore
+/.distignore
+
+# Composer / PHPCS tooling (dev-only for this plugin)
+/vendor
+/composer.json
+/composer.lock
+/phpcs.xml
+/phpcs.xml.dist
+/.phpcs.xml
+/.phpcs.xml.dist
+
+# Development scripts
+/release.ps1
+/fix-phpcs.ps1
+/fix-phpcs-v2.ps1
+
+# Node / build artifacts (if present)
+/node_modules
+
+# OS/editor junk
+.DS_Store
+Thumbs.db
+
+# Release artifacts
+*.zip
