@@ -152,11 +152,14 @@ class SPPopups_Plugin {
 			return true;
 		}
 
-		// Check if post has forced popup support enabled
+		// Check if post has forced modal assets loading enabled
 		if ( is_singular() ) {
 			global $post;
-			if ( $post && get_post_meta( $post->ID, '_sppopups_support', true ) === 'forced' ) {
-				return true;
+			if ( $post ) {
+				$modal_assets = get_post_meta( $post->ID, '_sppopups_modal_assets', true );
+				if ( 'loaded' === $modal_assets ) {
+					return true;
+				}
 			}
 		}
 
@@ -260,39 +263,96 @@ class SPPopups_Plugin {
 	}
 
 	/**
+	 * Check if page contains galleries with sppopup link option
+	 *
+	 * @return bool True if galleries are present
+	 */
+	private function has_galleries() {
+		// Get page content
+		global $post;
+		if ( ! $post || ! isset( $post->post_content ) ) {
+			return false;
+		}
+
+		// Check for Gallery blocks with sppopup linkTo option (same logic as has_popup_triggers)
+		if ( has_block( 'core/gallery', $post->post_content ) ) {
+			$blocks = parse_blocks( $post->post_content );
+			foreach ( $blocks as $block ) {
+				if ( 'core/gallery' === $block['blockName'] && 
+					 isset( $block['attrs']['linkTo'] ) && 
+					 'sppopup' === $block['attrs']['linkTo'] ) {
+					return true;
+				}
+			}
+		}
+
+		return false;
+	}
+
+	/**
 	 * Enqueue CSS and JavaScript assets
 	 */
 	public function enqueue_assets() {
-		// Only enqueue if page contains popup triggers
-		if ( ! $this->has_popup_triggers() ) {
+		// Check post meta for forced asset loading
+		$force_modal_assets = false;
+		$force_gallery_assets = false;
+		
+		if ( is_singular() ) {
+			global $post;
+			if ( $post ) {
+				$modal_assets = get_post_meta( $post->ID, '_sppopups_modal_assets', true );
+				$gallery_assets = get_post_meta( $post->ID, '_sppopups_gallery_assets', true );
+				
+				if ( 'loaded' === $modal_assets ) {
+					$force_modal_assets = true;
+				}
+				if ( 'loaded' === $gallery_assets ) {
+					$force_gallery_assets = true;
+					// Gallery assets depend on modal assets, so force modal assets too
+					$force_modal_assets = true;
+				}
+			}
+		}
+
+		// Check if page contains popup triggers (only if not forced)
+		if ( ! $force_modal_assets && ! $this->has_popup_triggers() ) {
 			return;
 		}
 
-		// Enqueue CSS
-		wp_enqueue_style(
-			'simplest-popup-modal',
-			SPPOPUPS_PLUGIN_URL . 'assets/css/modal.css',
-			array(),
-			SPPOPUPS_VERSION
-		);
+		// Enqueue CSS (always enqueue if modal assets are forced or triggers found)
+		if ( $force_modal_assets || $this->has_popup_triggers() ) {
+			wp_enqueue_style(
+				'simplest-popup-modal',
+				SPPOPUPS_PLUGIN_URL . 'assets/css/modal.css',
+				array(),
+				SPPOPUPS_VERSION
+			);
+		}
 
-		// Enqueue gallery JavaScript first (dependency)
-		wp_enqueue_script(
-			'sppopups-gallery',
-			SPPOPUPS_PLUGIN_URL . 'assets/js/gallery.js',
-			array(),
-			SPPOPUPS_VERSION,
-			true
-		);
+		// Check if galleries are present
+		$has_galleries = $this->has_galleries();
 
-		// Enqueue JavaScript (depends on gallery.js)
-		wp_enqueue_script(
-			'simplest-popup-modal',
-			SPPOPUPS_PLUGIN_URL . 'assets/js/modal.js',
-			array( 'sppopups-gallery' ),
-			SPPOPUPS_VERSION,
-			true
-		);
+		// Enqueue gallery JavaScript if galleries are present OR forced to load
+		if ( $has_galleries || $force_gallery_assets ) {
+			wp_enqueue_script(
+				'sppopups-gallery',
+				SPPOPUPS_PLUGIN_URL . 'assets/js/gallery.js',
+				array(),
+				SPPOPUPS_VERSION,
+				true
+			);
+		}
+
+		// Enqueue JavaScript (always enqueue if modal assets are forced or triggers found)
+		if ( $force_modal_assets || $this->has_popup_triggers() ) {
+			wp_enqueue_script(
+				'simplest-popup-modal',
+				SPPOPUPS_PLUGIN_URL . 'assets/js/modal.js',
+				( $has_galleries || $force_gallery_assets ) ? array( 'sppopups-gallery' ) : array(),
+				SPPOPUPS_VERSION,
+				true
+			);
+		}
 
 		// Get style URLs for JavaScript injection
 		$style_urls = $this->get_style_urls();
@@ -472,28 +532,57 @@ class SPPopups_Plugin {
 				continue;
 			}
 
+			// Register modal assets meta
 			register_post_meta(
 				$post_type,
-				'_sppopups_support',
+				'_sppopups_modal_assets',
 				array(
 					'type'              => 'string',
 					'single'            => true,
-					'sanitize_callback' => array( $this, 'sanitize_popup_support' ),
+					'sanitize_callback' => array( $this, 'sanitize_assets_setting' ),
 					'show_in_rest'      => true,
 					'auth_callback'     => function() {
 						return current_user_can( 'edit_posts' );
 					},
-					'default'           => 'default',
+					'default'           => 'auto-detect',
+				)
+			);
+
+			// Register gallery assets meta
+			register_post_meta(
+				$post_type,
+				'_sppopups_gallery_assets',
+				array(
+					'type'              => 'string',
+					'single'            => true,
+					'sanitize_callback' => array( $this, 'sanitize_assets_setting' ),
+					'show_in_rest'      => true,
+					'auth_callback'     => function() {
+						return current_user_can( 'edit_posts' );
+					},
+					'default'           => 'auto-detect',
 				)
 			);
 		}
 	}
 
 	/**
-	 * Sanitize popup support meta value
+	 * Sanitize assets setting meta value
 	 *
 	 * @param string $value Meta value
 	 * @return string Sanitized value
+	 */
+	public function sanitize_assets_setting( $value ) {
+		$allowed = array( 'auto-detect', 'loaded' );
+		return in_array( $value, $allowed, true ) ? $value : 'auto-detect';
+	}
+
+	/**
+	 * Sanitize popup support meta value (deprecated, kept for backward compatibility)
+	 *
+	 * @param string $value Meta value
+	 * @return string Sanitized value
+	 * @deprecated Use sanitize_assets_setting instead
 	 */
 	public function sanitize_popup_support( $value ) {
 		$allowed = array( 'default', 'forced' );

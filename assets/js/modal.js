@@ -29,176 +29,26 @@
 
 	var loadingHtml = '<div class="sppopups-loading"><div class="sppopups-spinner"></div><p>' + sppopups.strings.loading + '</p></div>';
 	
-	// Store array of background elements that were hidden from AT
-	// Note: hiddenBackgroundElements is now stored in modalState object
+	// Store current max-width setting for resize handling
+	var currentMaxWidth = null;
 	
-	// Track which styles and scripts have been loaded to prevent duplicates
-	// Note: loadedStyles and loadedScripts are now stored in modalState object
+	// Store last active element for focus restoration
+	var lastActiveElement = null;
+	
+	// Store array of background elements that were hidden from AT
+	var hiddenBackgroundElements = [];
+	
+	// Store scroll position to restore after modal closes
+	var savedScrollPosition = 0;
+	
+	// Track which styles have been loaded to prevent duplicates
+	var loadedStyles = new Set();
+	
+	// Track which scripts have been loaded to prevent duplicates
+	var loadedScripts = new Set();
 
 	// Cache commonly queried DOM elements
-	// Note: titleElement and modalContainer are now stored in modalState object
-
-	/**
-	 * Modal state object (centralized state management)
-	 * 
-	 * Manages all modal state including visibility, dimensions, focus/scroll restoration,
-	 * accessibility state, asset tracking, and DOM element caches. Provides getters,
-	 * setters with validation, state snapshots, and reset functionality.
-	 * 
-	 * @namespace modalState
-	 * @since 1.1.3
-	 */
-	var modalState = {
-		/**
-		 * Whether the modal is currently open
-		 * @type {boolean}
-		 */
-		isOpen: false,
-		
-		/**
-		 * Current modal mode: 'pattern', 'gallery', or 'tldr'
-		 * @type {string}
-		 */
-		mode: 'pattern',
-		
-		/**
-		 * Maximum width of the modal in pixels (null for default)
-		 * @type {number|null}
-		 */
-		maxWidth: null,
-		
-		/**
-		 * Element that had focus before modal opened (for restoration)
-		 * @type {HTMLElement|null}
-		 */
-		lastActiveElement: null,
-		
-		/**
-		 * Scroll position before modal opened (for restoration)
-		 * @type {number}
-		 */
-		savedScrollPosition: 0,
-		
-		/**
-		 * Array of background elements hidden from assistive technology
-		 * @type {Array<HTMLElement>}
-		 */
-		hiddenBackgroundElements: [],
-		
-		/**
-		 * Set of loaded style handles (persists across modals)
-		 * @type {Set<string>}
-		 */
-		loadedStyles: new Set(),
-		
-		/**
-		 * Set of loaded script handles (persists across modals)
-		 * @type {Set<string>}
-		 */
-		loadedScripts: new Set(),
-		
-		/**
-		 * Cached title element reference
-		 * @type {HTMLElement|null}
-		 */
-		titleElement: null,
-		
-		/**
-		 * Cached modal container element reference
-		 * @type {HTMLElement|null}
-		 */
-		modalContainer: null,
-		
-		/**
-		 * Get current max width setting
-		 * 
-		 * @return {number|null} Current max width or null
-		 */
-		getMaxWidth: function() {
-			return this.maxWidth;
-		},
-		
-		/**
-		 * Check if modal is in gallery mode
-		 * 
-		 * @return {boolean} True if mode is 'gallery'
-		 */
-		isGalleryMode: function() {
-			return this.mode === 'gallery';
-		},
-		
-		/**
-		 * Set modal max width with validation
-		 * 
-		 * Validates that width is a number between 100 and 5000 pixels, or null.
-		 * 
-		 * @param {number|null} width - Max width in pixels (100-5000) or null for default
-		 * @return {boolean} True if value was set, false if invalid
-		 */
-		setMaxWidth: function(width) {
-			if (width !== null) {
-				if (typeof width !== 'number' || isNaN(width)) {
-					console.warn('Synced Pattern Popups: Invalid maxWidth (must be a number):', width);
-					return false;
-				}
-				if (width < 100 || width > 5000) {
-					console.warn('Synced Pattern Popups: Invalid maxWidth (must be 100-5000px):', width);
-					return false;
-				}
-			}
-			this.maxWidth = width;
-			return true;
-		},
-		
-		/**
-		 * Get a snapshot of current state for debugging
-		 * 
-		 * Returns a serializable object with current state values. Useful for
-		 * debugging and state inspection. Does not include DOM element references.
-		 * 
-		 * @return {Object} State snapshot object
-		 * @return {boolean} return.isOpen - Whether modal is open
-		 * @return {string} return.mode - Current modal mode
-		 * @return {number|null} return.maxWidth - Current max width
-		 * @return {number} return.savedScrollPosition - Saved scroll position
-		 * @return {number} return.hiddenBackgroundElementsCount - Count of hidden elements
-		 * @return {number} return.loadedStylesCount - Count of loaded styles
-		 * @return {number} return.loadedScriptsCount - Count of loaded scripts
-		 */
-		snapshot: function() {
-			return {
-				isOpen: this.isOpen,
-				mode: this.mode,
-				maxWidth: this.maxWidth,
-				savedScrollPosition: this.savedScrollPosition,
-				hiddenBackgroundElementsCount: this.hiddenBackgroundElements.length,
-				loadedStylesCount: this.loadedStyles.size,
-				loadedScriptsCount: this.loadedScripts.size
-			};
-		},
-		
-		/**
-		 * Reset all modal state (called when modal closes)
-		 * 
-		 * Resets all state variables to their initial values. Does NOT reset
-		 * asset tracking Sets (loadedStyles, loadedScripts) as they persist
-		 * across modals by design. Does NOT reset DOM element caches
-		 * (titleElement, modalContainer) as they are cached for performance.
-		 * 
-		 * @return {void}
-		 */
-		reset: function() {
-			this.isOpen = false;
-			this.mode = 'pattern';
-			this.maxWidth = null;
-			this.lastActiveElement = null;
-			this.savedScrollPosition = 0;
-			this.hiddenBackgroundElements = [];
-			// Note: loadedStyles and loadedScripts are NOT reset (persist across modals by design)
-			// Note: titleElement and modalContainer are NOT reset (cached DOM elements)
-		}
-	};
-
+	var titleElement = null; // Will be cached on first use
 
 	// Cache focusable elements selector (static, never changes)
 	var FOCUSABLE_SELECTORS = [
@@ -396,7 +246,7 @@
 	 */
 	function injectStyle(handle) {
 		// Check if already loaded
-		if (modalState.loadedStyles.has(handle)) {
+		if (loadedStyles.has(handle)) {
 			return Promise.resolve();
 		}
 		
@@ -406,7 +256,7 @@
 		                  document.querySelector('link[href*="' + handle + '"]');
 		
 		if (existingLink) {
-			modalState.loadedStyles.add(handle);
+			loadedStyles.add(handle);
 			return Promise.resolve();
 		}
 		
@@ -450,7 +300,7 @@
 			
 			// Handle load/error
 			link.onload = function() {
-				modalState.loadedStyles.add(handle);
+				loadedStyles.add(handle);
 				resolve();
 			};
 			
@@ -503,7 +353,7 @@
 	 */
 	function injectScript(handle, inlineBefore, inlineAfter) {
 		// Check if already loaded
-		if (modalState.loadedScripts.has(handle)) {
+		if (loadedScripts.has(handle)) {
 			return Promise.resolve();
 		}
 		
@@ -513,7 +363,7 @@
 		                    document.querySelector('script[src*="' + handle + '"]');
 		
 		if (existingScript) {
-			modalState.loadedScripts.add(handle);
+			loadedScripts.add(handle);
 			return Promise.resolve();
 		}
 		
@@ -560,7 +410,7 @@
 				
 				// Handle load/error
 				script.onload = function() {
-					modalState.loadedScripts.add(handle);
+					loadedScripts.add(handle);
 					resolve();
 				};
 				
@@ -587,7 +437,7 @@
 		
 		// If no promises (no external script), resolve immediately
 		if (promises.length === 0) {
-			modalState.loadedScripts.add(handle);
+			loadedScripts.add(handle);
 			return Promise.resolve();
 		}
 		
@@ -650,7 +500,7 @@
 	 */
 	function hideBackgroundFromAT() {
 		// Clear any previously hidden elements
-		modalState.hiddenBackgroundElements = [];
+		hiddenBackgroundElements = [];
 		
 		// Iterate through all direct children of body
 		var bodyChildren = Array.prototype.slice.call(body.children);
@@ -672,7 +522,7 @@
 			// Set aria-hidden as fallback
 			if (!alreadyHidden) {
 				element.setAttribute('aria-hidden', 'true');
-				modalState.hiddenBackgroundElements.push(element);
+				hiddenBackgroundElements.push(element);
 			}
 		});
 	}
@@ -682,14 +532,14 @@
 	 */
 	function showBackgroundToAT() {
 		// Remove inert from all elements
-		modalState.hiddenBackgroundElements.forEach(function(element) {
+		hiddenBackgroundElements.forEach(function(element) {
 			if ('inert' in element) {
 				element.inert = false;
 			}
 			element.removeAttribute('aria-hidden');
 		});
 		
-		modalState.hiddenBackgroundElements = [];
+		hiddenBackgroundElements = [];
 	}
 
 	/**
@@ -700,17 +550,13 @@
 	 */
 	function setupModalState(maxWidth, loadingContent) {
 		// Save scroll position BEFORE any DOM changes (for all screen sizes)
-		modalState.savedScrollPosition = window.pageYOffset || document.documentElement.scrollTop || document.body.scrollTop || 0;
+		savedScrollPosition = window.pageYOffset || document.documentElement.scrollTop || document.body.scrollTop || 0;
 
 		// Store the element that triggered the modal for focus restoration
-		modalState.lastActiveElement = document.activeElement;
+		lastActiveElement = document.activeElement;
 
-		// Store the requested max-width for resize handling (with validation)
-		modalState.setMaxWidth(maxWidth);
-		
-		// Update modal state flags
-		modalState.isOpen = true;
-		modalState.mode = maxWidth ? 'gallery' : 'pattern'; // Simple heuristic, can refine later
+		// Store the requested max-width for resize handling
+		currentMaxWidth = maxWidth;
 		
 		// Calculate and apply max-width with 6% margin
 		if (maxWidth !== null) {
@@ -721,7 +567,7 @@
 		}
 
 		// Prevent body scroll by saving scroll position (for all screen sizes)
-		body.style.top = '-' + modalState.savedScrollPosition + 'px';
+		body.style.top = '-' + savedScrollPosition + 'px';
 		
 		// Update ARIA attributes
 		modal.setAttribute('aria-hidden', 'false');
@@ -754,10 +600,10 @@
 	 * @return {HTMLElement|null} Title element or null
 	 */
 	function getTitleElement() {
-		if (!modalState.titleElement || !modal.contains(modalState.titleElement)) {
-			modalState.titleElement = modal.querySelector('#sppopups-title');
+		if (!titleElement || !modal.contains(titleElement)) {
+			titleElement = modal.querySelector('#sppopups-title');
 		}
-		return modalState.titleElement;
+		return titleElement;
 	}
 
 	/**
@@ -846,7 +692,7 @@
 							}
 
 							// Check if already loaded
-							if (!modalState.loadedStyles.has(styleAsset.handle)) {
+							if (!loadedStyles.has(styleAsset.handle)) {
 								var link = document.createElement('link');
 								link.rel = 'stylesheet';
 								link.href = styleAsset.src;
@@ -855,7 +701,7 @@
 								
 								var linkPromise = new Promise(function(resolve) {
 									link.onload = function() {
-										modalState.loadedStyles.add(styleAsset.handle);
+										loadedStyles.add(styleAsset.handle);
 										resolve();
 									};
 									link.onerror = function() {
@@ -925,7 +771,7 @@
 		
 		// Reset max-width to default
 		container.style.maxWidth = '';
-		modalState.setMaxWidth(null);
+		currentMaxWidth = null;
 
 		// Reset gallery state
 		if (window.sppopupsGallery && window.sppopupsGallery.resetGalleryState) {
@@ -961,8 +807,8 @@
 		
 		// Restore scroll position BEFORE removing body styles and restoring focus
 		// This prevents any scroll jumps
-		if (modalState.savedScrollPosition > 0) {
-			window.scrollTo(0, modalState.savedScrollPosition);
+		if (savedScrollPosition > 0) {
+			window.scrollTo(0, savedScrollPosition);
 		}
 		
 		// Clear body scroll lock styles
@@ -972,12 +818,13 @@
 		
 		// Restore focus to the element that triggered the modal
 		// Use focusWithoutScroll to prevent page from jumping
-		if (modalState.lastActiveElement && document.body.contains(modalState.lastActiveElement)) {
-			focusWithoutScroll(modalState.lastActiveElement);
+		if (lastActiveElement && document.body.contains(lastActiveElement)) {
+			focusWithoutScroll(lastActiveElement);
 		}
 		
-		// Reset all state (centralized state reset)
-		modalState.reset();
+		// Clear saved values
+		lastActiveElement = null;
+		savedScrollPosition = 0;
 	}
 
 	// Close on overlay click
@@ -1008,16 +855,12 @@
 		if (window.sppopupsGallery && window.sppopupsGallery.isGalleryMode && window.sppopupsGallery.isGalleryMode()) {
 			if (e.key === 'ArrowLeft') {
 				e.preventDefault();
-				if (window.sppopupsGallery.navigateGallery) {
-					window.sppopupsGallery.navigateGallery('prev');
-				}
+				window.sppopupsGallery.navigateGallery('prev');
 				return;
 			}
 			if (e.key === 'ArrowRight') {
 				e.preventDefault();
-				if (window.sppopupsGallery.navigateGallery) {
-					window.sppopupsGallery.navigateGallery('next');
-				}
+				window.sppopupsGallery.navigateGallery('next');
 				return;
 			}
 		}
@@ -1131,16 +974,12 @@
 						var clickedImageId = galleryItem.getAttribute('data-image-id');
 						var clickedImageIndex = -1;
 						
-						// Try to find by ID first (most reliable - works with random order)
+						// Try to find by ID first (most reliable)
 						if (clickedImageId) {
-							var clickedIdNum = parseInt(clickedImageId, 10);
 							for (var i = 0; i < galleryData.images.length; i++) {
-								if (galleryData.images[i].id) {
-									var imageIdNum = parseInt(galleryData.images[i].id, 10);
-									if (imageIdNum === clickedIdNum && imageIdNum > 0) {
-										clickedImageIndex = i;
-										break;
-									}
+								if (galleryData.images[i].id && parseInt(galleryData.images[i].id, 10) === parseInt(clickedImageId, 10)) {
+									clickedImageIndex = i;
+									break;
 								}
 							}
 						}
@@ -1174,23 +1013,12 @@
 							}
 						}
 						
-						// Final fallback: Use data-image-index if available (NOT reliable with random order, but better than nothing)
+						// Final fallback: Use data-image-index if available (for backward compatibility)
 						if (clickedImageIndex === -1) {
 							var fallbackIndex = galleryItem.getAttribute('data-image-index');
-							if (fallbackIndex !== null) {
+							if (fallbackIndex) {
 								clickedImageIndex = parseInt(fallbackIndex, 10);
 							}
-						}
-						
-						// Validate we found an image
-						if (clickedImageIndex === -1 || clickedImageIndex < 0 || clickedImageIndex >= galleryData.images.length) {
-							console.error('Synced Pattern Popups: Could not identify clicked image', {
-								clickedImageId: clickedImageId,
-								galleryImagesCount: galleryData.images ? galleryData.images.length : 0,
-								clickedImageIndex: clickedImageIndex
-							});
-							// Default to first image as last resort
-							clickedImageIndex = 0;
 						}
 						
 						if (galleryData && Array.isArray(galleryData.images) && clickedImageIndex >= 0 && clickedImageIndex < galleryData.images.length) {
@@ -1302,40 +1130,30 @@
 	var resizeTimeout;
 	window.addEventListener('resize', function() {
 		// Only recalculate if modal is open and we have a custom max-width
-		if (modal.classList.contains('active') && modalState.getMaxWidth() !== null) {
+		if (modal.classList.contains('active') && currentMaxWidth !== null) {
 			clearTimeout(resizeTimeout);
 			resizeTimeout = setTimeout(function() {
-				var calculatedWidth = calculateMaxWidth(modalState.getMaxWidth());
+				var calculatedWidth = calculateMaxWidth(currentMaxWidth);
 				container.style.maxWidth = calculatedWidth + 'px';
 			}, 150); // Increased debounce for better performance
 		}
 	});
 
-	// Initialize gallery module with dependencies
-	// Gallery module must be loaded before modal.js
-		if (window.sppopupsGallery && window.sppopupsGallery.init) {
+	// Initialize gallery module if available
+	if (window.sppopupsGallery && window.sppopupsGallery.init) {
 		window.sppopupsGallery.init({
 			modal: modal,
 			content: content,
 			container: container,
 			closeBtn: closeBtn,
-			body: body,
+			closeModal: closeModal,
 			setupModalState: setupModalState,
 			getTitleElement: getTitleElement,
-			closeModal: closeModal,
 			focusWithoutScroll: focusWithoutScroll,
-			getImageUrl: getImageUrl,
-			setMaxWidth: function(width) {
-				modalState.setMaxWidth(width);
-			},
-			modalState: modalState // Pass state object so gallery can update modalContainer
+			currentMaxWidth: function() { return currentMaxWidth; },
+			setCurrentMaxWidth: function(width) { currentMaxWidth = width; }
 		});
 	}
 
-	// Expose state object for debugging (development/testing only)
-	// Access via: window.sppopupsModalState.snapshot()
-	if (typeof window !== 'undefined') {
-		window.sppopupsModalState = modalState;
-	}
 })();
 

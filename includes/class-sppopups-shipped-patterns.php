@@ -330,8 +330,8 @@ class SPPopups_Shipped_Patterns {
 	}
 
 	/**
-	 * Static method to ensure patterns on plugin activation
-	 * Called from activation hook
+	 * Static method called on plugin activation
+	 * Ensures shipped patterns are created immediately
 	 *
 	 * @return void
 	 */
@@ -339,7 +339,7 @@ class SPPopups_Shipped_Patterns {
 		$instance = new self();
 		$instance->ensure_category();
 		$instance->ensure_patterns();
-		// Update version option so admin_init check doesn't run unnecessarily
+		// Update version to current
 		update_option( self::VERSION_OPTION, SPPOPUPS_VERSION );
 	}
 }

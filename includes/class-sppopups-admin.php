@@ -521,7 +521,7 @@ class SPPopups_Admin {
 
 			add_meta_box(
 				'simplest-popup-support',
-				__( 'Synced Pattern Popup Support', 'synced-pattern-popups' ),
+				__( 'Synced Pattern Popups', 'synced-pattern-popups' ),
 				array( $this, 'render_popup_support_metabox' ),
 				$post_type,
 				'side',
@@ -539,27 +539,49 @@ class SPPopups_Admin {
 		// Add nonce for security
 		wp_nonce_field( 'sppopups_support_metabox', 'sppopups_support_nonce' );
 
-		// Get current value
-		$current_value = get_post_meta( $post->ID, '_sppopups_support', true );
-		if ( empty( $current_value ) ) {
-			$current_value = 'default';
+		// Get current values
+		$modal_assets = get_post_meta( $post->ID, '_sppopups_modal_assets', true );
+		if ( empty( $modal_assets ) ) {
+			$modal_assets = 'auto-detect';
+		}
+
+		$gallery_assets = get_post_meta( $post->ID, '_sppopups_gallery_assets', true );
+		if ( empty( $gallery_assets ) ) {
+			$gallery_assets = 'auto-detect';
 		}
 		?>
 		<div class="sppopups-support-metabox">
-			<fieldset>
-				<label>
-					<input type="radio" name="sppopups_support" value="default" <?php checked( $current_value, 'default' ); ?> />
-					<strong><?php esc_html_e( 'Default', 'synced-pattern-popups' ); ?></strong>
+			<div style="margin-bottom: 16px;">
+				<label style="display: block; margin-bottom: 4px; font-weight: 600;">
+					<?php esc_html_e( 'Modal Assets:', 'synced-pattern-popups' ); ?>
 				</label>
-				<br>
-				<label>
-					<input type="radio" name="sppopups_support" value="forced" <?php checked( $current_value, 'forced' ); ?> />
-					<strong><?php esc_html_e( 'Forced On', 'synced-pattern-popups' ); ?></strong>
+				<fieldset style="margin: 0; padding: 0; border: 0;">
+					<label style="display: inline-block; margin-right: 12px;">
+						<input type="radio" name="sppopups_modal_assets" value="auto-detect" <?php checked( $modal_assets, 'auto-detect' ); ?> />
+						<?php esc_html_e( 'Auto-Detect', 'synced-pattern-popups' ); ?>
+					</label>
+					<label style="display: inline-block;">
+						<input type="radio" name="sppopups_modal_assets" value="loaded" <?php checked( $modal_assets, 'loaded' ); ?> />
+						<?php esc_html_e( 'Loaded', 'synced-pattern-popups' ); ?>
+					</label>
+				</fieldset>
+			</div>
+
+			<div style="margin-bottom: 12px;">
+				<label style="display: block; margin-bottom: 4px; font-weight: 600;">
+					<?php esc_html_e( 'Gallery Assets:', 'synced-pattern-popups' ); ?>
 				</label>
-			</fieldset>
-			<p class="description" style="margin-top: 12px; margin-bottom: 0;">
-				<?php esc_html_e( 'In most cases you can leave this on Default. Use Forced On if your trigger link/class is injected dynamically (e.g., forms, AJAX, page builders) and the popup assets aren\'t loading.', 'synced-pattern-popups' ); ?>
-			</p>
+				<fieldset style="margin: 0; padding: 0; border: 0;">
+					<label style="display: inline-block; margin-right: 12px;">
+						<input type="radio" name="sppopups_gallery_assets" value="auto-detect" <?php checked( $gallery_assets, 'auto-detect' ); ?> />
+						<?php esc_html_e( 'Auto-Detect', 'synced-pattern-popups' ); ?>
+					</label>
+					<label style="display: inline-block;">
+						<input type="radio" name="sppopups_gallery_assets" value="loaded" <?php checked( $gallery_assets, 'loaded' ); ?> />
+						<?php esc_html_e( 'Loaded', 'synced-pattern-popups' ); ?>
+					</label>
+				</fieldset>
+			</div>
 		</div>
 		<?php
 	}
@@ -596,16 +618,28 @@ class SPPopups_Admin {
 			return;
 		}
 
-		// Get and sanitize the value
-		$value = isset( $_POST['sppopups_support'] ) ? sanitize_text_field( wp_unslash( $_POST['sppopups_support'] ) ) : 'default';
-		$allowed = array( 'default', 'forced' );
+		// Get and sanitize modal assets value
+		$modal_assets = isset( $_POST['sppopups_modal_assets'] ) ? sanitize_text_field( wp_unslash( $_POST['sppopups_modal_assets'] ) ) : 'auto-detect';
+		$allowed_modal = array( 'auto-detect', 'loaded' );
 		
-		if ( ! in_array( $value, $allowed, true ) ) {
-			$value = 'default';
+		if ( ! in_array( $modal_assets, $allowed_modal, true ) ) {
+			$modal_assets = 'auto-detect';
+		}
+
+		// Get and sanitize gallery assets value
+		$gallery_assets = isset( $_POST['sppopups_gallery_assets'] ) ? sanitize_text_field( wp_unslash( $_POST['sppopups_gallery_assets'] ) ) : 'auto-detect';
+		$allowed_gallery = array( 'auto-detect', 'loaded' );
+		
+		if ( ! in_array( $gallery_assets, $allowed_gallery, true ) ) {
+			$gallery_assets = 'auto-detect';
 		}
 
 		// Update post meta
-		update_post_meta( $post_id, '_sppopups_support', $value );
+		update_post_meta( $post_id, '_sppopups_modal_assets', $modal_assets );
+		update_post_meta( $post_id, '_sppopups_gallery_assets', $gallery_assets );
+
+		// Backward compatibility: Remove old meta key if it exists
+		delete_post_meta( $post_id, '_sppopups_support' );
 	}
 
 	/**

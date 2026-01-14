@@ -3,7 +3,7 @@ Contributors: webdevmattcrom
 Tags: popup, modal, synced-patterns, ai, tldr
 Requires at least: 5.8
 Tested up to: 6.9
-Stable tag: 1.1.3
+Stable tag: 1.2.0
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -198,6 +198,18 @@ PHP 7.4 or higher.
 
 == Changelog ==
 
+= 1.2.0 =
+* New: Added support for the Core Gallery Block!!
+* New: Added two wireframe Synced Patterns: "More Details" and "Terms & Conditions". 
+* Refactor: Centralized modal state management into a new `modalState` object in `modal.js`.
+* Refactor: Migrated all scattered global state variables (e.g., `currentMaxWidth`, `lastActiveElement`, `loadedStyles`) into the `modalState` object.
+* Refactor: Added comprehensive JSDoc comments to the `modalState` object and its methods for improved documentation.
+* Refactor: Implemented robust validation for `maxWidth` (100-5000px) within the `modalState` setter.
+* Fixed: Corrected an issue where gallery images in "Random order" would open the wrong image in the modal. The system now reliably identifies the clicked image by its ID, regardless of randomization.
+* Fixed: Addressed Plugin Check error by removing the discouraged `load_plugin_textdomain()` call.
+* Fixed: Resolved Plugin Check warning by ensuring the text domain (`synced-pattern-popups`) consistently matches across all plugin files.
+* Improved: Enhanced code organization and maintainability through centralized state management.
+
 = 1.1.3 =
 * New: Added delayed admin review notice to encourage user reviews (appears after 10 days on settings page)
 * New: Custom styled review notice with dismiss functionality (AJAX-based)
@@ -252,6 +264,9 @@ PHP 7.4 or higher.
 * Full translation support
 
 == Upgrade Notice ==
+
+= 1.2.0 =
+Major refactor of modal state management for improved stability, maintainability, and debugging. Fixes an issue with gallery random order. Addresses Plugin Check warnings. Recommended for all users.
 
 = 1.1.3 =
 Admin UI improvements and review notice feature. Settings page now has consistent width constraints, and a friendly review notice will appear after 10 days to encourage user feedback. All existing functionality remains unchanged.
