@@ -87,6 +87,13 @@ class SPPopups_Plugin {
 			$this->abilities->init();
 		}
 
+		// Initialize Command Palette integration (WP 6.3+ only)
+		// This will gracefully skip if Command Palette API is not available.
+		if ( version_compare( get_bloginfo( 'version' ), '6.3', '>=' ) && is_admin() ) {
+			$command_palette = new SPPopups_Command_Palette( $this->pattern_service, $this->cache_service );
+			$command_palette->init();
+		}
+
 		// Set up custom content filter to avoid conflicts with other plugins.
 		$this->setup_content_filter();
 
@@ -385,6 +392,11 @@ class SPPopups_Plugin {
 				'postId'     => $post_id,
 				'styleUrls'  => $style_urls,
 				'scriptUrls' => $script_urls,
+				'defaults'   => array(
+					'pattern' => SPPopups_Settings::get_pattern_defaults(),
+					'tldr'    => SPPopups_Settings::get_tldr_defaults(),
+					'gallery' => SPPopups_Settings::get_gallery_defaults(),
+				),
 				'strings'    => array(
 					'loading'  => __( 'Loading content...', 'synced-pattern-popups' ),
 					'error'    => __( 'Error loading content. Please try again.', 'synced-pattern-popups' ),

@@ -188,7 +188,7 @@
 		// Handle hash changes (back/forward buttons and direct hash links)
 		function handleHashChange() {
 			var hash      = window.location.hash.substring( 1 );
-			var validTabs = ['patterns', 'tldr', 'how-to-use'];
+			var validTabs = ['patterns', 'tldr', 'defaults', 'how-to-use'];
 
 			if (hash && validTabs.indexOf( hash ) !== -1) {
 				switchTab( hash );
@@ -204,7 +204,7 @@
 				var target = e.target.closest( 'a' );
 				if (target && target.getAttribute( 'href' ) && target.getAttribute( 'href' ).startsWith( '#' )) {
 					var hash      = target.getAttribute( 'href' ).substring( 1 );
-					var validTabs = ['patterns', 'tldr', 'how-to-use'];
+					var validTabs = ['patterns', 'tldr', 'defaults', 'how-to-use'];
 
 					if (validTabs.indexOf( hash ) !== -1) {
 						// Only prevent default if it's not already a tab nav link (those are handled separately)
@@ -346,6 +346,9 @@
 
 		// Initialize TLDR prompt type toggle
 		initTldrPromptToggle();
+
+		// Initialize defaults inheritance toggles
+		initDefaultsInheritanceToggles();
 	}
 
 	/**
@@ -461,4 +464,166 @@
 
 	// Initialize review notice dismiss functionality
 	initReviewNoticeDismiss();
+
+	/**
+	 * Initialize defaults inheritance toggles
+	 */
+	function initDefaultsInheritanceToggles() {
+		// TLDR inheritance toggles
+		var tldrModalAppearanceRadios = document.querySelectorAll( 'input[name="sppopups_defaults_tldr[inheritModalAppearance]"]' );
+		var tldrOverlayRadios = document.querySelectorAll( 'input[name="sppopups_defaults_tldr[inheritOverlay]"]' );
+		var tldrCloseButtonsRadios = document.querySelectorAll( 'input[name="sppopups_defaults_tldr[inheritCloseButtons]"]' );
+
+		// Gallery inheritance toggles
+		var galleryModalAppearanceRadios = document.querySelectorAll( 'input[name="sppopups_defaults_gallery[inheritModalAppearance]"]' );
+		var galleryOverlayRadios = document.querySelectorAll( 'input[name="sppopups_defaults_gallery[inheritOverlay]"]' );
+		var galleryCloseButtonsRadios = document.querySelectorAll( 'input[name="sppopups_defaults_gallery[inheritCloseButtons]"]' );
+
+		// Toggle function for TLDR modal appearance
+		function toggleTldrModalAppearance() {
+			var selectedValue = '';
+			tldrModalAppearanceRadios.forEach(
+				function (radio) {
+					if (radio.checked) {
+						selectedValue = radio.value;
+					}
+				}
+			);
+
+			var customWrapper = document.getElementById( 'tldr-modal-appearance-custom' );
+			if (customWrapper) {
+				customWrapper.style.display = (selectedValue === '0') ? 'block' : 'none';
+			}
+		}
+
+		// Toggle function for TLDR overlay
+		function toggleTldrOverlay() {
+			var selectedValue = '';
+			tldrOverlayRadios.forEach(
+				function (radio) {
+					if (radio.checked) {
+						selectedValue = radio.value;
+					}
+				}
+			);
+
+			var customWrapper = document.getElementById( 'tldr-overlay-custom' );
+			if (customWrapper) {
+				customWrapper.style.display = (selectedValue === '0') ? 'block' : 'none';
+			}
+		}
+
+		// Toggle function for TLDR close buttons
+		function toggleTldrCloseButtons() {
+			var selectedValue = '';
+			tldrCloseButtonsRadios.forEach(
+				function (radio) {
+					if (radio.checked) {
+						selectedValue = radio.value;
+					}
+				}
+			);
+
+			var customWrapper = document.getElementById( 'tldr-close-buttons-custom' );
+			if (customWrapper) {
+				customWrapper.style.display = (selectedValue === '0') ? 'block' : 'none';
+			}
+		}
+
+		// Toggle function for Gallery modal appearance
+		function toggleGalleryModalAppearance() {
+			var selectedValue = '';
+			galleryModalAppearanceRadios.forEach(
+				function (radio) {
+					if (radio.checked) {
+						selectedValue = radio.value;
+					}
+				}
+			);
+
+			var customWrapper = document.getElementById( 'gallery-modal-appearance-custom' );
+			if (customWrapper) {
+				customWrapper.style.display = (selectedValue === '0') ? 'block' : 'none';
+			}
+		}
+
+		// Toggle function for Gallery overlay
+		function toggleGalleryOverlay() {
+			var selectedValue = '';
+			galleryOverlayRadios.forEach(
+				function (radio) {
+					if (radio.checked) {
+						selectedValue = radio.value;
+					}
+				}
+			);
+
+			var customWrapper = document.getElementById( 'gallery-overlay-custom' );
+			if (customWrapper) {
+				customWrapper.style.display = (selectedValue === '0') ? 'block' : 'none';
+			}
+		}
+
+		// Toggle function for Gallery close buttons
+		function toggleGalleryCloseButtons() {
+			var selectedValue = '';
+			galleryCloseButtonsRadios.forEach(
+				function (radio) {
+					if (radio.checked) {
+						selectedValue = radio.value;
+					}
+				}
+			);
+
+			var customWrapper = document.getElementById( 'gallery-close-buttons-custom' );
+			if (customWrapper) {
+				customWrapper.style.display = (selectedValue === '0') ? 'block' : 'none';
+			}
+		}
+
+		// Set initial state
+		toggleTldrModalAppearance();
+		toggleTldrOverlay();
+		toggleTldrCloseButtons();
+		toggleGalleryModalAppearance();
+		toggleGalleryOverlay();
+		toggleGalleryCloseButtons();
+
+		// Listen for changes
+		tldrModalAppearanceRadios.forEach(
+			function (radio) {
+				radio.addEventListener( 'change', toggleTldrModalAppearance );
+			}
+		);
+
+		tldrOverlayRadios.forEach(
+			function (radio) {
+				radio.addEventListener( 'change', toggleTldrOverlay );
+			}
+		);
+
+		tldrCloseButtonsRadios.forEach(
+			function (radio) {
+				radio.addEventListener( 'change', toggleTldrCloseButtons );
+			}
+		);
+
+		galleryModalAppearanceRadios.forEach(
+			function (radio) {
+				radio.addEventListener( 'change', toggleGalleryModalAppearance );
+			}
+		);
+
+		galleryOverlayRadios.forEach(
+			function (radio) {
+				radio.addEventListener( 'change', toggleGalleryOverlay );
+			}
+		);
+
+		galleryCloseButtonsRadios.forEach(
+			function (radio) {
+				radio.addEventListener( 'change', toggleGalleryCloseButtons );
+			}
+		);
+	}
 })();

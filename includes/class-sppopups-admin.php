@@ -203,6 +203,44 @@ class SPPopups_Admin {
 			}
 		}
 
+		// Handle defaults settings save.
+		if ( isset( $_POST['save_defaults_settings'] ) && isset( $_POST['sppopups_defaults_settings_nonce'] ) ) {
+			if ( ! wp_verify_nonce( sanitize_text_field( wp_unslash( $_POST['sppopups_defaults_settings_nonce'] ) ), 'sppopups_save_defaults_settings' ) ) {
+				wp_die( esc_html__( 'Security check failed.', 'synced-pattern-popups' ) );
+			}
+
+			if ( current_user_can( 'manage_options' ) ) {
+				$settings = new SPPopups_Settings();
+
+				// Save pattern defaults.
+				if ( isset( $_POST['sppopups_defaults_pattern'] ) && is_array( $_POST['sppopups_defaults_pattern'] ) ) {
+					// phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized -- Sanitized via sanitize_pattern_defaults callback
+					$pattern_defaults = $settings->sanitize_pattern_defaults( wp_unslash( $_POST['sppopups_defaults_pattern'] ) );
+					update_option( 'sppopups_defaults_pattern', $pattern_defaults );
+				}
+
+				// Save TLDR defaults.
+				if ( isset( $_POST['sppopups_defaults_tldr'] ) && is_array( $_POST['sppopups_defaults_tldr'] ) ) {
+					// phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized -- Sanitized via sanitize_tldr_defaults callback
+					$tldr_defaults = $settings->sanitize_tldr_defaults( wp_unslash( $_POST['sppopups_defaults_tldr'] ) );
+					update_option( 'sppopups_defaults_tldr', $tldr_defaults );
+				}
+
+				// Save gallery defaults.
+				if ( isset( $_POST['sppopups_defaults_gallery'] ) && is_array( $_POST['sppopups_defaults_gallery'] ) ) {
+					// phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized -- Sanitized via sanitize_gallery_defaults callback
+					$gallery_defaults = $settings->sanitize_gallery_defaults( wp_unslash( $_POST['sppopups_defaults_gallery'] ) );
+					update_option( 'sppopups_defaults_gallery', $gallery_defaults );
+				}
+
+				// Clear all transients when defaults are saved (defaults affect modal appearance).
+				$deleted_count = $this->cache_service->clear_all();
+
+				wp_safe_redirect( admin_url( 'themes.php?page=simplest-popup-patterns&defaults_settings_saved=1&cache_cleared=1&deleted=' . absint( $deleted_count ) . '#defaults' ) );
+				exit;
+			}
+		}
+
 		// Handle install AI Experiments action.
 		if ( isset( $_GET['action'] ) && 'install_ai_experiments' === $_GET['action'] ) {
 			$this->handle_install_ai_experiments();
@@ -232,9 +270,10 @@ class SPPopups_Admin {
 		$deleted              = isset( $_GET['deleted'] ) ? sanitize_text_field( wp_unslash( $_GET['deleted'] ) ) : '';
 		$cache_cleared        = isset( $_GET['cache_cleared'] ) ? sanitize_text_field( wp_unslash( $_GET['cache_cleared'] ) ) : '';
 		$deleted_count        = isset( $_GET['deleted'] ) ? absint( $_GET['deleted'] ) : 0;
-		$tldr_settings_saved  = isset( $_GET['tldr_settings_saved'] ) ? sanitize_text_field( wp_unslash( $_GET['tldr_settings_saved'] ) ) : '';
-		$transient_deleted    = isset( $_GET['transient_deleted'] ) ? sanitize_text_field( wp_unslash( $_GET['transient_deleted'] ) ) : '';
-		$transient_pattern_id = isset( $_GET['pattern_id'] ) ? absint( $_GET['pattern_id'] ) : 0;
+		$tldr_settings_saved     = isset( $_GET['tldr_settings_saved'] ) ? sanitize_text_field( wp_unslash( $_GET['tldr_settings_saved'] ) ) : '';
+		$defaults_settings_saved = isset( $_GET['defaults_settings_saved'] ) ? sanitize_text_field( wp_unslash( $_GET['defaults_settings_saved'] ) ) : '';
+		$transient_deleted       = isset( $_GET['transient_deleted'] ) ? sanitize_text_field( wp_unslash( $_GET['transient_deleted'] ) ) : '';
+		$transient_pattern_id    = isset( $_GET['pattern_id'] ) ? absint( $_GET['pattern_id'] ) : 0;
 		// phpcs:enable WordPress.Security.NonceVerification.Recommended
 
 		if ( '1' === $deleted ) {
@@ -268,6 +307,10 @@ class SPPopups_Admin {
 			echo '<div class="notice notice-success is-dismissible"><p>' . esc_html__( 'TLDR settings saved successfully.', 'synced-pattern-popups' ) . '</p></div>';
 		}
 
+		if ( '1' === $defaults_settings_saved ) {
+			echo '<div class="notice notice-success is-dismissible"><p>' . esc_html__( 'Defaults settings saved successfully.', 'synced-pattern-popups' ) . '</p></div>';
+		}
+
 		?>
 		<div class="wrap">
 			<div class="sppopups-admin-header">
@@ -289,6 +332,9 @@ class SPPopups_Admin {
 				</a>
 				<a href="#tldr" class="sppopups-tab-nav-link" role="tab" aria-selected="false" aria-controls="sppopups-tab-tldr">
 					<?php esc_html_e( 'TLDR', 'synced-pattern-popups' ); ?>
+				</a>
+				<a href="#defaults" class="sppopups-tab-nav-link" role="tab" aria-selected="false" aria-controls="sppopups-tab-defaults">
+					<?php esc_html_e( 'Defaults', 'synced-pattern-popups' ); ?>
 				</a>
 				<a href="#how-to-use" class="sppopups-tab-nav-link" role="tab" aria-selected="false" aria-controls="sppopups-tab-how-to-use">
 					<?php esc_html_e( 'How to Use', 'synced-pattern-popups' ); ?>
@@ -404,9 +450,9 @@ class SPPopups_Admin {
 										<td class="column-trigger" data-colname="<?php esc_attr_e( 'Trigger Code', 'synced-pattern-popups' ); ?>">
 											<div class="sppopups-trigger-code-wrapper">
 												<span class="sppopups-trigger-code-text"><?php echo esc_html( $trigger_code ); ?></span>
-												<button 
-													type="button" 
-													class="button button-small sppopups-copy-trigger-icon" 
+												<button
+													type="button"
+													class="button button-small sppopups-copy-trigger-icon"
 													data-copy="<?php echo esc_attr( $trigger_code ); ?>"
 													title="<?php esc_attr_e( 'Copy to Clipboard', 'synced-pattern-popups' ); ?>"
 													aria-label="<?php esc_attr_e( 'Copy to Clipboard', 'synced-pattern-popups' ); ?>"
@@ -425,8 +471,8 @@ class SPPopups_Admin {
 														</a>
 													<?php endif; ?>
 													<?php if ( current_user_can( 'delete_post', $pattern_id ) ) : ?>
-														<a 
-															href="<?php echo esc_url( $delete_url ); ?>" 
+														<a
+															href="<?php echo esc_url( $delete_url ); ?>"
 															class="button button-small delete-pattern"
 															onclick="return confirm('<?php echo esc_js( __( 'Are you sure you want to delete this pattern?', 'synced-pattern-popups' ) ); ?>');"
 														>
@@ -440,8 +486,8 @@ class SPPopups_Admin {
 													'delete_transient_' . $pattern_id
 												);
 												?>
-												<a 
-													href="<?php echo esc_url( $delete_transient_url ); ?>" 
+												<a
+													href="<?php echo esc_url( $delete_transient_url ); ?>"
 													class="button button-small delete-transient sppopups-action-transient"
 													onclick="return confirm('
 													<?php
@@ -471,6 +517,15 @@ class SPPopups_Admin {
 					// Render TLDR settings section (without the box wrapper).
 					$settings = new SPPopups_Settings();
 					$settings->render_settings_section_for_tab();
+					?>
+				</div>
+
+				<!-- Defaults Tab -->
+				<div id="sppopups-tab-defaults" class="sppopups-tab-content" role="tabpanel" aria-labelledby="defaults">
+					<?php
+					// Render defaults settings section.
+					$settings = new SPPopups_Settings();
+					$settings->render_defaults_section();
 					?>
 				</div>
 

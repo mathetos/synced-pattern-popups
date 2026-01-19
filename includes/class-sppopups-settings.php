@@ -74,6 +74,37 @@ class SPPopups_Settings {
 				'default'           => 12,
 			)
 		);
+
+		// Register defaults settings.
+		register_setting(
+			$this->option_group,
+			'sppopups_defaults_pattern',
+			array(
+				'type'              => 'array',
+				'sanitize_callback' => array( $this, 'sanitize_pattern_defaults' ),
+				'default'           => $this->get_default_pattern_defaults(),
+			)
+		);
+
+		register_setting(
+			$this->option_group,
+			'sppopups_defaults_tldr',
+			array(
+				'type'              => 'array',
+				'sanitize_callback' => array( $this, 'sanitize_tldr_defaults' ),
+				'default'           => $this->get_default_tldr_defaults(),
+			)
+		);
+
+		register_setting(
+			$this->option_group,
+			'sppopups_defaults_gallery',
+			array(
+				'type'              => 'array',
+				'sanitize_callback' => array( $this, 'sanitize_gallery_defaults' ),
+				'default'           => $this->get_default_gallery_defaults(),
+			)
+		);
 	}
 
 	/**
@@ -84,6 +115,270 @@ class SPPopups_Settings {
 	 */
 	public function sanitize_boolean( $value ) {
 		return (bool) $value;
+	}
+
+	/**
+	 * Get default pattern defaults
+	 *
+	 * @return array Default pattern defaults
+	 */
+	private function get_default_pattern_defaults() {
+		return array(
+			'maxWidth'        => 600,
+			'borderRadius'    => 6,
+			'maxHeight'       => 90,
+			'overlayColor'    => 'rgba(0, 0, 0, 0.1)',
+			'backdropBlur'    => 8,
+			'showIconClose'   => true,
+			'showFooterClose' => true,
+			'footerCloseText' => 'Close →',
+		);
+	}
+
+	/**
+	 * Get default TLDR defaults
+	 *
+	 * @return array Default TLDR defaults
+	 */
+	private function get_default_tldr_defaults() {
+		return array(
+			'inheritModalAppearance' => true,
+			'inheritOverlay'         => true,
+			'inheritCloseButtons'    => true,
+			'maxWidth'               => 600,
+			'borderRadius'           => 6,
+			'maxHeight'              => 90,
+			'overlayColor'           => 'rgba(0, 0, 0, 0.1)',
+			'backdropBlur'           => 8,
+			'showIconClose'          => true,
+			'showFooterClose'        => true,
+			'footerCloseText'        => 'Close →',
+			'loadingText'            => 'Generating TLDR',
+			'titleText'              => 'TLDR',
+		);
+	}
+
+	/**
+	 * Get default gallery defaults
+	 *
+	 * @return array Default gallery defaults
+	 */
+	private function get_default_gallery_defaults() {
+		return array(
+			'inheritModalAppearance' => true,
+			'inheritOverlay'         => true,
+			'inheritCloseButtons'    => true,
+			'maxWidth'               => 600,
+			'borderRadius'           => 6,
+			'maxHeight'              => 90,
+			'overlayColor'           => 'rgba(0, 0, 0, 0.1)',
+			'backdropBlur'           => 8,
+			'showIconClose'          => true,
+			'showFooterClose'        => true,
+			'footerCloseText'        => 'Close →',
+			'imageNavigation'        => 'both',
+			'showCaptions'           => true,
+			'crossfadeTransition'    => true,
+			'transitionDuration'     => 500,
+			'preloadAdjacentImages'  => true,
+			'showNavOnHover'         => true,
+		);
+	}
+
+	/**
+	 * Sanitize rgba color value
+	 *
+	 * @param string $value Color value to sanitize.
+	 * @return string Sanitized color value or default.
+	 */
+	private function sanitize_rgba_color( $value ) {
+		if ( ! is_string( $value ) ) {
+			return 'rgba(0, 0, 0, 0.1)';
+		}
+
+		// Validate rgba format: rgba(r, g, b, a) where r,g,b are 0-255 and a is 0-1.
+		$pattern = '/^rgba\(\s*(\d{1,3})\s*,\s*(\d{1,3})\s*,\s*(\d{1,3})\s*,\s*(0|1|0?\.\d+)\s*\)$/';
+		if ( preg_match( $pattern, $value ) ) {
+			return $value;
+		}
+
+		return 'rgba(0, 0, 0, 0.1)';
+	}
+
+	/**
+	 * Sanitize number with range validation
+	 *
+	 * @param mixed  $value Value to sanitize.
+	 * @param int    $min   Minimum value.
+	 * @param int    $max   Maximum value.
+	 * @param int    $default Default value if invalid.
+	 * @return int Sanitized number.
+	 */
+	private function sanitize_number_range( $value, $min, $max, $default ) {
+		$value = absint( $value );
+		if ( $value < $min || $value > $max ) {
+			return $default;
+		}
+		return $value;
+	}
+
+	/**
+	 * Sanitize pattern defaults
+	 *
+	 * @param mixed $value Value to sanitize.
+	 * @return array Sanitized pattern defaults.
+	 */
+	public function sanitize_pattern_defaults( $value ) {
+		if ( ! is_array( $value ) ) {
+			return $this->get_default_pattern_defaults();
+		}
+
+		$defaults = $this->get_default_pattern_defaults();
+		$sanitized = array();
+
+		// Sanitize maxWidth (100-5000).
+		$sanitized['maxWidth'] = isset( $value['maxWidth'] ) ? $this->sanitize_number_range( $value['maxWidth'], 100, 5000, $defaults['maxWidth'] ) : $defaults['maxWidth'];
+
+		// Sanitize borderRadius (0-50).
+		$sanitized['borderRadius'] = isset( $value['borderRadius'] ) ? $this->sanitize_number_range( $value['borderRadius'], 0, 50, $defaults['borderRadius'] ) : $defaults['borderRadius'];
+
+		// Sanitize maxHeight (50-100).
+		$sanitized['maxHeight'] = isset( $value['maxHeight'] ) ? $this->sanitize_number_range( $value['maxHeight'], 50, 100, $defaults['maxHeight'] ) : $defaults['maxHeight'];
+
+		// Sanitize overlayColor.
+		$sanitized['overlayColor'] = isset( $value['overlayColor'] ) ? $this->sanitize_rgba_color( $value['overlayColor'] ) : $defaults['overlayColor'];
+
+		// Sanitize backdropBlur (0-20).
+		$sanitized['backdropBlur'] = isset( $value['backdropBlur'] ) ? $this->sanitize_number_range( $value['backdropBlur'], 0, 20, $defaults['backdropBlur'] ) : $defaults['backdropBlur'];
+
+		// Sanitize booleans.
+		$sanitized['showIconClose'] = isset( $value['showIconClose'] ) ? (bool) $value['showIconClose'] : $defaults['showIconClose'];
+		$sanitized['showFooterClose'] = isset( $value['showFooterClose'] ) ? (bool) $value['showFooterClose'] : $defaults['showFooterClose'];
+
+		// Sanitize footerCloseText.
+		$sanitized['footerCloseText'] = isset( $value['footerCloseText'] ) ? sanitize_text_field( wp_unslash( $value['footerCloseText'] ) ) : $defaults['footerCloseText'];
+
+		return $sanitized;
+	}
+
+	/**
+	 * Sanitize TLDR defaults
+	 *
+	 * @param mixed $value Value to sanitize.
+	 * @return array Sanitized TLDR defaults.
+	 */
+	public function sanitize_tldr_defaults( $value ) {
+		if ( ! is_array( $value ) ) {
+			return $this->get_default_tldr_defaults();
+		}
+
+		$defaults = $this->get_default_tldr_defaults();
+		$sanitized = array();
+
+		// Sanitize inheritance flags.
+		$sanitized['inheritModalAppearance'] = isset( $value['inheritModalAppearance'] ) ? (bool) $value['inheritModalAppearance'] : $defaults['inheritModalAppearance'];
+		$sanitized['inheritOverlay'] = isset( $value['inheritOverlay'] ) ? (bool) $value['inheritOverlay'] : $defaults['inheritOverlay'];
+		$sanitized['inheritCloseButtons'] = isset( $value['inheritCloseButtons'] ) ? (bool) $value['inheritCloseButtons'] : $defaults['inheritCloseButtons'];
+
+		// Only sanitize modal appearance if not inheriting.
+		if ( ! $sanitized['inheritModalAppearance'] ) {
+			$sanitized['maxWidth'] = isset( $value['maxWidth'] ) ? $this->sanitize_number_range( $value['maxWidth'], 100, 5000, $defaults['maxWidth'] ) : $defaults['maxWidth'];
+			$sanitized['borderRadius'] = isset( $value['borderRadius'] ) ? $this->sanitize_number_range( $value['borderRadius'], 0, 50, $defaults['borderRadius'] ) : $defaults['borderRadius'];
+			$sanitized['maxHeight'] = isset( $value['maxHeight'] ) ? $this->sanitize_number_range( $value['maxHeight'], 50, 100, $defaults['maxHeight'] ) : $defaults['maxHeight'];
+		} else {
+			$sanitized['maxWidth'] = $defaults['maxWidth'];
+			$sanitized['borderRadius'] = $defaults['borderRadius'];
+			$sanitized['maxHeight'] = $defaults['maxHeight'];
+		}
+
+		// Only sanitize overlay if not inheriting.
+		if ( ! $sanitized['inheritOverlay'] ) {
+			$sanitized['overlayColor'] = isset( $value['overlayColor'] ) ? $this->sanitize_rgba_color( $value['overlayColor'] ) : $defaults['overlayColor'];
+			$sanitized['backdropBlur'] = isset( $value['backdropBlur'] ) ? $this->sanitize_number_range( $value['backdropBlur'], 0, 20, $defaults['backdropBlur'] ) : $defaults['backdropBlur'];
+		} else {
+			$sanitized['overlayColor'] = $defaults['overlayColor'];
+			$sanitized['backdropBlur'] = $defaults['backdropBlur'];
+		}
+
+		// Only sanitize close buttons if not inheriting.
+		if ( ! $sanitized['inheritCloseButtons'] ) {
+			$sanitized['showIconClose'] = isset( $value['showIconClose'] ) ? (bool) $value['showIconClose'] : $defaults['showIconClose'];
+			$sanitized['showFooterClose'] = isset( $value['showFooterClose'] ) ? (bool) $value['showFooterClose'] : $defaults['showFooterClose'];
+			$sanitized['footerCloseText'] = isset( $value['footerCloseText'] ) ? sanitize_text_field( wp_unslash( $value['footerCloseText'] ) ) : $defaults['footerCloseText'];
+		} else {
+			$sanitized['showIconClose'] = $defaults['showIconClose'];
+			$sanitized['showFooterClose'] = $defaults['showFooterClose'];
+			$sanitized['footerCloseText'] = $defaults['footerCloseText'];
+		}
+
+		// TLDR-specific settings.
+		$sanitized['loadingText'] = isset( $value['loadingText'] ) ? sanitize_text_field( wp_unslash( $value['loadingText'] ) ) : $defaults['loadingText'];
+		$sanitized['titleText'] = isset( $value['titleText'] ) ? sanitize_text_field( wp_unslash( $value['titleText'] ) ) : $defaults['titleText'];
+
+		return $sanitized;
+	}
+
+	/**
+	 * Sanitize gallery defaults
+	 *
+	 * @param mixed $value Value to sanitize.
+	 * @return array Sanitized gallery defaults.
+	 */
+	public function sanitize_gallery_defaults( $value ) {
+		if ( ! is_array( $value ) ) {
+			return $this->get_default_gallery_defaults();
+		}
+
+		$defaults = $this->get_default_gallery_defaults();
+		$sanitized = array();
+
+		// Sanitize inheritance flags.
+		$sanitized['inheritModalAppearance'] = isset( $value['inheritModalAppearance'] ) ? (bool) $value['inheritModalAppearance'] : $defaults['inheritModalAppearance'];
+		$sanitized['inheritOverlay'] = isset( $value['inheritOverlay'] ) ? (bool) $value['inheritOverlay'] : $defaults['inheritOverlay'];
+		$sanitized['inheritCloseButtons'] = isset( $value['inheritCloseButtons'] ) ? (bool) $value['inheritCloseButtons'] : $defaults['inheritCloseButtons'];
+
+		// Only sanitize modal appearance if not inheriting.
+		if ( ! $sanitized['inheritModalAppearance'] ) {
+			$sanitized['maxWidth'] = isset( $value['maxWidth'] ) ? $this->sanitize_number_range( $value['maxWidth'], 100, 5000, $defaults['maxWidth'] ) : $defaults['maxWidth'];
+			$sanitized['borderRadius'] = isset( $value['borderRadius'] ) ? $this->sanitize_number_range( $value['borderRadius'], 0, 50, $defaults['borderRadius'] ) : $defaults['borderRadius'];
+			$sanitized['maxHeight'] = isset( $value['maxHeight'] ) ? $this->sanitize_number_range( $value['maxHeight'], 50, 100, $defaults['maxHeight'] ) : $defaults['maxHeight'];
+		} else {
+			$sanitized['maxWidth'] = $defaults['maxWidth'];
+			$sanitized['borderRadius'] = $defaults['borderRadius'];
+			$sanitized['maxHeight'] = $defaults['maxHeight'];
+		}
+
+		// Only sanitize overlay if not inheriting.
+		if ( ! $sanitized['inheritOverlay'] ) {
+			$sanitized['overlayColor'] = isset( $value['overlayColor'] ) ? $this->sanitize_rgba_color( $value['overlayColor'] ) : $defaults['overlayColor'];
+			$sanitized['backdropBlur'] = isset( $value['backdropBlur'] ) ? $this->sanitize_number_range( $value['backdropBlur'], 0, 20, $defaults['backdropBlur'] ) : $defaults['backdropBlur'];
+		} else {
+			$sanitized['overlayColor'] = $defaults['overlayColor'];
+			$sanitized['backdropBlur'] = $defaults['backdropBlur'];
+		}
+
+		// Only sanitize close buttons if not inheriting.
+		if ( ! $sanitized['inheritCloseButtons'] ) {
+			$sanitized['showIconClose'] = isset( $value['showIconClose'] ) ? (bool) $value['showIconClose'] : $defaults['showIconClose'];
+			$sanitized['showFooterClose'] = isset( $value['showFooterClose'] ) ? (bool) $value['showFooterClose'] : $defaults['showFooterClose'];
+			$sanitized['footerCloseText'] = isset( $value['footerCloseText'] ) ? sanitize_text_field( wp_unslash( $value['footerCloseText'] ) ) : $defaults['footerCloseText'];
+		} else {
+			$sanitized['showIconClose'] = $defaults['showIconClose'];
+			$sanitized['showFooterClose'] = $defaults['showFooterClose'];
+			$sanitized['footerCloseText'] = $defaults['footerCloseText'];
+		}
+
+		// Gallery-specific settings.
+		$allowed_navigation = array( 'image', 'footer', 'both' );
+		$sanitized['imageNavigation'] = isset( $value['imageNavigation'] ) && in_array( $value['imageNavigation'], $allowed_navigation, true ) ? $value['imageNavigation'] : $defaults['imageNavigation'];
+
+		$sanitized['showCaptions'] = isset( $value['showCaptions'] ) ? (bool) $value['showCaptions'] : $defaults['showCaptions'];
+		$sanitized['crossfadeTransition'] = isset( $value['crossfadeTransition'] ) ? (bool) $value['crossfadeTransition'] : $defaults['crossfadeTransition'];
+		$sanitized['transitionDuration'] = isset( $value['transitionDuration'] ) ? $this->sanitize_number_range( $value['transitionDuration'], 0, 2000, $defaults['transitionDuration'] ) : $defaults['transitionDuration'];
+		$sanitized['preloadAdjacentImages'] = isset( $value['preloadAdjacentImages'] ) ? (bool) $value['preloadAdjacentImages'] : $defaults['preloadAdjacentImages'];
+		$sanitized['showNavOnHover'] = isset( $value['showNavOnHover'] ) ? (bool) $value['showNavOnHover'] : $defaults['showNavOnHover'];
+
+		return $sanitized;
 	}
 
 	/**
@@ -239,7 +534,7 @@ class SPPopups_Settings {
 			<h2 style="margin-top: 0; margin-bottom: 16px; font-size: 18px; font-weight: 600; color: #1d2327;">
 				<?php esc_html_e( 'AI TLDR Settings', 'synced-pattern-popups' ); ?>
 			</h2>
-			
+
 			<?php if ( ! $ai_available['plugin_active'] ) : ?>
 				<div class="notice notice-warning inline" style="margin: 0 0 20px 0;">
 					<p><?php esc_html_e( 'AI Experiments plugin is not active. TLDR feature requires the AI Experiments plugin to be installed and activated.', 'synced-pattern-popups' ); ?></p>
@@ -256,7 +551,7 @@ class SPPopups_Settings {
 
 			<form method="post" action="">
 				<?php wp_nonce_field( 'sppopups_save_tldr_settings', 'sppopups_tldr_settings_nonce' ); ?>
-				
+
 				<table class="form-table" role="presentation">
 					<tbody>
 						<tr>
@@ -321,7 +616,7 @@ class SPPopups_Settings {
 						</tr>
 					</tbody>
 				</table>
-				
+
 				<?php submit_button( __( 'Save TLDR Settings', 'synced-pattern-popups' ), 'primary', 'save_tldr_settings', false ); ?>
 			</form>
 		</div>
@@ -337,7 +632,7 @@ class SPPopups_Settings {
 		?>
 		<div class="sppopups-tab-content-inner">
 			<h2><?php esc_html_e( 'AI TLDR Settings', 'synced-pattern-popups' ); ?></h2>
-			
+
 			<?php if ( ! $all_requirements_met ) : ?>
 				<p class="description">
 					<?php esc_html_e( 'The AI-powered TLDR feature generates concise summaries of your page content on-demand. To use this feature, you need to complete the following requirements:', 'synced-pattern-popups' ); ?>
@@ -350,7 +645,7 @@ class SPPopups_Settings {
 
 				<form method="post" action="">
 					<?php wp_nonce_field( 'sppopups_save_tldr_settings', 'sppopups_tldr_settings_nonce' ); ?>
-					
+
 					<table class="form-table" role="presentation">
 						<tbody>
 							<tr>
@@ -415,7 +710,7 @@ class SPPopups_Settings {
 							</tr>
 						</tbody>
 					</table>
-					
+
 					<?php submit_button( __( 'Save TLDR Settings', 'synced-pattern-popups' ), 'primary', 'save_tldr_settings', false ); ?>
 				</form>
 			<?php endif; ?>
@@ -555,6 +850,681 @@ class SPPopups_Settings {
 	public static function get_tldr_cache_ttl() {
 		$hours = (int) get_option( 'sppopups_tldr_cache_ttl', 12 );
 		return $hours * HOUR_IN_SECONDS;
+	}
+
+	/**
+	 * Render defaults section for admin page
+	 */
+	public function render_defaults_section() {
+		?>
+		<div class="sppopups-tab-content-inner">
+			<h2><?php esc_html_e( 'Popup Defaults', 'synced-pattern-popups' ); ?></h2>
+			<p class="description">
+				<?php esc_html_e( 'Configure default appearance and behavior settings for all popup types. These settings will be used unless overridden by individual popups.', 'synced-pattern-popups' ); ?>
+			</p>
+
+			<form method="post" action="">
+				<?php wp_nonce_field( 'sppopups_save_defaults_settings', 'sppopups_defaults_settings_nonce' ); ?>
+
+				<?php $this->render_pattern_defaults_section(); ?>
+				<?php $this->render_tldr_defaults_section(); ?>
+				<?php $this->render_gallery_defaults_section(); ?>
+
+				<?php submit_button( __( 'Save Defaults', 'synced-pattern-popups' ), 'primary', 'save_defaults_settings', false ); ?>
+			</form>
+		</div>
+		<?php
+	}
+
+	/**
+	 * Render pattern defaults section
+	 */
+	private function render_pattern_defaults_section() {
+		$defaults = $this->get_default_pattern_defaults();
+		$saved = get_option( 'sppopups_defaults_pattern', array() );
+		$values = wp_parse_args( $saved, $defaults );
+		?>
+		<div class="sppopups-defaults-section" style="margin-top: 30px; padding: 24px; background: #f6f7f7; border: 1px solid #dcdcde; border-radius: 4px;">
+			<h3 style="margin-top: 0; margin-bottom: 16px; font-size: 16px; font-weight: 600;">
+				<?php esc_html_e( 'Pattern Popups Defaults', 'synced-pattern-popups' ); ?>
+			</h3>
+
+			<table class="form-table" role="presentation">
+				<tbody>
+					<tr>
+						<th scope="row">
+							<label for="pattern_max_width">
+								<?php esc_html_e( 'Default Width', 'synced-pattern-popups' ); ?>
+							</label>
+						</th>
+						<td>
+							<input type="number" name="sppopups_defaults_pattern[maxWidth]" id="pattern_max_width" value="<?php echo esc_attr( $values['maxWidth'] ); ?>" min="100" max="5000" step="1" style="width: 100px;" />
+							<span style="margin-left: 8px;"><?php esc_html_e( 'px', 'synced-pattern-popups' ); ?></span>
+							<p class="description">
+								<?php esc_html_e( 'Default modal width in pixels (100-5000).', 'synced-pattern-popups' ); ?>
+							</p>
+						</td>
+					</tr>
+					<tr>
+						<th scope="row">
+							<label for="pattern_border_radius">
+								<?php esc_html_e( 'Border Radius', 'synced-pattern-popups' ); ?>
+							</label>
+						</th>
+						<td>
+							<input type="number" name="sppopups_defaults_pattern[borderRadius]" id="pattern_border_radius" value="<?php echo esc_attr( $values['borderRadius'] ); ?>" min="0" max="50" step="1" style="width: 100px;" />
+							<span style="margin-left: 8px;"><?php esc_html_e( 'px', 'synced-pattern-popups' ); ?></span>
+							<p class="description">
+								<?php esc_html_e( 'Modal border radius in pixels (0-50).', 'synced-pattern-popups' ); ?>
+							</p>
+						</td>
+					</tr>
+					<tr>
+						<th scope="row">
+							<label for="pattern_max_height">
+								<?php esc_html_e( 'Max Height', 'synced-pattern-popups' ); ?>
+							</label>
+						</th>
+						<td>
+							<input type="number" name="sppopups_defaults_pattern[maxHeight]" id="pattern_max_height" value="<?php echo esc_attr( $values['maxHeight'] ); ?>" min="50" max="100" step="1" style="width: 100px;" />
+							<span style="margin-left: 8px;"><?php esc_html_e( '%', 'synced-pattern-popups' ); ?></span>
+							<p class="description">
+								<?php esc_html_e( 'Maximum modal height as percentage of viewport (50-100).', 'synced-pattern-popups' ); ?>
+							</p>
+						</td>
+					</tr>
+					<tr>
+						<th scope="row">
+							<label for="pattern_overlay_color">
+								<?php esc_html_e( 'Overlay Color', 'synced-pattern-popups' ); ?>
+							</label>
+						</th>
+						<td>
+							<input type="text" name="sppopups_defaults_pattern[overlayColor]" id="pattern_overlay_color" value="<?php echo esc_attr( $values['overlayColor'] ); ?>" class="regular-text" placeholder="rgba(0, 0, 0, 0.1)" />
+							<p class="description">
+								<?php esc_html_e( 'Overlay background color in rgba format (e.g., rgba(0, 0, 0, 0.1)).', 'synced-pattern-popups' ); ?>
+							</p>
+						</td>
+					</tr>
+					<tr>
+						<th scope="row">
+							<label for="pattern_backdrop_blur">
+								<?php esc_html_e( 'Backdrop Blur', 'synced-pattern-popups' ); ?>
+							</label>
+						</th>
+						<td>
+							<input type="number" name="sppopups_defaults_pattern[backdropBlur]" id="pattern_backdrop_blur" value="<?php echo esc_attr( $values['backdropBlur'] ); ?>" min="0" max="20" step="1" style="width: 100px;" />
+							<span style="margin-left: 8px;"><?php esc_html_e( 'px', 'synced-pattern-popups' ); ?></span>
+							<p class="description">
+								<?php esc_html_e( 'Backdrop blur amount in pixels (0-20).', 'synced-pattern-popups' ); ?>
+							</p>
+						</td>
+					</tr>
+					<tr>
+						<th scope="row">
+							<?php esc_html_e( 'Close Buttons', 'synced-pattern-popups' ); ?>
+						</th>
+						<td>
+							<fieldset>
+								<label>
+									<input type="checkbox" name="sppopups_defaults_pattern[showIconClose]" value="1" <?php checked( $values['showIconClose'], true ); ?> />
+									<?php esc_html_e( 'Show icon close button', 'synced-pattern-popups' ); ?>
+								</label>
+								<br />
+								<label>
+									<input type="checkbox" name="sppopups_defaults_pattern[showFooterClose]" value="1" <?php checked( $values['showFooterClose'], true ); ?> />
+									<?php esc_html_e( 'Show footer close button', 'synced-pattern-popups' ); ?>
+								</label>
+							</fieldset>
+						</td>
+					</tr>
+					<tr>
+						<th scope="row">
+							<label for="pattern_footer_close_text">
+								<?php esc_html_e( 'Footer Button Text', 'synced-pattern-popups' ); ?>
+							</label>
+						</th>
+						<td>
+							<input type="text" name="sppopups_defaults_pattern[footerCloseText]" id="pattern_footer_close_text" value="<?php echo esc_attr( $values['footerCloseText'] ); ?>" class="regular-text" />
+							<p class="description">
+								<?php esc_html_e( 'Text displayed on the footer close button.', 'synced-pattern-popups' ); ?>
+							</p>
+						</td>
+					</tr>
+				</tbody>
+			</table>
+		</div>
+		<?php
+	}
+
+	/**
+	 * Render TLDR defaults section
+	 */
+	private function render_tldr_defaults_section() {
+		$defaults = $this->get_default_tldr_defaults();
+		$saved = get_option( 'sppopups_defaults_tldr', array() );
+		$values = wp_parse_args( $saved, $defaults );
+		$pattern_defaults = self::get_pattern_defaults();
+		?>
+		<div class="sppopups-defaults-section" style="margin-top: 30px; padding: 24px; background: #f6f7f7; border: 1px solid #dcdcde; border-radius: 4px;">
+			<h3 style="margin-top: 0; margin-bottom: 16px; font-size: 16px; font-weight: 600;">
+				<?php esc_html_e( 'TLDR Popups Defaults', 'synced-pattern-popups' ); ?>
+			</h3>
+
+			<table class="form-table" role="presentation">
+				<tbody>
+					<tr>
+						<th scope="row">
+							<?php esc_html_e( 'Modal Appearance', 'synced-pattern-popups' ); ?>
+						</th>
+						<td>
+							<fieldset>
+								<label>
+									<input type="radio" name="sppopups_defaults_tldr[inheritModalAppearance]" value="1" <?php checked( $values['inheritModalAppearance'], true ); ?> class="tldr-inherit-modal-appearance" />
+									<?php esc_html_e( 'Inherit from Pattern Modal', 'synced-pattern-popups' ); ?>
+								</label>
+								<br />
+								<label>
+									<input type="radio" name="sppopups_defaults_tldr[inheritModalAppearance]" value="0" <?php checked( $values['inheritModalAppearance'], false ); ?> class="tldr-inherit-modal-appearance" />
+									<?php esc_html_e( 'Custom', 'synced-pattern-popups' ); ?>
+								</label>
+							</fieldset>
+							<div id="tldr-modal-appearance-custom" style="margin-top: 12px; <?php echo $values['inheritModalAppearance'] ? 'display: none;' : ''; ?>">
+								<table class="form-table" role="presentation" style="margin-top: 0;">
+									<tbody>
+										<tr>
+											<th scope="row">
+												<label for="tldr_max_width">
+													<?php esc_html_e( 'Default Width', 'synced-pattern-popups' ); ?>
+												</label>
+											</th>
+											<td>
+												<input type="number" name="sppopups_defaults_tldr[maxWidth]" id="tldr_max_width" value="<?php echo esc_attr( $values['maxWidth'] ); ?>" min="100" max="5000" step="1" style="width: 100px;" />
+												<span style="margin-left: 8px;"><?php esc_html_e( 'px', 'synced-pattern-popups' ); ?></span>
+											</td>
+										</tr>
+										<tr>
+											<th scope="row">
+												<label for="tldr_border_radius">
+													<?php esc_html_e( 'Border Radius', 'synced-pattern-popups' ); ?>
+												</label>
+											</th>
+											<td>
+												<input type="number" name="sppopups_defaults_tldr[borderRadius]" id="tldr_border_radius" value="<?php echo esc_attr( $values['borderRadius'] ); ?>" min="0" max="50" step="1" style="width: 100px;" />
+												<span style="margin-left: 8px;"><?php esc_html_e( 'px', 'synced-pattern-popups' ); ?></span>
+											</td>
+										</tr>
+										<tr>
+											<th scope="row">
+												<label for="tldr_max_height">
+													<?php esc_html_e( 'Max Height', 'synced-pattern-popups' ); ?>
+												</label>
+											</th>
+											<td>
+												<input type="number" name="sppopups_defaults_tldr[maxHeight]" id="tldr_max_height" value="<?php echo esc_attr( $values['maxHeight'] ); ?>" min="50" max="100" step="1" style="width: 100px;" />
+												<span style="margin-left: 8px;"><?php esc_html_e( '%', 'synced-pattern-popups' ); ?></span>
+											</td>
+										</tr>
+									</tbody>
+								</table>
+							</div>
+						</td>
+					</tr>
+					<tr>
+						<th scope="row">
+							<?php esc_html_e( 'Overlay', 'synced-pattern-popups' ); ?>
+						</th>
+						<td>
+							<fieldset>
+								<label>
+									<input type="radio" name="sppopups_defaults_tldr[inheritOverlay]" value="1" <?php checked( $values['inheritOverlay'], true ); ?> class="tldr-inherit-overlay" />
+									<?php esc_html_e( 'Inherit from Pattern Modal', 'synced-pattern-popups' ); ?>
+								</label>
+								<br />
+								<label>
+									<input type="radio" name="sppopups_defaults_tldr[inheritOverlay]" value="0" <?php checked( $values['inheritOverlay'], false ); ?> class="tldr-inherit-overlay" />
+									<?php esc_html_e( 'Custom', 'synced-pattern-popups' ); ?>
+								</label>
+							</fieldset>
+							<div id="tldr-overlay-custom" style="margin-top: 12px; <?php echo $values['inheritOverlay'] ? 'display: none;' : ''; ?>">
+								<table class="form-table" role="presentation" style="margin-top: 0;">
+									<tbody>
+										<tr>
+											<th scope="row">
+												<label for="tldr_overlay_color">
+													<?php esc_html_e( 'Overlay Color', 'synced-pattern-popups' ); ?>
+												</label>
+											</th>
+											<td>
+												<input type="text" name="sppopups_defaults_tldr[overlayColor]" id="tldr_overlay_color" value="<?php echo esc_attr( $values['overlayColor'] ); ?>" class="regular-text" placeholder="rgba(0, 0, 0, 0.1)" />
+											</td>
+										</tr>
+										<tr>
+											<th scope="row">
+												<label for="tldr_backdrop_blur">
+													<?php esc_html_e( 'Backdrop Blur', 'synced-pattern-popups' ); ?>
+												</label>
+											</th>
+											<td>
+												<input type="number" name="sppopups_defaults_tldr[backdropBlur]" id="tldr_backdrop_blur" value="<?php echo esc_attr( $values['backdropBlur'] ); ?>" min="0" max="20" step="1" style="width: 100px;" />
+												<span style="margin-left: 8px;"><?php esc_html_e( 'px', 'synced-pattern-popups' ); ?></span>
+											</td>
+										</tr>
+									</tbody>
+								</table>
+							</div>
+						</td>
+					</tr>
+					<tr>
+						<th scope="row">
+							<?php esc_html_e( 'Close Buttons', 'synced-pattern-popups' ); ?>
+						</th>
+						<td>
+							<fieldset>
+								<label>
+									<input type="radio" name="sppopups_defaults_tldr[inheritCloseButtons]" value="1" <?php checked( $values['inheritCloseButtons'], true ); ?> class="tldr-inherit-close-buttons" />
+									<?php esc_html_e( 'Inherit from Pattern Modal', 'synced-pattern-popups' ); ?>
+								</label>
+								<br />
+								<label>
+									<input type="radio" name="sppopups_defaults_tldr[inheritCloseButtons]" value="0" <?php checked( $values['inheritCloseButtons'], false ); ?> class="tldr-inherit-close-buttons" />
+									<?php esc_html_e( 'Custom', 'synced-pattern-popups' ); ?>
+								</label>
+							</fieldset>
+							<div id="tldr-close-buttons-custom" style="margin-top: 12px; <?php echo $values['inheritCloseButtons'] ? 'display: none;' : ''; ?>">
+								<table class="form-table" role="presentation" style="margin-top: 0;">
+									<tbody>
+										<tr>
+											<th scope="row">
+												<?php esc_html_e( 'Options', 'synced-pattern-popups' ); ?>
+											</th>
+											<td>
+												<fieldset>
+													<label>
+														<input type="checkbox" name="sppopups_defaults_tldr[showIconClose]" value="1" <?php checked( $values['showIconClose'], true ); ?> />
+														<?php esc_html_e( 'Show icon close button', 'synced-pattern-popups' ); ?>
+													</label>
+													<br />
+													<label>
+														<input type="checkbox" name="sppopups_defaults_tldr[showFooterClose]" value="1" <?php checked( $values['showFooterClose'], true ); ?> />
+														<?php esc_html_e( 'Show footer close button', 'synced-pattern-popups' ); ?>
+													</label>
+												</fieldset>
+											</td>
+										</tr>
+										<tr>
+											<th scope="row">
+												<label for="tldr_footer_close_text">
+													<?php esc_html_e( 'Footer Button Text', 'synced-pattern-popups' ); ?>
+												</label>
+											</th>
+											<td>
+												<input type="text" name="sppopups_defaults_tldr[footerCloseText]" id="tldr_footer_close_text" value="<?php echo esc_attr( $values['footerCloseText'] ); ?>" class="regular-text" />
+											</td>
+										</tr>
+									</tbody>
+								</table>
+							</div>
+						</td>
+					</tr>
+					<tr>
+						<th scope="row">
+							<label for="tldr_loading_text">
+								<?php esc_html_e( 'Loading Text', 'synced-pattern-popups' ); ?>
+							</label>
+						</th>
+						<td>
+							<input type="text" name="sppopups_defaults_tldr[loadingText]" id="tldr_loading_text" value="<?php echo esc_attr( $values['loadingText'] ); ?>" class="regular-text" />
+							<p class="description">
+								<?php esc_html_e( 'Text displayed while generating TLDR summary.', 'synced-pattern-popups' ); ?>
+							</p>
+						</td>
+					</tr>
+					<tr>
+						<th scope="row">
+							<label for="tldr_title_text">
+								<?php esc_html_e( 'Title Text', 'synced-pattern-popups' ); ?>
+							</label>
+						</th>
+						<td>
+							<input type="text" name="sppopups_defaults_tldr[titleText]" id="tldr_title_text" value="<?php echo esc_attr( $values['titleText'] ); ?>" class="regular-text" />
+							<p class="description">
+								<?php esc_html_e( 'Title displayed in TLDR modal header.', 'synced-pattern-popups' ); ?>
+							</p>
+						</td>
+					</tr>
+				</tbody>
+			</table>
+		</div>
+		<?php
+	}
+
+	/**
+	 * Render gallery defaults section
+	 */
+	private function render_gallery_defaults_section() {
+		$defaults = $this->get_default_gallery_defaults();
+		$saved = get_option( 'sppopups_defaults_gallery', array() );
+		$values = wp_parse_args( $saved, $defaults );
+		$pattern_defaults = self::get_pattern_defaults();
+		?>
+		<div class="sppopups-defaults-section" style="margin-top: 30px; padding: 24px; background: #f6f7f7; border: 1px solid #dcdcde; border-radius: 4px;">
+			<h3 style="margin-top: 0; margin-bottom: 16px; font-size: 16px; font-weight: 600;">
+				<?php esc_html_e( 'Gallery Popups Defaults', 'synced-pattern-popups' ); ?>
+			</h3>
+
+			<table class="form-table" role="presentation">
+				<tbody>
+					<tr>
+						<th scope="row">
+							<?php esc_html_e( 'Modal Appearance', 'synced-pattern-popups' ); ?>
+						</th>
+						<td>
+							<fieldset>
+								<label>
+									<input type="radio" name="sppopups_defaults_gallery[inheritModalAppearance]" value="1" <?php checked( $values['inheritModalAppearance'], true ); ?> class="gallery-inherit-modal-appearance" />
+									<?php esc_html_e( 'Inherit from Pattern Modal', 'synced-pattern-popups' ); ?>
+								</label>
+								<br />
+								<label>
+									<input type="radio" name="sppopups_defaults_gallery[inheritModalAppearance]" value="0" <?php checked( $values['inheritModalAppearance'], false ); ?> class="gallery-inherit-modal-appearance" />
+									<?php esc_html_e( 'Custom', 'synced-pattern-popups' ); ?>
+								</label>
+							</fieldset>
+							<div id="gallery-modal-appearance-custom" style="margin-top: 12px; <?php echo $values['inheritModalAppearance'] ? 'display: none;' : ''; ?>">
+								<table class="form-table" role="presentation" style="margin-top: 0;">
+									<tbody>
+										<tr>
+											<th scope="row">
+												<label for="gallery_max_width">
+													<?php esc_html_e( 'Default Width', 'synced-pattern-popups' ); ?>
+												</label>
+											</th>
+											<td>
+												<input type="number" name="sppopups_defaults_gallery[maxWidth]" id="gallery_max_width" value="<?php echo esc_attr( $values['maxWidth'] ); ?>" min="100" max="5000" step="1" style="width: 100px;" />
+												<span style="margin-left: 8px;"><?php esc_html_e( 'px', 'synced-pattern-popups' ); ?></span>
+											</td>
+										</tr>
+										<tr>
+											<th scope="row">
+												<label for="gallery_border_radius">
+													<?php esc_html_e( 'Border Radius', 'synced-pattern-popups' ); ?>
+												</label>
+											</th>
+											<td>
+												<input type="number" name="sppopups_defaults_gallery[borderRadius]" id="gallery_border_radius" value="<?php echo esc_attr( $values['borderRadius'] ); ?>" min="0" max="50" step="1" style="width: 100px;" />
+												<span style="margin-left: 8px;"><?php esc_html_e( 'px', 'synced-pattern-popups' ); ?></span>
+											</td>
+										</tr>
+										<tr>
+											<th scope="row">
+												<label for="gallery_max_height">
+													<?php esc_html_e( 'Max Height', 'synced-pattern-popups' ); ?>
+												</label>
+											</th>
+											<td>
+												<input type="number" name="sppopups_defaults_gallery[maxHeight]" id="gallery_max_height" value="<?php echo esc_attr( $values['maxHeight'] ); ?>" min="50" max="100" step="1" style="width: 100px;" />
+												<span style="margin-left: 8px;"><?php esc_html_e( '%', 'synced-pattern-popups' ); ?></span>
+											</td>
+										</tr>
+									</tbody>
+								</table>
+							</div>
+						</td>
+					</tr>
+					<tr>
+						<th scope="row">
+							<?php esc_html_e( 'Overlay', 'synced-pattern-popups' ); ?>
+						</th>
+						<td>
+							<fieldset>
+								<label>
+									<input type="radio" name="sppopups_defaults_gallery[inheritOverlay]" value="1" <?php checked( $values['inheritOverlay'], true ); ?> class="gallery-inherit-overlay" />
+									<?php esc_html_e( 'Inherit from Pattern Modal', 'synced-pattern-popups' ); ?>
+								</label>
+								<br />
+								<label>
+									<input type="radio" name="sppopups_defaults_gallery[inheritOverlay]" value="0" <?php checked( $values['inheritOverlay'], false ); ?> class="gallery-inherit-overlay" />
+									<?php esc_html_e( 'Custom', 'synced-pattern-popups' ); ?>
+								</label>
+							</fieldset>
+							<div id="gallery-overlay-custom" style="margin-top: 12px; <?php echo $values['inheritOverlay'] ? 'display: none;' : ''; ?>">
+								<table class="form-table" role="presentation" style="margin-top: 0;">
+									<tbody>
+										<tr>
+											<th scope="row">
+												<label for="gallery_overlay_color">
+													<?php esc_html_e( 'Overlay Color', 'synced-pattern-popups' ); ?>
+												</label>
+											</th>
+											<td>
+												<input type="text" name="sppopups_defaults_gallery[overlayColor]" id="gallery_overlay_color" value="<?php echo esc_attr( $values['overlayColor'] ); ?>" class="regular-text" placeholder="rgba(0, 0, 0, 0.1)" />
+											</td>
+										</tr>
+										<tr>
+											<th scope="row">
+												<label for="gallery_backdrop_blur">
+													<?php esc_html_e( 'Backdrop Blur', 'synced-pattern-popups' ); ?>
+												</label>
+											</th>
+											<td>
+												<input type="number" name="sppopups_defaults_gallery[backdropBlur]" id="gallery_backdrop_blur" value="<?php echo esc_attr( $values['backdropBlur'] ); ?>" min="0" max="20" step="1" style="width: 100px;" />
+												<span style="margin-left: 8px;"><?php esc_html_e( 'px', 'synced-pattern-popups' ); ?></span>
+											</td>
+										</tr>
+									</tbody>
+								</table>
+							</div>
+						</td>
+					</tr>
+					<tr>
+						<th scope="row">
+							<?php esc_html_e( 'Close Buttons', 'synced-pattern-popups' ); ?>
+						</th>
+						<td>
+							<fieldset>
+								<label>
+									<input type="radio" name="sppopups_defaults_gallery[inheritCloseButtons]" value="1" <?php checked( $values['inheritCloseButtons'], true ); ?> class="gallery-inherit-close-buttons" />
+									<?php esc_html_e( 'Inherit from Pattern Modal', 'synced-pattern-popups' ); ?>
+								</label>
+								<br />
+								<label>
+									<input type="radio" name="sppopups_defaults_gallery[inheritCloseButtons]" value="0" <?php checked( $values['inheritCloseButtons'], false ); ?> class="gallery-inherit-close-buttons" />
+									<?php esc_html_e( 'Custom', 'synced-pattern-popups' ); ?>
+								</label>
+							</fieldset>
+							<div id="gallery-close-buttons-custom" style="margin-top: 12px; <?php echo $values['inheritCloseButtons'] ? 'display: none;' : ''; ?>">
+								<table class="form-table" role="presentation" style="margin-top: 0;">
+									<tbody>
+										<tr>
+											<th scope="row">
+												<?php esc_html_e( 'Options', 'synced-pattern-popups' ); ?>
+											</th>
+											<td>
+												<fieldset>
+													<label>
+														<input type="checkbox" name="sppopups_defaults_gallery[showIconClose]" value="1" <?php checked( $values['showIconClose'], true ); ?> />
+														<?php esc_html_e( 'Show icon close button', 'synced-pattern-popups' ); ?>
+													</label>
+													<br />
+													<label>
+														<input type="checkbox" name="sppopups_defaults_gallery[showFooterClose]" value="1" <?php checked( $values['showFooterClose'], true ); ?> />
+														<?php esc_html_e( 'Show footer close button', 'synced-pattern-popups' ); ?>
+													</label>
+												</fieldset>
+											</td>
+										</tr>
+										<tr>
+											<th scope="row">
+												<label for="gallery_footer_close_text">
+													<?php esc_html_e( 'Footer Button Text', 'synced-pattern-popups' ); ?>
+												</label>
+											</th>
+											<td>
+												<input type="text" name="sppopups_defaults_gallery[footerCloseText]" id="gallery_footer_close_text" value="<?php echo esc_attr( $values['footerCloseText'] ); ?>" class="regular-text" />
+											</td>
+										</tr>
+									</tbody>
+								</table>
+							</div>
+						</td>
+					</tr>
+					<tr>
+						<th scope="row">
+							<label for="gallery_image_navigation">
+								<?php esc_html_e( 'Image Navigation', 'synced-pattern-popups' ); ?>
+							</label>
+						</th>
+						<td>
+							<select name="sppopups_defaults_gallery[imageNavigation]" id="gallery_image_navigation">
+								<option value="image" <?php selected( $values['imageNavigation'], 'image' ); ?>><?php esc_html_e( 'Image', 'synced-pattern-popups' ); ?></option>
+								<option value="footer" <?php selected( $values['imageNavigation'], 'footer' ); ?>><?php esc_html_e( 'Footer', 'synced-pattern-popups' ); ?></option>
+								<option value="both" <?php selected( $values['imageNavigation'], 'both' ); ?>><?php esc_html_e( 'Both', 'synced-pattern-popups' ); ?></option>
+							</select>
+							<p class="description">
+								<?php esc_html_e( 'Where to display navigation controls for gallery images.', 'synced-pattern-popups' ); ?>
+							</p>
+						</td>
+					</tr>
+					<tr>
+						<th scope="row">
+							<?php esc_html_e( 'Gallery Options', 'synced-pattern-popups' ); ?>
+						</th>
+						<td>
+							<fieldset>
+								<label>
+									<input type="checkbox" name="sppopups_defaults_gallery[showCaptions]" value="1" <?php checked( $values['showCaptions'], true ); ?> />
+									<?php esc_html_e( 'Show captions', 'synced-pattern-popups' ); ?>
+								</label>
+								<br />
+								<label>
+									<input type="checkbox" name="sppopups_defaults_gallery[crossfadeTransition]" value="1" <?php checked( $values['crossfadeTransition'], true ); ?> />
+									<?php esc_html_e( 'Crossfade transition', 'synced-pattern-popups' ); ?>
+								</label>
+								<br />
+								<label>
+									<input type="checkbox" name="sppopups_defaults_gallery[preloadAdjacentImages]" value="1" <?php checked( $values['preloadAdjacentImages'], true ); ?> />
+									<?php esc_html_e( 'Preload adjacent images', 'synced-pattern-popups' ); ?>
+								</label>
+								<br />
+								<label>
+									<input type="checkbox" name="sppopups_defaults_gallery[showNavOnHover]" value="1" <?php checked( $values['showNavOnHover'], true ); ?> />
+									<?php esc_html_e( 'Show navigation on hover/touch', 'synced-pattern-popups' ); ?>
+								</label>
+							</fieldset>
+						</td>
+					</tr>
+					<tr>
+						<th scope="row">
+							<label for="gallery_transition_duration">
+								<?php esc_html_e( 'Transition Duration', 'synced-pattern-popups' ); ?>
+							</label>
+						</th>
+						<td>
+							<input type="number" name="sppopups_defaults_gallery[transitionDuration]" id="gallery_transition_duration" value="<?php echo esc_attr( $values['transitionDuration'] ); ?>" min="0" max="2000" step="1" style="width: 100px;" />
+							<span style="margin-left: 8px;"><?php esc_html_e( 'ms', 'synced-pattern-popups' ); ?></span>
+							<p class="description">
+								<?php esc_html_e( 'Transition duration in milliseconds (0-2000).', 'synced-pattern-popups' ); ?>
+							</p>
+						</td>
+					</tr>
+				</tbody>
+			</table>
+		</div>
+		<?php
+	}
+
+	/**
+	 * Get pattern defaults with fallbacks
+	 *
+	 * @return array Pattern defaults
+	 */
+	public static function get_pattern_defaults() {
+		$instance = new self();
+		$defaults = $instance->get_default_pattern_defaults();
+		$saved = get_option( 'sppopups_defaults_pattern', array() );
+
+		if ( ! is_array( $saved ) || empty( $saved ) ) {
+			return $defaults;
+		}
+
+		return wp_parse_args( $saved, $defaults );
+	}
+
+	/**
+	 * Get TLDR defaults with inheritance logic applied
+	 *
+	 * @return array TLDR defaults with inheritance resolved
+	 */
+	public static function get_tldr_defaults() {
+		$instance = new self();
+		$pattern_defaults = self::get_pattern_defaults();
+		$tldr_defaults = $instance->get_default_tldr_defaults();
+		$saved = get_option( 'sppopups_defaults_tldr', array() );
+
+		if ( ! is_array( $saved ) || empty( $saved ) ) {
+			$saved = $tldr_defaults;
+		}
+
+		$result = wp_parse_args( $saved, $tldr_defaults );
+
+		// Apply inheritance from pattern defaults.
+		if ( ! empty( $result['inheritModalAppearance'] ) ) {
+			$result['maxWidth'] = $pattern_defaults['maxWidth'];
+			$result['borderRadius'] = $pattern_defaults['borderRadius'];
+			$result['maxHeight'] = $pattern_defaults['maxHeight'];
+		}
+
+		if ( ! empty( $result['inheritOverlay'] ) ) {
+			$result['overlayColor'] = $pattern_defaults['overlayColor'];
+			$result['backdropBlur'] = $pattern_defaults['backdropBlur'];
+		}
+
+		if ( ! empty( $result['inheritCloseButtons'] ) ) {
+			$result['showIconClose'] = $pattern_defaults['showIconClose'];
+			$result['showFooterClose'] = $pattern_defaults['showFooterClose'];
+			$result['footerCloseText'] = $pattern_defaults['footerCloseText'];
+		}
+
+		return $result;
+	}
+
+	/**
+	 * Get gallery defaults with inheritance logic applied
+	 *
+	 * @return array Gallery defaults with inheritance resolved
+	 */
+	public static function get_gallery_defaults() {
+		$instance = new self();
+		$pattern_defaults = self::get_pattern_defaults();
+		$gallery_defaults = $instance->get_default_gallery_defaults();
+		$saved = get_option( 'sppopups_defaults_gallery', array() );
+
+		if ( ! is_array( $saved ) || empty( $saved ) ) {
+			$saved = $gallery_defaults;
+		}
+
+		$result = wp_parse_args( $saved, $gallery_defaults );
+
+		// Apply inheritance from pattern defaults.
+		if ( ! empty( $result['inheritModalAppearance'] ) ) {
+			$result['maxWidth'] = $pattern_defaults['maxWidth'];
+			$result['borderRadius'] = $pattern_defaults['borderRadius'];
+			$result['maxHeight'] = $pattern_defaults['maxHeight'];
+		}
+
+		if ( ! empty( $result['inheritOverlay'] ) ) {
+			$result['overlayColor'] = $pattern_defaults['overlayColor'];
+			$result['backdropBlur'] = $pattern_defaults['backdropBlur'];
+		}
+
+		if ( ! empty( $result['inheritCloseButtons'] ) ) {
+			$result['showIconClose'] = $pattern_defaults['showIconClose'];
+			$result['showFooterClose'] = $pattern_defaults['showFooterClose'];
+			$result['footerCloseText'] = $pattern_defaults['footerCloseText'];
+		}
+
+		return $result;
 	}
 }
 
