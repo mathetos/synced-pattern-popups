@@ -560,24 +560,123 @@
 	}
 
 	/**
+	 * Get defaults for a popup type with inheritance logic applied
+	 *
+	 * @param {string} popupType Popup type: 'pattern', 'tldr', or 'gallery'
+	 * @return {object} Complete defaults object with inheritance resolved
+	 */
+	function getDefaultsForType(popupType) {
+		// Check if defaults are available
+		if ( ! sppopups || ! sppopups.defaults || ! sppopups.defaults[popupType]) {
+			// Log warning if defaults not available (helps with debugging)
+			if (window.console && console.warn) {
+				console.warn( 'SPPopups: Defaults not available for type', popupType, '- using fallback defaults' );
+			}
+			// Fallback to hardcoded defaults if not available
+			return {
+				maxWidth: 600,
+				borderRadius: 6,
+				maxHeight: 90,
+				overlayColor: 'rgba(0, 0, 0, 0.1)',
+				backdropBlur: 8,
+				showIconClose: true,
+				showFooterClose: true,
+				footerCloseText: 'Close →'
+			};
+		}
+
+		return sppopups.defaults[popupType];
+	}
+
+	/**
+	 * Apply CSS variables and data attributes to modal based on defaults
+	 *
+	 * @param {HTMLElement} modalElement Modal element
+	 * @param {string} popupType Popup type: 'pattern', 'tldr', or 'gallery'
+	 * @param {object} overrides Optional overrides (e.g., custom max-width from trigger)
+	 * @return {object} Applied defaults object
+	 */
+	function applyModalDefaults(modalElement, popupType, overrides) {
+		var defaults = getDefaultsForType(popupType);
+
+		// Apply overrides if provided
+		if (overrides) {
+			defaults = Object.assign( {}, defaults, overrides);
+		}
+
+		// Set CSS variables
+		modalElement.style.setProperty( '--sppopups-max-width', defaults.maxWidth + 'px' );
+		modalElement.style.setProperty( '--sppopups-border-radius', defaults.borderRadius + 'px' );
+		// Convert percentage to viewport height units for proper scrolling
+		modalElement.style.setProperty( '--sppopups-max-height', defaults.maxHeight + '%' );
+		modalElement.style.setProperty( '--sppopups-max-height-vh', defaults.maxHeight + 'vh' );
+		modalElement.style.setProperty( '--sppopups-overlay-color', defaults.overlayColor );
+		modalElement.style.setProperty( '--sppopups-backdrop-blur', defaults.backdropBlur + 'px' );
+
+		// Set data attributes for conditional CSS
+		modalElement.setAttribute( 'data-show-icon-close', defaults.showIconClose ? 'true' : 'false' );
+		modalElement.setAttribute( 'data-show-footer-close', defaults.showFooterClose ? 'true' : 'false' );
+
+		// Gallery-specific attributes
+		if (popupType === 'gallery') {
+			modalElement.setAttribute( 'data-gallery-crossfade', defaults.crossfadeTransition ? 'true' : 'false' );
+			modalElement.setAttribute( 'data-gallery-show-captions', defaults.showCaptions ? 'true' : 'false' );
+			modalElement.setAttribute( 'data-gallery-nav-hover', defaults.showNavOnHover ? 'true' : 'false' );
+			if (defaults.transitionDuration !== undefined) {
+				modalElement.style.setProperty( '--sppopups-gallery-transition-duration', defaults.transitionDuration + 'ms' );
+			}
+		}
+
+		// Update footer close button text if available
+		if (defaults.footerCloseText && closeFooterBtn) {
+			closeFooterBtn.textContent = defaults.footerCloseText;
+		}
+
+		return defaults;
+	}
+
+	/**
 	 * Setup modal state (common initialization logic)
 	 *
 	 * @param {number|null} maxWidth Optional max-width in pixels
 	 * @param {string} loadingContent HTML content to show while loading
+	 * @param {string} popupType Optional popup type for applying defaults
 	 */
-	function setupModalState(maxWidth, loadingContent) {
+	function setupModalState(maxWidth, loadingContent, popupType) {
 		// Save scroll position BEFORE any DOM changes (for all screen sizes)
 		savedScrollPosition = window.pageYOffset || document.documentElement.scrollTop || document.body.scrollTop || 0;
 
 		// Store the element that triggered the modal for focus restoration
 		lastActiveElement = document.activeElement;
 
-		// Store the requested max-width for resize handling
-		currentMaxWidth = maxWidth;
-
-		// Calculate and apply max-width with 6% margin
+		// Apply defaults if popup type is provided
+		var finalMaxWidth = maxWidth;
+		var overrides = {};
 		if (maxWidth !== null) {
-			var calculatedWidth      = calculateMaxWidth( maxWidth );
+			overrides.maxWidth = maxWidth;
+		}
+
+		if (popupType) {
+			var appliedDefaults = applyModalDefaults( modal, popupType, overrides );
+			// Use the applied max-width from defaults (or override)
+			finalMaxWidth = appliedDefaults.maxWidth;
+			// Debug: log applied defaults (remove in production if desired)
+			if (window.console && console.log) {
+				console.log( 'SPPopups: Applied defaults for', popupType, appliedDefaults );
+			}
+		} else {
+			// Legacy behavior: use provided maxWidth or default
+			if (maxWidth === null) {
+				finalMaxWidth = 600; // Legacy default
+			}
+		}
+
+		// Store the final max-width for resize handling
+		currentMaxWidth = finalMaxWidth;
+
+		// Apply max-width to container (with 6% margin calculation)
+		if (finalMaxWidth !== null) {
+			var calculatedWidth      = calculateMaxWidth( finalMaxWidth );
 			container.style.maxWidth = calculatedWidth + 'px';
 		} else {
 			container.style.maxWidth = '';
@@ -638,7 +737,7 @@
 			return;
 		}
 
-		setupModalState( maxWidth, loadingHtml );
+		setupModalState( maxWidth, loadingHtml, 'pattern' );
 
 		// Prepare form data for POST request
 		var formData = new FormData();
@@ -1125,8 +1224,19 @@
 			return;
 		}
 
-		// Use common modal setup (no custom max-width for TLDR)
-		setupModalState( null, '<div class="sppopups-loading"><div class="sppopups-spinner"></div><p>Generating TLDR</p></div>' );
+		// Get TLDR defaults for loading text and title
+		var tldrDefaults = getDefaultsForType( 'tldr' );
+		var loadingText = tldrDefaults.loadingText || 'Generating TLDR';
+		var titleText = tldrDefaults.titleText || 'TLDR';
+
+		// Use common modal setup with TLDR defaults
+		setupModalState( null, '<div class="sppopups-loading"><div class="sppopups-spinner"></div><p>' + loadingText + '</p></div>', 'tldr' );
+
+		// Set title if available
+		var titleEl = getTitleElement();
+		if (titleEl) {
+			titleEl.textContent = titleText;
+		}
 
 		// Prepare form data
 		var formData = new FormData();
@@ -1211,6 +1321,8 @@
 				closeBtn: closeBtn,
 				closeModal: closeModal,
 				setupModalState: setupModalState,
+				applyModalDefaults: applyModalDefaults,
+				getDefaultsForType: getDefaultsForType,
 				getTitleElement: getTitleElement,
 				focusWithoutScroll: focusWithoutScroll,
 				currentMaxWidth: function () {

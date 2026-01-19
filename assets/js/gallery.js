@@ -29,6 +29,8 @@
 		closeBtn: null,
 		closeModal: null,
 		setupModalState: null,
+		applyModalDefaults: null,
+		getDefaultsForType: null,
 		getTitleElement: null,
 		focusWithoutScroll: null,
 		currentMaxWidth: null,
@@ -524,21 +526,32 @@
 		var settings                = getGallerySettings( galleryData );
 		currentGalleryData.settings = settings;
 
-		// Set modal size
+		// Get gallery defaults
+		var galleryDefaults = null;
+		if (dependencies.getDefaultsForType) {
+			galleryDefaults = dependencies.getDefaultsForType( 'gallery' );
+		}
+
+		// Apply defaults to modal (overrides with gallery-specific settings if provided)
+		var overrides = {};
+		if (settings.modalSize) {
+			overrides.maxWidth = settings.modalSize;
+		}
+		if (dependencies.applyModalDefaults && dependencies.modal) {
+			dependencies.applyModalDefaults( dependencies.modal, 'gallery', overrides );
+		}
+
+		// Set modal size (may be overridden by defaults)
 		if (dependencies.container) {
-			dependencies.container.style.maxWidth = settings.modalSize + 'px';
+			var finalMaxWidth = overrides.maxWidth || (galleryDefaults && galleryDefaults.maxWidth) || settings.modalSize || 600;
+			dependencies.container.style.maxWidth = finalMaxWidth + 'px';
 			if (dependencies.setCurrentMaxWidth) {
-				dependencies.setCurrentMaxWidth( settings.modalSize );
+				dependencies.setCurrentMaxWidth( finalMaxWidth );
 			}
 		}
 
-		// Show/hide close buttons based on setting
-		if (dependencies.closeBtn) {
-			dependencies.closeBtn.style.display = (settings.closeButtons === 'icon' || settings.closeButtons === 'both') ? '' : 'none';
-		}
-
-		// Use common modal setup
-		dependencies.setupModalState( settings.modalSize, '' );
+		// Use common modal setup with gallery type
+		dependencies.setupModalState( settings.modalSize || null, '', 'gallery' );
 
 		// Create container for gallery images
 		var galleryContainer           = document.createElement( 'div' );

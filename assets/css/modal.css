@@ -41,19 +41,32 @@
 	left: 0;
 	width: 100%;
 	height: 100%;
-	background: rgba(0, 0, 0, 0.1);
-	backdrop-filter: blur(8px);
-	-webkit-backdrop-filter: blur(8px);
+	background: var(--sppopups-overlay-color, rgba(0, 0, 0, 0.1));
+	backdrop-filter: blur(var(--sppopups-backdrop-blur, 8px));
+	-webkit-backdrop-filter: blur(var(--sppopups-backdrop-blur, 8px));
 }
 
 .sppopups-container {
 	position: relative;
 	width: 100%;
-	max-width: 600px;
-	max-height: 90vh;
+	max-width: var(--sppopups-max-width, 600px);
+	/* 
+	 * Height behavior: 
+	 * - No explicit height allows container to shrink to content naturally (small content = small modal)
+	 * - max-height constraint ensures it doesn't exceed viewport when content is tall
+	 * - display: flex with flex-direction: column enables proper height constraint propagation
+	 * - When content is small: container shrinks, card shrinks, no scrollbar
+	 * - When content is tall: container hits max-height, card is constrained via flex, content scrolls
+	 * 
+	 * IMPORTANT: Flex container here allows card (flex child) to respect the max-height constraint
+	 * while still allowing natural shrinking when content is small.
+	 */
+	display: flex;
+	flex-direction: column;
+	max-height: var(--sppopups-max-height-vh, 90vh);
 	z-index: 1;
-	/* Fixed 6px border radius */
-	border-radius: 6px;
+	/* Border radius from CSS variable */
+	border-radius: var(--sppopups-border-radius, 6px);
 	/* Ensure inline max-width from JavaScript is respected */
 	box-sizing: border-box;
 	/* Create stacking context for gradient border */
@@ -70,7 +83,7 @@
 	left: -3px;
 	right: -3px;
 	bottom: -3px;
-	border-radius: 9px;
+	border-radius: calc(var(--sppopups-border-radius, 6px) + 3px);
 	background: conic-gradient(
 		from 0deg,
 		rgba(255, 105, 180, 0.8),
@@ -131,6 +144,11 @@
 	line-height: 1.5;
 }
 
+/* Hide footer close button if setting is disabled */
+.sppopups-modal:not([data-show-footer-close="true"]) .sppopups-close-footer {
+	display: none;
+}
+
 .sppopups-close-footer:hover {
 	color: #000;
 }
@@ -143,19 +161,34 @@
 
 .sppopups-card {
 	background: #ffffff;
-	border-radius: 8px;
+	border-radius: calc(var(--sppopups-border-radius, 6px) + 2px);
 	box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
 	position: relative;
 	padding: 0;
 	animation: sppopups-fade-in 0.3s ease-out;
-	/* Ensure content doesn't overflow */
+	/* Ensure content doesn't overflow the card boundaries */
 	overflow: hidden;
 	border: none;
-	/* Flexbox for footer positioning */
+	/* 
+	 * Flexbox column layout enables:
+	 * - Content area to flex and scroll when constrained
+	 * - Footer to stick to bottom (flex-shrink: 0)
+	 * - Natural height growth for small content
+	 */
 	display: flex;
 	flex-direction: column;
-	height: 100%;
-	max-height: 90vh;
+	/* 
+	 * Height behavior as flex child of container:
+	 * - flex: 1 1 auto allows card to grow/shrink naturally
+	 * - min-height: 0 is CRITICAL - allows card to shrink below content size when constrained
+	 * - When container is small: card shrinks to content, no scroll needed
+	 * - When container hits max-height: card is constrained, content area scrolls
+	 * 
+	 * IMPORTANT: min-height: 0 is required for flex items to shrink below their content size.
+	 * Without it, the card won't respect the container's max-height constraint.
+	 */
+	flex: 1 1 auto;
+	min-height: 0;
 	z-index: 1;
 }
 
@@ -210,6 +243,11 @@
 	box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
 }
 
+/* Hide icon close button if setting is disabled */
+.sppopups-modal:not([data-show-icon-close="true"]) .sppopups-close {
+	display: none;
+}
+
 .sppopups-close:hover {
 	color: #000;
 	background: rgba(255, 255, 255, 1);
@@ -232,13 +270,23 @@
 
 .sppopups-content {
 	width: 100%;
-	min-height: 200px;
 	position: relative;
 	z-index: 1;
-	/* Make content scrollable */
+	/* 
+	 * Overflow behavior: auto enables scrollbar only when content exceeds available space.
+	 * This works because:
+	 * - Small content: card/container grow naturally, no scrollbar needed
+	 * - Tall content: container hits max-height, card constrained, content scrolls
+	 */
 	overflow-y: auto;
 	overflow-x: hidden;
-	flex: 1;
+	/* 
+	 * Flex: 1 allows content to fill available space in flex column.
+	 * min-height: 0 is CRITICAL - without it, flex items won't shrink below content size,
+	 * preventing scrolling. This is a flexbox quirk that must be set.
+	 */
+	flex: 1 1 auto;
+	min-height: 0;
 
 	/* Smooth scrolling on iOS */
 	-webkit-overflow-scrolling: touch;
@@ -316,13 +364,13 @@ body.sppopups-open {
 
 	.sppopups-container {
 		max-width: 100%;
-		max-height: calc(100vh - 20px);
-		max-height: calc(100vh - max(20px, env(safe-area-inset-top)) - max(20px, env(safe-area-inset-bottom)));
-		border-radius: 6px;
+		/* Use CSS variable if set (percentage converted to vh), otherwise calculate from viewport */
+		max-height: var(--sppopups-max-height-vh, calc(100vh - max(20px, env(safe-area-inset-top)) - max(20px, env(safe-area-inset-bottom))));
+		border-radius: var(--sppopups-border-radius, 6px);
 	}
 
 	.sppopups-container::before {
-		border-radius: 8px;
+		border-radius: calc(var(--sppopups-border-radius, 6px) + 3px);
 	}
 
 	.sppopups-card {
@@ -368,7 +416,8 @@ body.sppopups-open {
 
 	.sppopups-container {
 		max-width: 90%;
-		max-height: 85vh;
+		/* Use CSS variable if set (percentage converted to vh), otherwise use 85vh */
+		max-height: var(--sppopups-max-height-vh, 85vh);
 	}
 
 	.sppopups-content {
@@ -383,7 +432,7 @@ body.sppopups-open {
 /* Large devices (desktops, 769px and up) */
 @media screen and (min-width: 769px) {
 	.sppopups-container {
-		max-width: 600px;
+		max-width: var(--sppopups-max-width, 600px);
 	}
 }
 
@@ -403,14 +452,14 @@ body.sppopups-open {
 	}
 
 	.sppopups-container {
-		max-height: calc(100vh - 20px);
-		max-height: calc(100vh - max(20px, env(safe-area-inset-top)) - max(20px, env(safe-area-inset-bottom)));
+		/* Use CSS variable if set (percentage converted to vh), otherwise calculate from viewport */
+		max-height: var(--sppopups-max-height-vh, calc(100vh - max(20px, env(safe-area-inset-top)) - max(20px, env(safe-area-inset-bottom))));
 		margin-top: 10px;
-		border-radius: 6px;
+		border-radius: var(--sppopups-border-radius, 6px);
 	}
 
 	.sppopups-container::before {
-		border-radius: 8px;
+		border-radius: calc(var(--sppopups-border-radius, 6px) + 3px);
 	}
 
 	.sppopups-content {
@@ -499,9 +548,14 @@ body:not(.block-editor-page):not(.wp-admin) [class*="wp-block"]:hover {
 	padding: 0;
 	box-sizing: border-box;
 	opacity: 0;
-	transition: opacity 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+	transition: opacity var(--sppopups-gallery-transition-duration, 500ms) cubic-bezier(0.4, 0, 0.2, 1);
 	pointer-events: none;
 	z-index: 1;
+}
+
+/* Disable crossfade transition if setting is disabled */
+.sppopups-modal:not([data-gallery-crossfade="true"]) .sppopups-gallery-image-wrapper {
+	transition: opacity 0ms;
 }
 
 /* Active/visible layer */
@@ -591,6 +645,12 @@ body:not(.block-editor-page):not(.wp-admin) [class*="wp-block"]:hover {
 	}
 }
 
+/* Always show navigation buttons if hover setting is disabled */
+.sppopups-modal:not([data-gallery-nav-hover="true"]) .sppopups-gallery-nav {
+	opacity: 1;
+	pointer-events: auto;
+}
+
 .sppopups-gallery-nav:hover {
 	color: #000;
 	background: rgba(255, 255, 255, 1);
@@ -673,6 +733,11 @@ body:not(.block-editor-page):not(.wp-admin) [class*="wp-block"]:hover {
 	-webkit-box-orient: vertical;
 	white-space: normal;
 	word-wrap: break-word;
+}
+
+/* Hide captions if setting is disabled */
+.sppopups-modal:not([data-gallery-show-captions="true"]) .sppopups-gallery-caption {
+	display: none;
 }
 
 /* If caption contains HTML, allow it to display properly */
