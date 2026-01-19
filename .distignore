@@ -6,6 +6,7 @@
 /.idea
 /.wordpress-org
 /.gitignore
+/.gitattributes
 /.distignore
 
 # Composer / PHPCS tooling (dev-only for this plugin)

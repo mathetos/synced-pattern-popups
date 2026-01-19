@@ -1,4 +1,4 @@
-﻿=== Synced Pattern Popups ===
+=== Synced Pattern Popups ===
 Contributors: webdevmattcrom
 Tags: popup, modal, synced-patterns, ai, tldr
 Requires at least: 5.8
@@ -283,7 +283,7 @@ PHP 7.4 or higher.
 == Upgrade Notice ==
 
 = 1.3.0 =
-Major update introducing default settings page and Command Palette integration. Configure default popup appearance (width, height, colors, close buttons) for Pattern, TLDR, and Gallery popups. TLDR and Gallery can inherit from Pattern defaults. Improved modal scrolling for long content. Comprehensive testing infrastructure added. Recommended for all users.
+Major update introducing default settings page and Command Palette integration. Configure default popup appearance (width, height, colors, close buttons) for Pattern, TLDR, and Gallery popups. TLDR and Gallery can inherit from Pattern defaults. Improved modal scrolling. Recommended for all users.
 
 = 1.2.0 =
 Major refactor of modal state management for improved stability, maintainability, and debugging. Fixes an issue with gallery random order. Addresses Plugin Check warnings. Recommended for all users.

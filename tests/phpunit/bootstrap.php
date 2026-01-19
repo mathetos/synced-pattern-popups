@@ -5,6 +5,11 @@
  * @package SPPopups
  */
 
+// Exit if accessed directly.
+if ( ! defined( 'ABSPATH' ) ) {
+	exit;
+}
+
 // Forward custom PHPUnit Polyfills requirement to PHPUnit bootstrap file.
 if ( ! defined( 'WP_TESTS_PHPUNIT_POLYFILLS_PATH' ) ) {
 	define( 'WP_TESTS_PHPUNIT_POLYFILLS_PATH', dirname( __DIR__, 2 ) . '/vendor/yoast/phpunit-polyfills' );
@@ -47,7 +52,7 @@ if ( ! $_tests_dir || ! file_exists( $_tests_dir . '/includes/functions.php' ) )
 	echo "\n";
 	echo "3. Place test suite in one of these locations:\n";
 	foreach ( $possible_locations as $location ) {
-		echo "   - {$location}\n";
+		echo '   - ' . esc_html( $location ) . "\n";
 	}
 	echo "\n";
 	die( 1 );
