@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<phpunit
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:noNamespaceSchemaLocation="https://schema.phpunit.de/9.5/phpunit.xsd"
+	bootstrap="tests/phpunit/bootstrap.php"
+	backupGlobals="false"
+	colors="true"
+	beStrictAboutTestsThatDoNotTestAnything="true"
+	beStrictAboutOutputDuringTests="true"
+	beStrictAboutChangesToGlobalState="true"
+	convertErrorsToExceptions="true"
+	convertNoticesToExceptions="true"
+	convertWarningsToExceptions="true"
+	processIsolation="false"
+	stopOnFailure="false"
+	executionOrder="depends,defects"
+	forceCoversAnnotation="false"
+	verbose="true"
+>
+	<testsuites>
+		<testsuite name="default">
+			<directory>tests/phpunit</directory>
+		</testsuite>
+	</testsuites>
+	<coverage>
+		<include>
+			<directory suffix=".php">includes</directory>
+		</include>
+		<exclude>
+			<directory>vendor</directory>
+			<directory>node_modules</directory>
+			<directory>tests</directory>
+		</exclude>
+	</coverage>
+	<php>
+		<const name="WP_TESTS_PHPUNIT_POLYFILLS_PATH" value="vendor/yoast/phpunit-polyfills"/>
+		<env name="WP_TESTS_DB_NAME" value="wordpress_test"/>
+		<env name="WP_TESTS_DB_USER" value="root"/>
+		<env name="WP_TESTS_DB_PASSWORD" value=""/>
+		<env name="WP_TESTS_DB_HOST" value="localhost"/>
+		<env name="WP_TESTS_DB_TABLE_PREFIX" value="wptests_"/>
+		<env name="WP_TESTS_DOMAIN" value="example.org"/>
+		<env name="WP_TESTS_EMAIL" value="admin@example.org"/>
+		<env name="WP_TESTS_TITLE" value="Test Blog"/>
+		<env name="WP_PHP_BINARY" value="php"/>
+	</php>
+</phpunit>

@@ -17,12 +17,19 @@
 /.phpcs.xml
 /.phpcs.xml.dist
 
+# Testing infrastructure (dev-only, not needed in production)
+/tests
+/phpunit.xml.dist
+/jest.config.js
+/package.json
+/package-lock.json
+
 # Development scripts
 /release.ps1
 /fix-phpcs.ps1
 /fix-phpcs-v2.ps1
 
-# Node / build artifacts (if present)
+# Node / build artifacts
 /node_modules
 
 # OS/editor junk

@@ -1,1 +1,20 @@
 *.phar
+
+# Test coverage (generated files - these should NOT be committed)
+/tests/phpunit/coverage/
+/tests/js/coverage/
+coverage/
+
+# Node dependencies (keep package.json and package-lock.json in repo for consistency)
+node_modules/
+
+# IDE and editor files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS files
+.DS_Store
+Thumbs.db

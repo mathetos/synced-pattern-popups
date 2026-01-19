@@ -1,0 +1,17 @@
+{
+  "name": "synced-pattern-popups",
+  "version": "1.2.1",
+  "description": "WordPress plugin for synced pattern popups",
+  "scripts": {
+    "test:js": "jest",
+    "test:js:watch": "jest --watch",
+    "test:js:coverage": "jest --coverage"
+  },
+  "devDependencies": {
+    "jest": "^29.0.0",
+    "jest-environment-jsdom": "^29.0.0",
+    "@wordpress/jest-preset-default": "^11.0.0",
+    "@testing-library/jest-dom": "^6.1.0",
+    "@testing-library/dom": "^9.3.0"
+  }
+}
