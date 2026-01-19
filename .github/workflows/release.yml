@@ -5,8 +5,51 @@ on:
     types: [created]
 
 jobs:
+  php-tests:
+    name: PHP Tests
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '7.4'
+          extensions: mbstring, xml, curl, zip
+          coverage: none
+
+      - name: Install Composer dependencies
+        run: composer install --no-interaction --prefer-dist
+
+      - name: Run PHPUnit tests
+        run: vendor/bin/phpunit
+        continue-on-error: false
+
+  js-tests:
+    name: JavaScript Tests
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '18'
+
+      - name: Install npm dependencies
+        run: npm install
+
+      - name: Run Jest tests
+        run: npm run test:js
+        continue-on-error: false
+
   build:
     runs-on: ubuntu-latest
+    needs: [php-tests, js-tests]
     permissions:
       contents: write
     
