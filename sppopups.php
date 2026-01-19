@@ -1,4 +1,4 @@
-﻿<?php
+<?php
 /**
  * Plugin Name: Synced Pattern Popups
  * Description: A lightweight modal popup system that loads WordPress Synced Pattern content on demand. Trigger with class "spp-trigger-{id}".
@@ -39,6 +39,7 @@ require_once SPPOPUPS_PLUGIN_DIR . 'includes/class-sppopups-plugin.php';
 require_once SPPOPUPS_PLUGIN_DIR . 'includes/class-sppopups-review-notice.php';
 require_once SPPOPUPS_PLUGIN_DIR . 'includes/class-sppopups-shipped-patterns.php';
 require_once SPPOPUPS_PLUGIN_DIR . 'includes/class-sppopups-gallery.php';
+require_once SPPOPUPS_PLUGIN_DIR . 'includes/class-sppopups-command-palette.php';
 
 // Register activation hook to set review notice trigger date and ensure shipped patterns.
 register_activation_hook( __FILE__, 'sppopups_activate' );

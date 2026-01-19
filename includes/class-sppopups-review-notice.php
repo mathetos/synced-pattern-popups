@@ -174,15 +174,15 @@ class SPPopups_Review_Notice {
 					echo esc_html( sprintf( __( 'Enjoying %s?', 'synced-pattern-popups' ), $plugin_name ) );
 					?>
 				</h3>
-				
+
 				<p class="sppopups-review-notice-subheading">
 					<?php esc_html_e( 'Leave us a kind review on WordPress.org', 'synced-pattern-popups' ); ?>
 				</p>
-				
+
 				<div class="sppopups-review-notice-stars">
 					⭐⭐⭐⭐⭐
 				</div>
-				
+
 				<div class="sppopups-review-notice-actions">
 					<a href="<?php echo esc_url( $review_url ); ?>" target="_blank" rel="noopener noreferrer" class="sppopups-review-notice-button">
 						<?php esc_html_e( 'Leave your Review Here', 'synced-pattern-popups' ); ?>
@@ -191,7 +191,7 @@ class SPPopups_Review_Notice {
 						<?php esc_html_e( "I'd rather not (dismiss)", 'synced-pattern-popups' ); ?>
 					</a>
 				</div>
-				
+
 				<p class="sppopups-review-notice-footer">
 					<em><?php esc_html_e( 'Your review and feedback keeps us developing this plugin for more users like you!', 'synced-pattern-popups' ); ?></em>
 				</p>
