@@ -198,7 +198,14 @@ class SPPopups_Admin {
 					}
 				}
 
-				wp_safe_redirect( admin_url( 'themes.php?page=simplest-popup-patterns&tldr_settings_saved=1' ) );
+				// Get current tab from form submission, default to 'tldr' if not provided.
+				$current_tab = isset( $_POST['sppopups_current_tab'] ) ? sanitize_text_field( wp_unslash( $_POST['sppopups_current_tab'] ) ) : 'tldr';
+				// Ensure tab is valid.
+				$valid_tabs = array( 'patterns', 'tldr', 'defaults', 'how-to-use' );
+				if ( ! in_array( $current_tab, $valid_tabs, true ) ) {
+					$current_tab = 'tldr';
+				}
+				wp_safe_redirect( admin_url( 'themes.php?page=simplest-popup-patterns&tldr_settings_saved=1#' . $current_tab ) );
 				exit;
 			}
 		}
@@ -236,7 +243,14 @@ class SPPopups_Admin {
 				// Clear all transients when defaults are saved (defaults affect modal appearance).
 				$deleted_count = $this->cache_service->clear_all();
 
-				wp_safe_redirect( admin_url( 'themes.php?page=simplest-popup-patterns&defaults_settings_saved=1&cache_cleared=1&deleted=' . absint( $deleted_count ) . '#defaults' ) );
+				// Get current tab from form submission, default to 'defaults' if not provided.
+				$current_tab = isset( $_POST['sppopups_current_tab'] ) ? sanitize_text_field( wp_unslash( $_POST['sppopups_current_tab'] ) ) : 'defaults';
+				// Ensure tab is valid.
+				$valid_tabs = array( 'patterns', 'tldr', 'defaults', 'how-to-use' );
+				if ( ! in_array( $current_tab, $valid_tabs, true ) ) {
+					$current_tab = 'defaults';
+				}
+				wp_safe_redirect( admin_url( 'themes.php?page=simplest-popup-patterns&defaults_settings_saved=1&cache_cleared=1&deleted=' . absint( $deleted_count ) . '#' . $current_tab ) );
 				exit;
 			}
 		}

@@ -252,8 +252,10 @@ class SPPopups_Settings {
 		$sanitized['backdropBlur'] = isset( $value['backdropBlur'] ) ? $this->sanitize_number_range( $value['backdropBlur'], 0, 20, $defaults['backdropBlur'] ) : $defaults['backdropBlur'];
 
 		// Sanitize booleans.
-		$sanitized['showIconClose'] = isset( $value['showIconClose'] ) ? (bool) $value['showIconClose'] : $defaults['showIconClose'];
-		$sanitized['showFooterClose'] = isset( $value['showFooterClose'] ) ? (bool) $value['showFooterClose'] : $defaults['showFooterClose'];
+		// Note: Unchecked checkboxes don't appear in POST data, so we use array_key_exists to detect if they were present.
+		// If the key exists, use the value; if not, it means unchecked, so set to false.
+		$sanitized['showIconClose'] = array_key_exists( 'showIconClose', $value ) ? (bool) $value['showIconClose'] : false;
+		$sanitized['showFooterClose'] = array_key_exists( 'showFooterClose', $value ) ? (bool) $value['showFooterClose'] : false;
 
 		// Sanitize footerCloseText.
 		$sanitized['footerCloseText'] = isset( $value['footerCloseText'] ) ? sanitize_text_field( wp_unslash( $value['footerCloseText'] ) ) : $defaults['footerCloseText'];
@@ -302,8 +304,10 @@ class SPPopups_Settings {
 
 		// Only sanitize close buttons if not inheriting.
 		if ( ! $sanitized['inheritCloseButtons'] ) {
-			$sanitized['showIconClose'] = isset( $value['showIconClose'] ) ? (bool) $value['showIconClose'] : $defaults['showIconClose'];
-			$sanitized['showFooterClose'] = isset( $value['showFooterClose'] ) ? (bool) $value['showFooterClose'] : $defaults['showFooterClose'];
+			// Note: Unchecked checkboxes don't appear in POST data, so we use array_key_exists to detect if they were present.
+			// If the key exists, use the value; if not, it means unchecked, so set to false.
+			$sanitized['showIconClose'] = array_key_exists( 'showIconClose', $value ) ? (bool) $value['showIconClose'] : false;
+			$sanitized['showFooterClose'] = array_key_exists( 'showFooterClose', $value ) ? (bool) $value['showFooterClose'] : false;
 			$sanitized['footerCloseText'] = isset( $value['footerCloseText'] ) ? sanitize_text_field( wp_unslash( $value['footerCloseText'] ) ) : $defaults['footerCloseText'];
 		} else {
 			$sanitized['showIconClose'] = $defaults['showIconClose'];
@@ -359,8 +363,10 @@ class SPPopups_Settings {
 
 		// Only sanitize close buttons if not inheriting.
 		if ( ! $sanitized['inheritCloseButtons'] ) {
-			$sanitized['showIconClose'] = isset( $value['showIconClose'] ) ? (bool) $value['showIconClose'] : $defaults['showIconClose'];
-			$sanitized['showFooterClose'] = isset( $value['showFooterClose'] ) ? (bool) $value['showFooterClose'] : $defaults['showFooterClose'];
+			// Note: Unchecked checkboxes don't appear in POST data, so we use array_key_exists to detect if they were present.
+			// If the key exists, use the value; if not, it means unchecked, so set to false.
+			$sanitized['showIconClose'] = array_key_exists( 'showIconClose', $value ) ? (bool) $value['showIconClose'] : false;
+			$sanitized['showFooterClose'] = array_key_exists( 'showFooterClose', $value ) ? (bool) $value['showFooterClose'] : false;
 			$sanitized['footerCloseText'] = isset( $value['footerCloseText'] ) ? sanitize_text_field( wp_unslash( $value['footerCloseText'] ) ) : $defaults['footerCloseText'];
 		} else {
 			$sanitized['showIconClose'] = $defaults['showIconClose'];
@@ -372,11 +378,13 @@ class SPPopups_Settings {
 		$allowed_navigation = array( 'image', 'footer', 'both' );
 		$sanitized['imageNavigation'] = isset( $value['imageNavigation'] ) && in_array( $value['imageNavigation'], $allowed_navigation, true ) ? $value['imageNavigation'] : $defaults['imageNavigation'];
 
-		$sanitized['showCaptions'] = isset( $value['showCaptions'] ) ? (bool) $value['showCaptions'] : $defaults['showCaptions'];
-		$sanitized['crossfadeTransition'] = isset( $value['crossfadeTransition'] ) ? (bool) $value['crossfadeTransition'] : $defaults['crossfadeTransition'];
+		// Note: Unchecked checkboxes don't appear in POST data, so we use array_key_exists to detect if they were present.
+		// If the key exists, use the value; if not, it means unchecked, so set to false.
+		$sanitized['showCaptions'] = array_key_exists( 'showCaptions', $value ) ? (bool) $value['showCaptions'] : false;
+		$sanitized['crossfadeTransition'] = array_key_exists( 'crossfadeTransition', $value ) ? (bool) $value['crossfadeTransition'] : false;
 		$sanitized['transitionDuration'] = isset( $value['transitionDuration'] ) ? $this->sanitize_number_range( $value['transitionDuration'], 0, 2000, $defaults['transitionDuration'] ) : $defaults['transitionDuration'];
-		$sanitized['preloadAdjacentImages'] = isset( $value['preloadAdjacentImages'] ) ? (bool) $value['preloadAdjacentImages'] : $defaults['preloadAdjacentImages'];
-		$sanitized['showNavOnHover'] = isset( $value['showNavOnHover'] ) ? (bool) $value['showNavOnHover'] : $defaults['showNavOnHover'];
+		$sanitized['preloadAdjacentImages'] = array_key_exists( 'preloadAdjacentImages', $value ) ? (bool) $value['preloadAdjacentImages'] : false;
+		$sanitized['showNavOnHover'] = array_key_exists( 'showNavOnHover', $value ) ? (bool) $value['showNavOnHover'] : false;
 
 		return $sanitized;
 	}
@@ -551,6 +559,7 @@ class SPPopups_Settings {
 
 			<form method="post" action="">
 				<?php wp_nonce_field( 'sppopups_save_tldr_settings', 'sppopups_tldr_settings_nonce' ); ?>
+				<input type="hidden" name="sppopups_current_tab" id="sppopups-tldr-current-tab-alt" value="tldr" />
 
 				<table class="form-table" role="presentation">
 					<tbody>
@@ -645,6 +654,7 @@ class SPPopups_Settings {
 
 				<form method="post" action="">
 					<?php wp_nonce_field( 'sppopups_save_tldr_settings', 'sppopups_tldr_settings_nonce' ); ?>
+					<input type="hidden" name="sppopups_current_tab" id="sppopups-tldr-current-tab" value="tldr" />
 
 					<table class="form-table" role="presentation">
 						<tbody>
@@ -865,6 +875,7 @@ class SPPopups_Settings {
 
 			<form method="post" action="">
 				<?php wp_nonce_field( 'sppopups_save_defaults_settings', 'sppopups_defaults_settings_nonce' ); ?>
+				<input type="hidden" name="sppopups_current_tab" id="sppopups-defaults-current-tab" value="defaults" />
 
 				<?php $this->render_pattern_defaults_section(); ?>
 				<?php $this->render_tldr_defaults_section(); ?>
@@ -884,10 +895,14 @@ class SPPopups_Settings {
 		$saved = get_option( 'sppopups_defaults_pattern', array() );
 		$values = wp_parse_args( $saved, $defaults );
 		?>
-		<div class="sppopups-defaults-section" style="margin-top: 30px; padding: 24px; background: #f6f7f7; border: 1px solid #dcdcde; border-radius: 4px;">
-			<h3 style="margin-top: 0; margin-bottom: 16px; font-size: 16px; font-weight: 600;">
-				<?php esc_html_e( 'Pattern Popups Defaults', 'synced-pattern-popups' ); ?>
-			</h3>
+		<div class="sppopups-defaults-accordion" style="margin-top: 30px;">
+			<div class="sppopups-defaults-accordion-header">
+				<button type="button" class="sppopups-defaults-accordion-trigger" aria-expanded="false" aria-controls="sppopups-defaults-pattern-content">
+					<span class="sppopups-defaults-accordion-title"><?php esc_html_e( 'Pattern Popups Defaults', 'synced-pattern-popups' ); ?></span>
+					<span class="sppopups-defaults-accordion-icon" aria-hidden="true"></span>
+				</button>
+			</div>
+			<div id="sppopups-defaults-pattern-content" class="sppopups-defaults-accordion-content" style="display: none; padding: 24px; background: #f6f7f7; border: 1px solid #dcdcde; border-top: none; border-radius: 0 0 4px 4px;">
 
 			<table class="form-table" role="presentation">
 				<tbody>
@@ -993,6 +1008,7 @@ class SPPopups_Settings {
 					</tr>
 				</tbody>
 			</table>
+			</div>
 		</div>
 		<?php
 	}
@@ -1006,10 +1022,14 @@ class SPPopups_Settings {
 		$values = wp_parse_args( $saved, $defaults );
 		$pattern_defaults = self::get_pattern_defaults();
 		?>
-		<div class="sppopups-defaults-section" style="margin-top: 30px; padding: 24px; background: #f6f7f7; border: 1px solid #dcdcde; border-radius: 4px;">
-			<h3 style="margin-top: 0; margin-bottom: 16px; font-size: 16px; font-weight: 600;">
-				<?php esc_html_e( 'TLDR Popups Defaults', 'synced-pattern-popups' ); ?>
-			</h3>
+		<div class="sppopups-defaults-accordion" style="margin-top: 30px;">
+			<div class="sppopups-defaults-accordion-header">
+				<button type="button" class="sppopups-defaults-accordion-trigger" aria-expanded="false" aria-controls="sppopups-defaults-tldr-content">
+					<span class="sppopups-defaults-accordion-title"><?php esc_html_e( 'TLDR Popups Defaults', 'synced-pattern-popups' ); ?></span>
+					<span class="sppopups-defaults-accordion-icon" aria-hidden="true"></span>
+				</button>
+			</div>
+			<div id="sppopups-defaults-tldr-content" class="sppopups-defaults-accordion-content" style="display: none; padding: 24px; background: #f6f7f7; border: 1px solid #dcdcde; border-top: none; border-radius: 0 0 4px 4px;">
 
 			<table class="form-table" role="presentation">
 				<tbody>
@@ -1195,6 +1215,7 @@ class SPPopups_Settings {
 					</tr>
 				</tbody>
 			</table>
+			</div>
 		</div>
 		<?php
 	}
@@ -1208,10 +1229,14 @@ class SPPopups_Settings {
 		$values = wp_parse_args( $saved, $defaults );
 		$pattern_defaults = self::get_pattern_defaults();
 		?>
-		<div class="sppopups-defaults-section" style="margin-top: 30px; padding: 24px; background: #f6f7f7; border: 1px solid #dcdcde; border-radius: 4px;">
-			<h3 style="margin-top: 0; margin-bottom: 16px; font-size: 16px; font-weight: 600;">
-				<?php esc_html_e( 'Gallery Popups Defaults', 'synced-pattern-popups' ); ?>
-			</h3>
+		<div class="sppopups-defaults-accordion" style="margin-top: 30px;">
+			<div class="sppopups-defaults-accordion-header">
+				<button type="button" class="sppopups-defaults-accordion-trigger" aria-expanded="false" aria-controls="sppopups-defaults-gallery-content">
+					<span class="sppopups-defaults-accordion-title"><?php esc_html_e( 'Gallery Popups Defaults', 'synced-pattern-popups' ); ?></span>
+					<span class="sppopups-defaults-accordion-icon" aria-hidden="true"></span>
+				</button>
+			</div>
+			<div id="sppopups-defaults-gallery-content" class="sppopups-defaults-accordion-content" style="display: none; padding: 24px; background: #f6f7f7; border: 1px solid #dcdcde; border-top: none; border-radius: 0 0 4px 4px;">
 
 			<table class="form-table" role="presentation">
 				<tbody>
@@ -1430,6 +1455,7 @@ class SPPopups_Settings {
 					</tr>
 				</tbody>
 			</table>
+			</div>
 		</div>
 		<?php
 	}

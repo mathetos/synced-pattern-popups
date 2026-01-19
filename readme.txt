@@ -3,7 +3,7 @@ Contributors: webdevmattcrom
 Tags: popup, modal, synced-patterns, ai, tldr
 Requires at least: 5.8
 Tested up to: 6.9
-Stable tag: 1.2.1
+Stable tag: 1.3.0
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -198,6 +198,18 @@ PHP 7.4 or higher.
 
 == Changelog ==
 
+= 1.3.0 =
+* New: Default Settings page for configuring popup appearance defaults (Pattern, TLDR, and Gallery popups)
+* New: Settings inheritance system - TLDR and Gallery popups can inherit from Pattern defaults
+* New: Command Palette integration for quick access to plugin features
+* New: Comprehensive testing infrastructure (PHPUnit and Jest) to ensure defaults are respected
+* New: CI/CD workflows for automated testing on every commit
+* Improved: Modal scrolling behavior - modals now properly scroll long content instead of extending beyond viewport
+* Improved: CSS refactored to use custom properties for dynamic styling based on settings
+* Improved: Frontend defaults application with proper inheritance and override support
+* Fixed: Modal height constraints now work correctly with max-height settings
+* Fixed: Default width settings now properly apply to all popup types
+
 = 1.2.0 =
 * New: Added support for the Core Gallery Block with full modal integration!
 * New: Gallery block settings panel with modal size, close buttons, and image navigation options
@@ -269,6 +281,9 @@ PHP 7.4 or higher.
 * Full translation support
 
 == Upgrade Notice ==
+
+= 1.3.0 =
+Major update introducing default settings page and Command Palette integration. Configure default popup appearance (width, height, colors, close buttons) for Pattern, TLDR, and Gallery popups. TLDR and Gallery can inherit from Pattern defaults. Improved modal scrolling for long content. Comprehensive testing infrastructure added. Recommended for all users.
 
 = 1.2.0 =
 Major refactor of modal state management for improved stability, maintainability, and debugging. Fixes an issue with gallery random order. Addresses Plugin Check warnings. Recommended for all users.

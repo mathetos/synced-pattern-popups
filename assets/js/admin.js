@@ -149,6 +149,11 @@
 			} else {
 				window.location.hash = '#' + tabId;
 			}
+
+			// Update form tab fields when tab switches
+			if (typeof window.sppopupsUpdateTabFields === 'function') {
+				window.sppopupsUpdateTabFields();
+			}
 		}
 
 		// Handle tab link clicks
@@ -175,7 +180,7 @@
 		// Handle initial hash or default to 'patterns'
 		function handleInitialTab() {
 			var hash      = window.location.hash.substring( 1 );
-			var validTabs = ['patterns', 'tldr', 'how-to-use'];
+			var validTabs = ['patterns', 'tldr', 'defaults', 'how-to-use'];
 
 			if (hash && validTabs.indexOf( hash ) !== -1) {
 				switchTab( hash );
@@ -338,6 +343,9 @@
 			}
 		);
 
+		// Initialize form tab persistence first (so it's available when tabs initialize)
+		initFormTabPersistence();
+
 		// Initialize tabs
 		initTabs();
 
@@ -349,6 +357,59 @@
 
 		// Initialize defaults inheritance toggles
 		initDefaultsInheritanceToggles();
+
+		// Initialize defaults accordions
+		initDefaultsAccordions();
+	}
+
+	/**
+	 * Initialize defaults accordions
+	 */
+	function initDefaultsAccordions() {
+		var accordionTriggers = document.querySelectorAll( '.sppopups-defaults-accordion-trigger' );
+
+		accordionTriggers.forEach(
+			function (trigger) {
+				trigger.addEventListener(
+					'click',
+					function () {
+						var isExpanded = trigger.getAttribute( 'aria-expanded' ) === 'true';
+						var contentId = trigger.getAttribute( 'aria-controls' );
+						var content = document.getElementById( contentId );
+
+						if ( ! content) {
+							return;
+						}
+
+						// Toggle state
+						var newExpanded = ! isExpanded;
+						trigger.setAttribute( 'aria-expanded', newExpanded.toString() );
+
+						// Toggle content visibility
+						if (newExpanded) {
+							// Set display first, then trigger transition
+							content.style.display = 'block';
+							// Force reflow to ensure display is applied
+							content.offsetHeight;
+							// Add class to trigger transition
+							content.classList.add( 'is-open' );
+						} else {
+							// Remove class to trigger transition
+							content.classList.remove( 'is-open' );
+							// Wait for transition to complete before hiding
+							setTimeout(
+								function () {
+									if ( ! content.classList.contains( 'is-open' )) {
+										content.style.display = 'none';
+									}
+								},
+								300
+							);
+						}
+					}
+				);
+			}
+		);
 	}
 
 	/**
@@ -623,6 +684,99 @@
 		galleryCloseButtonsRadios.forEach(
 			function (radio) {
 				radio.addEventListener( 'change', toggleGalleryCloseButtons );
+			}
+		);
+	}
+
+	/**
+	 * Initialize form tab persistence
+	 * Updates hidden tab fields before form submission to preserve current tab
+	 */
+	function initFormTabPersistence() {
+		// Get all hidden tab input fields
+		var tabFields = document.querySelectorAll( 'input[name="sppopups_current_tab"]' );
+
+		if ( ! tabFields.length) {
+			return;
+		}
+
+		// Function to get current tab from URL hash or active tab
+		function getCurrentTab() {
+			// First, try to get from URL hash
+			var hash = window.location.hash.substring( 1 );
+			var validTabs = ['patterns', 'tldr', 'defaults', 'how-to-use'];
+			if (hash && validTabs.indexOf( hash ) !== -1) {
+				return hash;
+			}
+
+			// If no hash, try to detect active tab from DOM
+			var activeTabLink = document.querySelector( '.sppopups-tab-nav-link.active' );
+			if (activeTabLink) {
+				var href = activeTabLink.getAttribute( 'href' );
+				if (href && href.startsWith( '#' )) {
+					var tabId = href.substring( 1 );
+					if (validTabs.indexOf( tabId ) !== -1) {
+						return tabId;
+					}
+				}
+			}
+
+			// Check which tab content is visible
+			var activeTabContent = document.querySelector( '.sppopups-tab-content.active' );
+			if (activeTabContent) {
+				var tabId = activeTabContent.id.replace( 'sppopups-tab-', '' );
+				if (validTabs.indexOf( tabId ) !== -1) {
+					return tabId;
+				}
+			}
+
+			// Default to patterns if nothing found
+			return 'patterns';
+		}
+
+		// Update all hidden tab fields with current tab
+		function updateTabFields() {
+			var currentTab = getCurrentTab();
+			tabFields.forEach(
+				function (field) {
+					field.value = currentTab;
+				}
+			);
+		}
+
+		// Make updateTabFields available globally so switchTab can call it
+		window.sppopupsUpdateTabFields = updateTabFields;
+
+		// Update on page load (with a small delay to ensure tabs are initialized)
+		setTimeout(
+			function () {
+				updateTabFields();
+			},
+			100
+		);
+
+		// Update when hash changes (tab switch)
+		window.addEventListener(
+			'hashchange',
+			function () {
+				updateTabFields();
+			}
+		);
+
+		// Update before form submission to ensure we have the latest tab
+		tabFields.forEach(
+			function (field) {
+				var form = field.closest( 'form' );
+				if (form) {
+					form.addEventListener(
+						'submit',
+						function (e) {
+							// Update immediately before submission
+							updateTabFields();
+						},
+						false
+					);
+				}
 			}
 		);
 	}

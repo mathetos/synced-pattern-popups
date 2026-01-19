@@ -1040,3 +1040,105 @@
 }
 
 /* Gallery Block Editor Styles - Using standard TextControl, no custom styles needed */
+
+/* Defaults Accordion Styles */
+.sppopups-defaults-accordion {
+	border: 1px solid #dcdcde;
+	border-radius: 4px;
+	background: #fff;
+	overflow: hidden;
+}
+
+.sppopups-defaults-accordion-header {
+	border-bottom: 1px solid #dcdcde;
+}
+
+.sppopups-defaults-accordion:last-of-type {
+	margin-bottom: 20px;
+}
+
+.sppopups-defaults-accordion-trigger {
+	width: 100%;
+	padding: 16px 24px;
+	background: #f6f7f7;
+	border: none;
+	cursor: pointer;
+	text-align: left;
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
+	font-size: 16px;
+	font-weight: 600;
+	color: #1d2327;
+	transition: background-color 0.15s ease, color 0.15s ease;
+	position: relative;
+}
+
+.sppopups-defaults-accordion-trigger:hover {
+	background: #f0f0f1;
+	color: #2271b1;
+}
+
+.sppopups-defaults-accordion-trigger:focus {
+	outline: none;
+	box-shadow: inset 0 0 0 1px #2271b1;
+}
+
+.sppopups-defaults-accordion-trigger[aria-expanded="true"] {
+	background: #f6f7f7;
+	border-bottom: 1px solid #dcdcde;
+}
+
+.sppopups-defaults-accordion-title {
+	flex: 1;
+}
+
+.sppopups-defaults-accordion-icon {
+	width: 20px;
+	height: 20px;
+	position: relative;
+	flex-shrink: 0;
+	margin-left: 12px;
+	transition: transform 0.3s ease;
+}
+
+.sppopups-defaults-accordion-icon::before,
+.sppopups-defaults-accordion-icon::after {
+	content: '';
+	position: absolute;
+	background: currentColor;
+	transition: transform 0.3s ease;
+}
+
+.sppopups-defaults-accordion-icon::before {
+	width: 12px;
+	height: 2px;
+	left: 50%;
+	top: 50%;
+	transform: translate(-50%, -50%);
+}
+
+.sppopups-defaults-accordion-icon::after {
+	width: 2px;
+	height: 12px;
+	left: 50%;
+	top: 50%;
+	transform: translate(-50%, -50%);
+}
+
+.sppopups-defaults-accordion-trigger[aria-expanded="true"] .sppopups-defaults-accordion-icon::after {
+	transform: translate(-50%, -50%) rotate(90deg);
+	opacity: 0;
+}
+
+.sppopups-defaults-accordion-content {
+	overflow: hidden;
+	transition: opacity 0.3s ease;
+	opacity: 0;
+	max-height: 0;
+}
+
+.sppopups-defaults-accordion-content.is-open {
+	opacity: 1;
+	max-height: none;
+}
