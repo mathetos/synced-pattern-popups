@@ -9,6 +9,9 @@
 /.gitattributes
 /.distignore
 
+# GitHub-only documentation (not for WordPress.org)
+/README.md
+
 # Composer / PHPCS tooling (dev-only for this plugin)
 /vendor
 /composer.json
