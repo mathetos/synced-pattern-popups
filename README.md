@@ -130,6 +130,41 @@ Relevant files:
 - `assets/js/admin.js` - admin UI behavior
 - `assets/css/modal.css` / `assets/css/admin.css` - styling
 
+## Running tests locally
+
+Before pushing to GitHub, run tests locally to catch issues early:
+
+### Run all tests
+```powershell
+.\test.ps1
+```
+
+### Run only PHP tests
+```powershell
+.\test.ps1 -PHPOnly
+```
+
+### Run only JavaScript tests
+```powershell
+.\test.ps1 -JSOnly
+```
+
+### Manual test commands
+
+**PHP Tests:**
+```powershell
+composer install
+php vendor/bin/phpunit
+```
+
+**JavaScript Tests:**
+```powershell
+npm install
+npm run test:js
+```
+
+The test script automatically installs dependencies if needed and provides clear pass/fail feedback.
+
 ## Support
 
 - WordPress.org support forum: https://wordpress.org/support/plugin/synced-pattern-popups/
