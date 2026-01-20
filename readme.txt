@@ -202,6 +202,10 @@ PHP 7.4 or higher.
 1. An example Synced Pattern Popup using a 3rd party block: KadenceWP Blocks
 2. The Synced Patterns Popup settings screen listing your sites Synced Patterns. From here you can copy the trigger code, edit the pattern, delete the pattern, or clear the pattern transient cache.
 3. The TLDR settings panel, showing it enabled (because AI Experiments is enabled and configured correctly). Here you can customize your prompt and your TLDR cache length.
+4. The "Defaults" settings screen. It contains three sections (1) The Pattern modal settings (2) the TLDR Popup Defaults (3) Gallery Popups Defaults. 
+5. A "Terms and Conditions" modal, illustrating how tall content scrolls inside the modal. 
+6. An example of the Gallery block inside our modal, with image navigation on the image and below as well as caption support. 
+7. The Gallery block showing the "Open in Synced Pattern Popups" option. Notice also the settings in the block sidebar settings that control the modal width, close buttons, and navigation options. 
 
 == Changelog ==
 
