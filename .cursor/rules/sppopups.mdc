@@ -1,0 +1,35 @@
+---
+alwaysApply: true
+---
+## Quality gates (run before considering a task "done")
+- For any PHP changes in the Synced Pattern Popups plugin, run WP-CLI Plugin Check against the plugin and fix all ERRORS before stopping.
+  - Command (PowerShell): .\wp.ps1 plugin check synced-pattern-popups --path=.
+- If Plugin Check reports warnings, address them when low-risk; otherwise add an inline justification (phpcs ignore) only when appropriate.
+- After changes that affect frontend behavior (AJAX, modal JS/CSS), verify: modal opens, loads content, closes, and restores scroll/focus.
+
+## WP-CLI workflow (prefer runtime verification over speculation)
+- Prefer verifying WordPress/runtime facts via WP-CLI rather than assumptions.
+  Examples:
+  - .\wp.ps1 core version --path=.
+  - .\wp.ps1 plugin list --path=.
+  - .\wp.ps1 option get <option_name> --path=.
+  - .\wp.ps1 post list --post_type=wp_block --path=.
+- When debugging, use WP-CLI to reproduce minimal cases (e.g., fetch a specific wp_block post, render content, confirm meta).
+
+## Abilities API + MCP Adapter workflow
+- When implementing or changing “abilities”, always:
+  - confirm Abilities API availability at runtime (WP version gating),
+  - register abilities on the required actions,
+  - provide at least one concrete test invocation per ability.
+- Prefer testing abilities through the MCP Adapter interface when possible (list + execute) to validate the machine-readable contract, not just PHP output.
+
+## WordPress coding + security defaults (must be applied)
+- Always use capability checks for admin actions; nonces for any state change; sanitize input (wp_unslash + sanitize_*), and escape output (esc_html/esc_attr/wp_kses_post).
+- For unauthenticated AJAX: validate input strictly, rate limit, and return generic errors (avoid information disclosure).
+- Never enqueue editor-only styles on the frontend; explicitly filter editor handles if collecting dynamic assets.
+
+## Caching invariants (avoid regressions)
+- Any cache key prefix/group changes must include:
+  - a cache-clear pathway (admin button already exists),
+  - backward compatibility handling if old formats may exist,
+  - a note on expected TTL behavior.

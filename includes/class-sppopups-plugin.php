@@ -190,16 +190,9 @@ class SPPopups_Plugin {
 				return true;
 			}
 
-			// Check for Gallery blocks with sppopup linkTo option.
-			if ( has_block( 'core/gallery', $post->post_content ) ) {
-				$blocks = parse_blocks( $post->post_content );
-				foreach ( $blocks as $block ) {
-					if ( 'core/gallery' === $block['blockName'] &&
-						isset( $block['attrs']['linkTo'] ) &&
-						'sppopup' === $block['attrs']['linkTo'] ) {
-						return true;
-					}
-				}
+			// Check for Gallery blocks with sppopup linkTo option (including nested, e.g. in columns).
+			if ( $this->content_has_sppopup_gallery( $post->post_content ) ) {
+				return true;
 			}
 		}
 
@@ -218,6 +211,11 @@ class SPPopups_Plugin {
 					}
 				}
 			}
+		}
+
+		// Check Kadence Elements for triggers.
+		if ( $this->has_kadence_element_triggers() ) {
+			return true;
 		}
 
 		// Check widget output if widgets are active (cache result to avoid repeated checks).
@@ -276,26 +274,187 @@ class SPPopups_Plugin {
 	}
 
 	/**
+	 * Check if an array of blocks (and nested innerBlocks) contains a core/gallery with linkTo sppopup.
+	 *
+	 * @param array $blocks Parsed blocks (e.g. from parse_blocks).
+	 * @return bool True if any gallery has linkTo 'sppopup'.
+	 */
+	private function blocks_contain_sppopup_gallery( array $blocks ) {
+		foreach ( $blocks as $block ) {
+			if ( 'core/gallery' === ( $block['blockName'] ?? '' ) &&
+				isset( $block['attrs']['linkTo'] ) &&
+				'sppopup' === $block['attrs']['linkTo'] ) {
+				return true;
+			}
+			if ( ! empty( $block['innerBlocks'] ) && $this->blocks_contain_sppopup_gallery( $block['innerBlocks'] ) ) {
+				return true;
+			}
+		}
+		return false;
+	}
+
+	/**
+	 * Check if content contains a core/gallery block with linkTo sppopup (at any nesting level).
+	 *
+	 * @param string $content Post/content block markup.
+	 * @return bool True if such a gallery is present.
+	 */
+	private function content_has_sppopup_gallery( $content ) {
+		if ( empty( $content ) ) {
+			return false;
+		}
+		if ( ! has_block( 'core/gallery', $content ) ) {
+			return false;
+		}
+		$blocks = parse_blocks( $content );
+		return $this->blocks_contain_sppopup_gallery( $blocks );
+	}
+
+	/**
+	 * Check if Kadence Elements contain popup triggers
+	 *
+	 * @return bool True if triggers found in active Elements
+	 */
+	private function has_kadence_element_triggers() {
+		// Check if Kadence Elements post type exists.
+		if ( ! post_type_exists( 'kadence_element' ) ) {
+			return false;
+		}
+
+		// Cache result to avoid repeated queries on the same page load.
+		static $element_check_done   = false;
+		static $element_has_triggers  = false;
+
+		if ( $element_check_done ) {
+			return $element_has_triggers;
+		}
+
+		$element_check_done = true;
+
+		// Get all published Kadence Elements.
+		$elements = get_posts(
+			array(
+				'post_type'      => 'kadence_element',
+				'post_status'    => 'publish',
+				'posts_per_page' => -1,
+				'fields'         => 'ids', // Only get IDs for performance.
+			)
+		);
+
+		if ( empty( $elements ) ) {
+			return false;
+		}
+
+		// Filter to allow other code to determine which Elements should be checked.
+		// This is useful if Elements have display conditions we need to respect.
+		$elements_to_check = apply_filters( 'sppopups_kadence_elements_to_check', $elements );
+
+		if ( empty( $elements_to_check ) ) {
+			return false;
+		}
+
+		// Check each Element's content for triggers.
+		foreach ( $elements_to_check as $element_id ) {
+			$element = get_post( $element_id );
+			if ( ! $element || ! isset( $element->post_content ) ) {
+				continue;
+			}
+
+			// Check if this Element should be displayed on the current page.
+			// This filter allows themes/plugins to indicate display conditions.
+			$should_display = apply_filters( 'sppopups_kadence_element_should_display', true, $element_id, $element );
+
+			if ( ! $should_display ) {
+				continue;
+			}
+
+			// Check the Element's content for triggers.
+			if ( $this->content_has_triggers( $element->post_content ) ) {
+				$element_has_triggers = true;
+				return true;
+			}
+
+			// Also check for Gallery blocks with sppopup linkTo option (including nested, e.g. in Kadence row/column).
+			if ( $this->content_has_sppopup_gallery( $element->post_content ) ) {
+				$element_has_triggers = true;
+				return true;
+			}
+		}
+
+		return false;
+	}
+
+	/**
 	 * Check if page contains galleries with sppopup link option
+	 *
+	 * Includes current post content and Kadence Elements (so gallery.js is enqueued when an Element has a gallery).
 	 *
 	 * @return bool True if galleries are present
 	 */
 	private function has_galleries() {
-		// Get page content.
 		global $post;
-		if ( ! $post || ! isset( $post->post_content ) ) {
+
+		// Check current post content (including nested blocks).
+		if ( $post && isset( $post->post_content ) && $this->content_has_sppopup_gallery( $post->post_content ) ) {
+			return true;
+		}
+
+		// Check Kadence Elements: if any displayed Element has a sppopup gallery, we need gallery.js.
+		if ( $this->has_kadence_element_galleries() ) {
+			return true;
+		}
+
+		return false;
+	}
+
+	/**
+	 * Check if any displayed Kadence Element contains a gallery with sppopup linkTo.
+	 *
+	 * @return bool True if at least one such gallery is present in active Elements.
+	 */
+	private function has_kadence_element_galleries() {
+		if ( ! post_type_exists( 'kadence_element' ) ) {
 			return false;
 		}
 
-		// Check for Gallery blocks with sppopup linkTo option (same logic as has_popup_triggers).
-		if ( has_block( 'core/gallery', $post->post_content ) ) {
-			$blocks = parse_blocks( $post->post_content );
-			foreach ( $blocks as $block ) {
-				if ( 'core/gallery' === $block['blockName'] &&
-					isset( $block['attrs']['linkTo'] ) &&
-					'sppopup' === $block['attrs']['linkTo'] ) {
-					return true;
-				}
+		static $element_gallery_check_done = false;
+		static $element_has_gallery = false;
+
+		if ( $element_gallery_check_done ) {
+			return $element_has_gallery;
+		}
+
+		$element_gallery_check_done = true;
+
+		$elements = get_posts(
+			array(
+				'post_type'      => 'kadence_element',
+				'post_status'    => 'publish',
+				'posts_per_page' => -1,
+				'fields'         => 'ids',
+			)
+		);
+
+		if ( empty( $elements ) ) {
+			return false;
+		}
+
+		$elements_to_check = apply_filters( 'sppopups_kadence_elements_to_check', $elements );
+		if ( empty( $elements_to_check ) ) {
+			return false;
+		}
+
+		foreach ( $elements_to_check as $element_id ) {
+			$element = get_post( $element_id );
+			if ( ! $element || ! isset( $element->post_content ) ) {
+				continue;
+			}
+			if ( ! apply_filters( 'sppopups_kadence_element_should_display', true, $element_id, $element ) ) {
+				continue;
+			}
+			if ( $this->content_has_sppopup_gallery( $element->post_content ) ) {
+				$element_has_gallery = true;
+				return true;
 			}
 		}
 
