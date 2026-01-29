@@ -208,6 +208,40 @@
 	width: 100%;
 }
 
+/*
+ * Defensive layout: theme alignment classes (alignfull, alignwide) are designed for
+ * full viewport width on the page. Inside the modal they must stay within the
+ * modal width. Override viewport-based width/margins so content remains responsive.
+ */
+.sppopups-content .alignfull,
+.sppopups-content .alignwide {
+	width: 100% !important;
+	max-width: 100% !important;
+	margin-left: 0 !important;
+	margin-right: 0 !important;
+	box-sizing: border-box;
+}
+
+/* Theme-specific: Kadence and others target .entry-content .alignfull */
+.sppopups-content .wp-block-group.alignfull,
+.sppopups-content .wp-block-group.alignwide,
+.sppopups-content [class*="alignfull"],
+.sppopups-content [class*="alignwide"] {
+	width: 100% !important;
+	max-width: 100% !important;
+	margin-left: 0 !important;
+	margin-right: 0 !important;
+	box-sizing: border-box;
+}
+
+/* Ensure all direct and nested block content in the modal respects container width */
+.sppopups-content .wp-block-group,
+.sppopups-content .wp-block-cover,
+.sppopups-content .wp-block-columns {
+	max-width: 100%;
+	box-sizing: border-box;
+}
+
 @keyframes sppopups-fade-in {
 	from {
 		opacity: 0;
