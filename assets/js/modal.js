@@ -544,11 +544,21 @@
 
 	/**
 	 * Show background elements to assistive technology
+	 *
+	 * Restores all body children except the modal. We iterate the live DOM instead of
+	 * relying only on hiddenBackgroundElements so that chained opens (e.g. opening
+	 * a pattern from inside another pattern) still restore correctly: the second open
+	 * does not re-push elements into hiddenBackgroundElements (they already have
+	 * aria-hidden), so the array can be empty when we close; iterating body children
+	 * ensures we always remove inert and aria-hidden from the page.
 	 */
 	function showBackgroundToAT() {
-		// Remove inert from all elements
-		hiddenBackgroundElements.forEach(
+		var bodyChildren = Array.prototype.slice.call( body.children );
+		bodyChildren.forEach(
 			function (element) {
+				if (element.id === 'sppopups-modal') {
+					return;
+				}
 				if ('inert' in element) {
 					element.inert = false;
 				}
