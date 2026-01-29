@@ -28,10 +28,8 @@
 /package.json
 /package-lock.json
 
-# Development scripts
-/release.ps1
-/fix-phpcs.ps1
-/fix-phpcs-v2.ps1
+# Development scripts (exclude all PowerShell scripts from zip)
+*.ps1
 
 # Node / build artifacts
 /node_modules
