@@ -21,3 +21,4 @@ node_modules/
 # OS files
 .DS_Store
 Thumbs.db
+vendor/composer/installed.php
