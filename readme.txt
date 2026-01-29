@@ -3,7 +3,7 @@ Contributors: webdevmattcrom
 Tags: popup, modal, synced-patterns, ai, tldr
 Requires at least: 5.8
 Tested up to: 6.9
-Stable tag: 1.3.0
+Stable tag: 1.3.1
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -209,6 +209,12 @@ PHP 7.4 or higher.
 
 == Changelog ==
 
+= 1.3.1 =
+* Fixed: Kadence Elements with a Gallery set to Synced Pattern Popup are now detected when the gallery is nested (e.g. inside row/column blocks)
+* Fixed: Defensive CSS so pattern content with alignfull/alignwide stays within the modal on any theme
+* Fixed: Chained popups (opening a pattern from inside another pattern) no longer leave the page unclickable after closing
+* Improved: Composer vendor directory is now in .gitignore
+
 = 1.3.0 =
 * New: Default Settings page for configuring popup appearance defaults (Pattern, TLDR, and Gallery popups)
 * New: Settings inheritance system - TLDR and Gallery popups can inherit from Pattern defaults
@@ -292,6 +298,9 @@ PHP 7.4 or higher.
 * Full translation support
 
 == Upgrade Notice ==
+
+= 1.3.1 =
+Maintenance release. Fixes Kadence Elements galleries in nested blocks, modal layout with alignfull/alignwide on any theme, and chained popups leaving the page unclickable. Recommended for all users.
 
 = 1.3.0 =
 Major update introducing default settings page and Command Palette integration. Configure default popup appearance (width, height, colors, close buttons) for Pattern, TLDR, and Gallery popups. TLDR and Gallery can inherit from Pattern defaults. Improved modal scrolling. Recommended for all users.
