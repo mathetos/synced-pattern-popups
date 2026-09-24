@@ -2,7 +2,7 @@
 Contributors: webdevmattcrom
 Tags: popup, modal, synced-patterns, ai, tldr
 Requires at least: 5.8
-Tested up to: 6.9
+Tested up to: 7.1
 Stable tag: 1.3.1
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
@@ -191,7 +191,7 @@ Yes! The plugin uses minimal CSS. You can override styles in your theme's CSS us
 
 = What WordPress version is required? =
 
-WordPress 5.8 or higher. The plugin is tested up to WordPress 6.9.
+WordPress 5.8 or higher. The plugin is tested up to WordPress 7.1.
 
 = What PHP version is required? =
 
