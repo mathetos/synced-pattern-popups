@@ -62,7 +62,8 @@ jobs:
       - name: Extract version from tag
         id: version
         run: |
-          VERSION=${GITHUB_REF#refs/tags/}
+          RAW_VERSION=${GITHUB_REF#refs/tags/}
+          VERSION=${RAW_VERSION#v}
           echo "version=$VERSION" >> $GITHUB_OUTPUT
           echo "Extracted version: $VERSION"
       
@@ -106,26 +107,26 @@ jobs:
         id: zip
         run: |
           VERSION="${{ steps.version.outputs.version }}"
-          ZIP_NAME="sppopups-${VERSION}.zip"
+          ZIP_NAME="synced-pattern-popups-${VERSION}.zip"
           
           echo "Creating ZIP: $ZIP_NAME"
           
           # Create temporary directory for ZIP contents
-          mkdir -p /tmp/sppopups-release
+          mkdir -p /tmp/synced-pattern-popups-release
           
           # Copy plugin files to temp directory, excluding unwanted files
-          # This ensures ZIP extracts to sppopups/ folder (WordPress standard)
+          # This ensures ZIP extracts to synced-pattern-popups/ folder (WordPress standard)
           rsync -av \
             --exclude-from='.distignore' \
-            ./ /tmp/sppopups-release/sppopups/
+            ./ /tmp/synced-pattern-popups-release/synced-pattern-popups/
           
           # Create ZIP from temporary directory
-          cd /tmp/sppopups-release
-          zip -r "${GITHUB_WORKSPACE}/${ZIP_NAME}" sppopups/
+          cd /tmp/synced-pattern-popups-release
+          zip -r "${GITHUB_WORKSPACE}/${ZIP_NAME}" synced-pattern-popups/
           cd "${GITHUB_WORKSPACE}"
           
           # Clean up temporary directory
-          rm -rf /tmp/sppopups-release
+          rm -rf /tmp/synced-pattern-popups-release
           
           # Verify ZIP was created
           if [ ! -f "${ZIP_NAME}" ]; then
@@ -137,11 +138,11 @@ jobs:
           ZIP_SIZE=$(stat -c%s "${ZIP_NAME}" 2>/dev/null || echo "unknown")
           echo "ZIP file created: ${ZIP_NAME} (${ZIP_SIZE} bytes)"
           
-          # Verify ZIP structure (should contain sppopups/ folder)
-          if ! unzip -l "${ZIP_NAME}" | grep -q "sppopups/"; then
+          # Verify ZIP structure (should contain synced-pattern-popups/ folder)
+          if ! unzip -l "${ZIP_NAME}" | grep -q "synced-pattern-popups/"; then
             echo "Warning: ZIP structure may be incorrect"
           else
-            echo "ZIP structure verified: contains sppopups/ folder"
+            echo "ZIP structure verified: contains synced-pattern-popups/ folder"
           fi
           
           # Output ZIP path
