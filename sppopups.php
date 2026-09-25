@@ -1,10 +1,11 @@
 <?php
 /**
  * Plugin Name: Synced Pattern Popups
+ * Plugin URI: https://mattc.link/synced-pattern-popups
  * Description: A lightweight modal popup system that loads WordPress Synced Pattern content on demand. Trigger with class "spp-trigger-{id}".
  * Version: 1.3.1
- * Author: Matt Cromwell
- * Author URI: https://www.mattcromwell.com
+ * Author: Roots & Fruit
+ * Author URI: https://mattc.link/synced-pattern-popups
  * License: GPL v2 or later
  * License URI: https://www.gnu.org/licenses/gpl-2.0.html
  * Text Domain: synced-pattern-popups
